@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で作ったタイマです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] タイマ</title>
+<style type="text/css">
+h1 {
+	font-size: 1em;
+	margin: 0;
+}
+#button0, #button1 {
+	height: 1.8em;
+	width: 10em;
+}
+#maintime {
+	font-weight: bold;
+	font-size: 1.2em;
+	text-align: left;
+}
+</style>
+<script type="text/javascript" src="uai.js" charset="UTF-8"></script>
+<script type="text/javascript" src="titlechange.js" charset="UTF-8"></script>
+<script type="text/javascript">
+// 定数宣言
+var msPerSecond = 1000;
+var msPerMinute = msPerSecond * 60;
+var msPerHour   = msPerMinute * 60;
+
+// グローバル変数
+var markDate;            // 最後にスタートした時刻
+var markLeft;            // markDate時点での残り時間
+var isTimerSet = false;  // 残り時間が0でないならtrue
+var isTiming   = false;  // 中断中はfalse
+var intervalID;
+
+// グローバルオブジェクト
+var el1, el2, el3, elh, elm, els, elc;
+
+// 初期化
+function init() {
+	el1 = document.getElementById("input1");
+	el2 = document.getElementById("input2");
+	el3 = document.getElementById("input3");
+	elh = document.getElementById("maintimehours");
+	elm = document.getElementById("maintimeminutes");
+	els = document.getElementById("maintimeseconds");
+	elc = document.getElementById("maintimemss");
+	
+	el1.focus();
+}
+
+// スタート/ストップ
+function startStop() {
+	var nowDate = new Date().getTime();
+	
+	if (!isTimerSet) {  // 新規計測開始
+		var hours   = el1.value;
+		var minutes = el2.value;
+		var seconds = el3.value;
+		
+		el1.value = "";
+		el2.value = "";
+		el3.value = "";
+		hours   = parseFloat(hours);
+		minutes = parseFloat(minutes);
+		seconds = parseFloat(seconds);
+		if (isNaN(hours)   || hours   < 0) hours   = 0;
+		if (isNaN(minutes) || minutes < 0) minutes = 0;
+		if (isNaN(seconds) || seconds < 0) seconds = 0;
+		markLeft = hours * msPerHour +
+		           minutes * msPerMinute + seconds * msPerSecond;
+		if (markLeft > 0) {
+			markLeft = Math.min(markLeft, 1000000 * msPerHour);
+			isTimerSet = isTiming = true;
+			markDate = nowDate;
+			displayMaintime(nowDate, false);
+			intervalID = window.setInterval("interval();", 40);
+		}
+	} else if (isTiming) {
+		window.clearInterval(intervalID);
+		isTiming = false;
+		markLeft = displayMaintime(nowDate, true);
+	} else {
+		isTiming = true;
+		markDate = nowDate;
+		displayMaintime(nowDate, false);
+		intervalID = window.setInterval("interval();", 40);
+	}
+}
+
+// キャンセル
+function cancel() {
+	if (isTimerSet) {
+		window.clearInterval(intervalID);
+		elh.innerHTML = "0";
+		elm.innerHTML = "00";
+		els.innerHTML = "00";
+		elc.innerHTML = "000";
+		setDocumentTitle("[#JavaScript] タイマ");
+	}
+	isTimerSet = isTiming = false;
+}
+
+function interval() {
+	if (displayMaintime(new Date().getTime(), false) <= 0) {
+		cancel();
+		window.alert("Timer - 指定した時間が経過しました!!");
+	}
+}
+
+function displayMaintime(nowDate, msFull) {
+	var timeToShow = markLeft + markDate - nowDate;
+	if (timeToShow > 0) {
+		var time = timeToShow;
+		var ms = time % msPerSecond;
+		time -= ms;
+		var s = time % msPerMinute;
+		time -= s;
+		s /= msPerSecond;
+		var m = time % msPerHour;
+		time -= m;
+		m /= msPerMinute;
+		var h = time / msPerHour;
+		
+		if (msFull) {
+			ms = (ms >= 100 ? "" : ms >= 10 ? "0" : "00") + ms;
+		} else {
+			ms = Math.floor(ms / 100);
+		}
+		
+		if (s < 10) s = "0" + s;
+		if (m < 10) m = "0" + m;
+		
+		elc.innerHTML = ms;
+		els.innerHTML = s;
+		elm.innerHTML = m;
+		elh.innerHTML = h;
+		setDocumentTitle(h + ":" + m + ":" + s + " - タイマ");
+	}
+	return timeToShow;
+}
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+タイマ
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 2.3.3 (2005-11-19)
+</address>
+<noscript>
+<div><strong>
+このタイマは JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<form id="mainform" action=""
+ onsubmit="startStop(); return false;"
+ onreset="cancel(); return true;">
+<div>
+<input type="text" id="input1" size="2" value="" accesskey="h"><abbr title="時間">h</abbr>
+<input type="text" id="input2" size="2" value="" accesskey="m"><abbr title="分">m</abbr>
+<input type="text" id="input3" size="2" value="" accesskey="s"><abbr title="秒">s</abbr>
+</div>
+<div>
+<input type="submit" id="button0" value="スタート / ストップ"
+ title="時間の計測を開始・中断・再開します。">
+<br>
+<input type="reset" id="button1" value="取消"
+ title="時間の計測を中止します。">
+</div>
+</form>
+<div id="maintime">
+<span id="maintimehours">0</span
+>:<span id="maintimeminutes">00</span
+>:<span id="maintimeseconds">00</span
+>.<span id="maintimemss">000</span>
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2004-09-21 v2.0
+2004-10-09 v2.1
+2004-11-27 v2.2
+2005-10-16 v2.3
+2005-10-27 v2.3.2
+2005-11-19 v2.3.3
+-->

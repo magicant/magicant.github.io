@@ -1,0 +1,958 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で整数の素数判定・素因数分解を行います。また、二数の公約数・最小公約数を計算します。">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 素数判定 &amp; 素因数分解 &amp; 公約数 &amp; 最小公倍数</title>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript">
+// グローバルオブジェクト
+var eli, elj, elb, elo, elc, eld;
+
+// 定数宣言
+var BF1Min = 2;
+var BF1Max = 65521;                  // 2**16
+var BF2Min = 65537;
+var BF2Max = 1000000;
+var SprpLimit   = 341605000000000;   // これ未満ならミラー・ラビン判定で確実に素数判定できる。
+var RhoLimit    = 1 << 11;
+var FermatRange = 100000;
+var PM1Limit    = 1000;
+var PM1Max      = 4000;
+var MaxValue    = 9007199254740992;  // 2**53
+var MaxValueD2  = MaxValue / 2;
+
+var MORE_BUTTON  = '<input type="button" value="さらにミラー判定" onclick="mainf3();">';
+var RETRY_BUTTON = '<input type="button" value="さらに素因数を探す" onclick="mainf2();">';
+
+
+var lastResult;  // elo.innerHTMLに対応する結果情報オブジェクト
+
+
+// 数値配列の並べ替え
+Array.prototype.sortNumbers = function sortNumbers() {
+	return this.sort(function(x, y) { return x - y; });
+};
+
+// ハッシュテーブルエントリ
+function HashtableEntry(key, value) {
+	this.key = key;
+	this.value = value;
+}
+
+// 初期化
+function init() {
+	eli = document.getElementById("ftestvalue");
+	elj = document.getElementById("mtestvalue");
+	elb = document.getElementById("mtestbase");
+	elo = document.getElementById("result");
+	elc = document.getElementById("ctestvalue1");
+	eld = document.getElementById("ctestvalue2");
+	eli.focus();
+}
+
+// 素因数分解エントリポイント
+function mainf() {
+	if (eli.value == "t") {
+		if (lastResult)
+			if (lastResult.remainderType && !lastResult.sprpResult2)
+				mainf3();
+			else
+				mainf2();
+		eli.value = "";
+		eli.focus();
+		return;
+	} else if (eli.value == "") {
+		eli.focus();
+		return;
+	}
+	
+	var startTime = new Date;
+	var n = (eli.value == "r") ? randomOdd() : parseInt(eli.value);
+	var r = factorize(n);
+	
+	if ("n" in r) {
+		elo.innerHTML = resultToString(r) + detailInfo(r) + timeElapsed(startTime);
+		lastResult = r;
+	} else if (!isNaN(n)) {
+		elo.innerHTML = "<p>" + MaxValue + " 以下の自然数を入力してください。"
+			+ "この値は扱えません: " + eli.value + "<\/p>";
+		lastResult = null;
+	}
+	eli.value = "";
+	eli.focus();
+}
+
+// 素因数分解継続エントリポイント
+function mainf2() {
+	var result = lastResult;
+	
+	if (!result.remainder) return;
+	
+	var startTime = new Date;
+	var r = result.factors.pop();
+	
+	if (!result.fermatResult) {
+		searchFactorByFermat(result);
+		searchFactorByPM1(result);
+	} else {
+		if (!result.pm1Result || result.pm1Result.p < PM1Max)
+			searchFactorByPM1(result);
+		else
+			searchFactorByRho(result);
+		searchFactorByRho(result);
+	}
+	if (result.remainder) {
+		result.factors.push(r);
+		elo.innerHTML = "<p>新たな素因数は見つかりませんでした。" + RETRY_BUTTON + "<\/p>" +
+			timeElapsed(startTime) + elo.innerHTML;
+	} else {
+		var sprpResult = result.sprpResult;
+		result.sprpResult = null;
+		elo.innerHTML = "素因数が見つかりました。" + resultToString(result) +
+			detailInfo(result) + timeElapsed(startTime) + elo.innerHTML;
+		result.sprpResult = sprpResult;
+	}
+}
+
+// 素因数分解後ミラー判定継続エントリポイント
+function mainf3() {
+	var result = lastResult;
+	
+	if (result.sprpResult2) return;
+	
+	var startTime = new Date;
+	var r2 = result.sprpResult2 = new Array;
+	
+	r2.testee = result.sprpResult.testee;
+	for (var i = 31; i < 60; i = nextPrime(i))
+		r2.push(new HashtableEntry(i));
+	testSprp(r2, true);
+	elo.innerHTML = sprpResultToString(r2) + timeElapsed(startTime) +
+		elo.innerHTML;
+}
+
+// ミラー判定エントリポイント
+function mainm() {
+	if (elj.value == "") {
+		elj.focus();
+		return;
+	}
+	
+	var startTime = new Date;
+	var v = parseInt(elj.value);
+	var bmin, bmax;
+	var m = elb.value.match(/(\d+)(?:[-~](\d+))?/);
+	
+	if (m) {
+		bmin = Math.max(parseInt(m[1]), 2);
+		bmax = Math.min(Math.max(parseInt(m[2]) || bmin, bmin), bmin + 100, v - 1);
+	} else {
+		bmin = bmax = 0;
+	}
+	
+	var rs;
+	if (isNaN(v)) {
+		rs = elo.innerHTML;
+	} else if (v < 3 || v % 2 == 0 || v > MaxValue) {
+		rs = "ミラー判定 - 3 以上 " + MaxValue + " 以下の奇数を入力してください。"
+			+ "この値は判定できません: " + v;
+	} else {
+		var result = new Array;
+		
+		result.testee = v;
+		if (bmin) {
+			for (var i = bmin; i <= bmax; i++)
+				result.push(new HashtableEntry(i));
+		} else {
+			bmax = Math.min(50, v - 1);
+			for (var i = 2; i <= bmax; i = nextPrime(i))
+				result.push(new HashtableEntry(i));
+		}
+		testSprp(result, true);
+		rs = sprpResultToString(result) + timeElapsed(startTime);
+	}
+	elo.innerHTML = rs;
+	lastResult = result;
+	elj.value = "";
+	elb.value = "";
+	elj.focus();
+}
+
+// 公約数/最小公倍数エントリポイント
+function mainc() {
+	var startTime = new Date;
+	var value1 = parseInt(elc.value);
+	var value2 = parseInt(eld.value);
+	
+	if (elc.value == "") {
+		if (lastResult && eld.value == "")
+			mainf2();
+		elc.focus();
+		return;
+	} else if (isNaN(value1) || value1 > MaxValue || value1 <= 0) {
+		elo.innerHTML = "<p>この値は扱えません: " + elc.value + "<\/p>";
+		lastResult = null;
+	} else if (eld.value == "") {
+		eld.focus();
+		return;
+	} else if (isNaN(value2) || value2 > MaxValue || value2 <= 0) {
+		elo.innerHTML = "<p>この値は扱えません: " + eld.value + "<\/p>";
+		lastResult = null;
+	} else {
+		var g = gcd(value1, value2);
+		var l = " " + (value1 / g * value2);
+		
+		if (l > MaxValue) l = "約" + l;
+		elo.innerHTML = "<p>" + value1 + " と " + value2 +
+			" の最大公約数は " + g + "、最小公倍数は" + l + "。<\/p>"
+			+ (g > 1
+				? resultToStringC(lastResult = factorize(g)) + detailInfo(lastResult)
+				: "")
+			+ timeElapsed(startTime);
+	}
+	elc.value = "";
+	eld.value = "";
+	elc.focus();
+}
+
+
+function randomOdd() {
+	var v = 0;
+	for (var i = 13; --i >= 0; )
+		v = v * 16 + Math.floor(Math.random() * 16);
+	return v * 2 + 1;
+	
+	var v = Math.random() * MaxValue;
+	return ((v & 1) ? 0 : 1) + v;
+}
+
+// aとbの最大公約数
+// b!=0
+function gcd(a, b) {
+	while ((b = a % (a = b)) != 0);
+	return a;
+}
+
+// result.remainderを地道に割ってmin以上max以下の素因数を探す:
+// 結果はresult.factors配列に入る。
+function bruteForceDivide(result, min, max) {
+	setInfoMessage(min + " 以上 " + max + " 以下の素因数を探しています...");
+	
+	var factors = result.factors;
+	var n = result.remainder;
+	if (min == 2) {
+		var exp = 0;
+		
+		while ((n & 1) == 0) {
+			exp++;
+			n /= 2;
+		}
+		if (exp > 0)
+			factors.push(new HashtableEntry(2, exp));
+		min++;
+	}
+	if (min == 3) {
+		var exp = 0;
+		
+		while (n % 3 == 0) {
+			exp++;
+			n /= 3;
+		}
+		if (exp > 0)
+			factors.push(new HashtableEntry(3, exp));
+		min += 2;
+	}
+	
+	var i = min;
+	var limit = Math.min(Math.sqrt(n), max);
+	var d;
+	switch (i % 6) {
+		case 0:  i += 1;  d = 4;  break;
+		case 1:  i += 0;  d = 4;  break;
+		case 2:  i += 3;  d = 2;  break;
+		case 3:  i += 2;  d = 2;  break;
+		case 4:  i += 1;  d = 2;  break;
+		case 5:  i += 0;  d = 2;  break;
+	}
+	for (; i <= limit; i += d, d = 6 - d) {
+		var exp = 0;
+		
+		while (n % i == 0) {
+			exp++;
+			n /= i;
+		}
+		if (exp > 0) {
+			factors.push(new HashtableEntry(i, exp));
+			limit = Math.min(Math.sqrt(n), max);
+		}
+	}
+	if (i * i > n) {
+		if (n > 1) {
+			factors.push(new HashtableEntry(n, 1));
+		}
+		n = 0;
+	}
+	result.remainder = n;
+	setInfoMessage();
+}
+
+// 素数かどうか確実に調べる (小さな自然数用)
+function quickTest(n) {
+	if (n % 2 == 0) return n == 2;
+	if (n % 3 == 0) return n == 3;
+	
+	var limit = Math.sqrt(n);
+	for (var i = 5, d = 2; i <= limit; i += d, d = 6 - d) {
+		if (n % i == 0) return false;
+	}
+	return true;
+}//xxx:高速化?
+
+// pより大きい最初の素数
+function nextPrime(p) {
+	do {
+		p = (p + 1) | 1;
+	} while (!quickTest(p));
+	return p;
+}
+
+// a+b mod m
+// a>=0, b>=0, m>0
+function modAdd(a, b, m) {
+	var result;
+	
+	if ((result = a + b) <= MaxValue)
+		return result < m ? result : result % m;
+	
+	result = ((a - MaxValueD2) + (b - MaxValueD2)) % m;
+	return result + MaxValue % m;
+}
+
+// a-b mod m
+// a>=0, b>=0, m>0
+/*function modSub(a, b, m) {
+	var result;
+	
+	if ((result = a - b) >= 0)
+		return result < m ? result : result % m;
+	
+	result %= m;
+	return result + m;
+}*/
+
+// a*b mod m
+// a>=0, b>=0, m>0
+function modMul(a, b, m) {
+	var result = a * b;
+	
+	if (result < MaxValue) return result % m;
+	
+	while ((b & 1) == 0) {
+		b = Math.floor(b / 2);
+		a = modAdd(a, a, m);
+	}
+	result = a;
+	while ((b = Math.floor(b / 2)) != 0) {
+		a = modAdd(a, a, m);
+		if ((b & 1) != 0) result = modAdd(result, a, m);
+	}
+	return result;
+}
+
+// a**b mod m
+// a>=0, b>=0, m>0
+function modPow(a, b, m) {
+	if (b == 0) return 1 % m;
+	
+	a %= m;
+	while ((b & 1) == 0) {
+		b = Math.floor(b / 2);
+		a = modMul(a, a, m);
+	}
+	
+	var result = a;
+	while ((b = Math.floor(b / 2)) != 0) {
+		a = modMul(a, a, m);
+		if ((b & 1) != 0) result = modMul(result, a, m);
+	}
+	return result;
+}
+
+// Nが底baseにおける強力な素数候補であるか調べる
+// N: 3以上の奇数, base: 2以上の整数
+function isSprp(N, base) {
+	try {
+		setInfoMessage(base + " を底とするミラー判定を行っています...");
+		
+		var N1 = N - 1;
+		var t  = N1;
+		var f2 = 1;
+		
+		while ((t = t / 2) & 1 == 0) f2++;
+		// N1 = t * 2**f2
+		
+		t = modPow(base, t, N);
+		if (t == 1) return true;
+		for (;;) {
+			if (t == N1) return true;
+			if (--f2 <= 0) return false;
+			t = modMul(t, t, N);
+		}
+	} finally {
+		setInfoMessage();
+	}
+}
+
+// ミラー·ラビン判定を行う:
+// 戻り値: おそらく素数=true、絶対に合成数=false
+function testSprp(result, testAll) {
+	var failed = false;
+	
+	for (var i = 0; i < result.length; i++) {
+		var r = result[i];
+		if (!(r.value = isSprp(result.testee, r.key))) {
+			failed = true;
+			if (!testAll) break;
+		}
+	}
+	return !failed;
+}
+
+// ミラー・ラビン判定をする底を決める。
+// 例外: n = 3215031751 のとき素数と判定されるが素数ではない。
+function decideBases(n) {
+	var result = new Array;
+	result.testee = n;
+	
+	result.push(new HashtableEntry(2));
+	if (n < 2047) return result;
+	
+	result.push(new HashtableEntry(3));
+	if (n < 1373653) return result;
+	
+	result.push(new HashtableEntry(5));
+	if (n < 25326001) return result;
+	
+	result.push(new HashtableEntry(7));
+	if (n < 118670087467) return result;
+	
+	result.push(new HashtableEntry(11));
+	if (n < 2152302898747) return result;
+	
+	result.push(new HashtableEntry(13));
+	if (n < 3474749660383) return result;
+	
+	result.push(new HashtableEntry(17));
+	if (n < 341550071728321) return result;
+	
+	result.push(new HashtableEntry(19));
+	result.push(new HashtableEntry(23));
+	if (n < SprpLimit) return result;
+	
+	result.push(new HashtableEntry(29));
+	return result;
+}
+
+function factorFound(result, f) {
+	var factors = new Array(arguments.length - 1);
+	
+	for (var i = factors.length; --i >= 0; ) {
+		factors[i] = arguments[i + 1];
+	}
+	factors.sortNumbers();
+	for (var i = 0; i < factors.length; i++) {
+		var e = 0, v = factors[i];
+		while (result.remainder % v == 0) {
+			e++;
+			result.remainder /= v;
+		}
+		if (e) {
+			result.factors.push(new HashtableEntry(v, e));
+		}
+	}
+	if (result.remainder == 1) result.remainder = 0;
+}
+
+// ρ法でresult.remainderの因数を探す
+// result.remainderが二つの素因数の積であることが条件
+function searchFactorByRho(result) {
+	function RhoResult(target, base) {
+		this.target = target;
+		this.base = this.x = this.y = this.c = base;
+		this.t = this.i = 2;
+		this.limit = 0;
+	}
+	
+	var rr = result.rhoResult;
+	if (!rr || rr.target != result.remainder) {
+		if (!result.remainder) return;
+		rr = result.rhoResult = new RhoResult(result.remainder, 3);
+	}
+	
+	try {
+		setInfoMessage("ρ 法で因数を探しています...");
+		
+		var n = rr.target;
+		var x = rr.x, y = rr.y, c = rr.c;
+		var t = rr.t;
+		var limit = (rr.limit += RhoLimit);
+		
+		for (var i = rr.i; i < limit; i++) {
+			x = modAdd(modMul(x, x, n), c, n);
+			
+			var g = gcd(Math.abs(y - x), n);
+			if (g > 1) {
+				if (g == n) {
+					rr = result.rhoResult = new RhoResult(rr.target, nextPrime(rr.base));
+					searchFactorByRho(result);
+				} else {
+					factorFound(result, g, n / g);
+					rr.found = g;
+				}
+				return;
+			}
+			
+			if (i == t) {
+				y = x;
+				t *= 2;
+			}
+		}
+	} finally {
+		rr.x = x;  rr.y = y;  rr.c = c;  rr.t = t;  rr.i = i;
+		setInfoMessage();
+	}
+}
+
+// フェルマー法でresult.remainderの因数を探す
+// result.remainderが二つの素因数の積であることが条件
+function searchFactorByFermat(result) {
+	var fr = result.fermatResult;
+	if (!fr || fr.target != result.remainder) {
+		if (!result.remainder) return;
+		fr = result.fermatResult = {
+			target: result.remainder,
+			x     : Math.ceil(Math.sqrt(result.remainder))
+		};
+	}
+	
+	try {
+		setInfoMessage("フェルマー法で因数を探しています...");
+		
+		var n = fr.target;
+		var x = fr.x;
+		var limit = x + FermatRange;
+		
+		if (!n) return;
+		for ( ; x < limit; x++) {
+			var y = Math.round(Math.sqrt(x * x - n));
+			
+			if ((x + y) * (x - y) == n) {
+				fr.found1 = x - y;
+				fr.found2 = x + y;
+				factorFound(result, fr.found1, fr.found2);
+				return;
+			}
+		}
+	} finally {
+		fr.x = x;  fr.y = y;
+		setInfoMessage();
+	}
+}
+
+// p-1法でresult.remainderの因数を探す
+// result.remainderが二つの素因数の積であることが条件
+function searchFactorByPM1(result) {
+	var pr = result.pm1Result;
+	
+	if (!pr || pr.target != result.remainder) {
+		if (!result.remainder) return;
+		pr = result.pm1Result = { target: result.remainder, p: 2, c: 3 };
+	}
+	
+	try {
+		setInfoMessage("p - 1 法で因数を探しています...");
+		
+		var c = pr.c, n = pr.target;
+		var p = pr.p, limit = p + PM1Limit;
+		
+		for ( ; p < limit; p = nextPrime(p)) {
+			var q = p;
+			
+			while (q <= 256) q *= p;
+			c = modPow(c, q, n);
+			
+			var g = gcd(c - 1, n);
+			if (g > 1) {
+				factorFound(result, g, n / g);
+				pr.found = g;
+				return;
+			}
+		}
+	} finally {
+		pr.p = p;  pr.c = c;
+		setInfoMessage();
+	}
+}
+
+// 素因数分解を行う。
+// 戻り値のプロパティ:
+//   n: 素因数分解対象の自然数、またはundefined
+//   remainder: 素因数分解できなかった残りの因数、または0/undefined
+//   remainderType: false=合成数だが因数不明、true=おそらく素数
+//   factors: 素因数からその指数へのハッシュテーブル配列(remainderを含む)
+//   sprpResult: testSprp() の結果であるハッシュテーブル配列 (testeeプロパティ含む)
+//   rhoResult: ρ法の結果
+//   fermatResult: フェルマー法の結果
+//   pm1Result: p-1法の結果
+function factorize(n) {
+	var result = new Object;
+	
+	n = Math.floor(n);
+	if (!(0 <= n && n <= MaxValue)) {
+		return result;
+	}
+	
+	result.n = n;
+	if (n <= 1) {
+		return result;
+	}
+	
+	result.remainder = n;
+	result.factors = new Array;
+	bruteForceDivide(result, BF1Min, BF1Max);
+	if (result.remainder == 0) return result;
+	
+	if (result.remainder < SprpLimit) {
+		result.sprpResult = decideBases(result.remainder);
+		result.remainderType = testSprp(result.sprpResult, false);
+		if (result.remainderType) {
+			result.factors.push(new HashtableEntry(result.sprpResult.testee, 1));
+			result.remainder = 0;
+			return result;
+		}
+	}
+	
+	var r = result.remainder;
+	bruteForceDivide(result, BF2Min, BF2Max);
+	if (result.remainder == 0) return result;
+	if (result.remainder != r && result.remainder < SprpLimit) {
+		result.sprpResult = decideBases(result.remainder);
+		result.remainderType = testSprp(result.sprpResult, false);
+		if (result.remainderType) {
+			result.factors.push(new HashtableEntry(result.sprpResult.testee, 1));
+			result.remainder = 0;
+			return result;
+		}
+	}
+	
+	if (result.remainder && !result.sprpResult) {
+		result.sprpResult = decideBases(result.remainder);
+		result.remainderType = testSprp(result.sprpResult, false);
+	}
+	if (!result.remainderType) {
+		searchFactorByFermat(result);
+		searchFactorByPM1(result);
+		//searchFactorByRho(result);
+	}
+	
+	if (result.remainder) {
+		result.factors.push(new HashtableEntry(result.remainder, 1));
+	}
+	return result;
+}
+
+// 約数列を作成。
+function makeAllFactors(primeFactors) {
+	var rv = new Array;
+	
+	makeAllFactors2(primeFactors, rv, 0, 1);
+	rv.sortNumbers();
+	return rv;
+}
+
+function makeAllFactors2(f, rlist, index, value) {
+	if (index == f.length) {
+		rlist.push(value);
+		return;
+	}
+	
+	var base = f[index].key;
+	for (var i = f[index].value; i >= 0; i--) {
+		makeAllFactors2(f, rlist, index + 1, value);
+		value *= base;
+	}
+}
+
+// 配列に入っている数の総和を求める
+function arysum(ary) {
+	var rv = 0;
+	for (var i = ary.length; --i >= 0; ) {
+		rv += ary[i];
+	}
+	return rv > MaxValue ? "約 " + rv : rv;
+}
+
+// 素因数分解結果を文字列にする
+function resultToString(r) {
+	if (r.n <= 1) return r.n + " です。";
+	
+	setInfoMessage("結果を出力しています...");
+	
+	var s = r.n + " の素因数分解結果:<ul>";
+	
+	if (r.factors.length == 1 && r.factors[0].value == 1) {
+		if (r.remainder)
+			s += "<li>" + resultRemainderToString(r) + "<\/li>";
+		else {
+			s += "<li>" + r.n + " は素数です。<\/li>";
+			if (r.sprpResult)
+				s += "<li>" + sprpResultToString(r.sprpResult) + "<\/li>";
+		}
+	} else {
+		s += "<li>" + r.n + " = ";
+		for (var i = 0, f = r.factors; i < f.length; i++) {
+			var p = f[i];
+			if (i > 0) s += "·";
+			s += p.key;
+			if (p.value > 1) s += "<sup>" + p.value + "<\/sup>";
+		}
+		if (r.remainder) {
+			s += "<\/li><li>" + resultRemainderToString(r)
+			+ "<\/li><li>見つかった " + r.n + " の約数 (";
+		} else {
+			s += "<\/li><li>素因数分解完了<\/li>";
+			if (r.sprpResult)
+				s += "<li>" + sprpResultToString(r.sprpResult) + "<\/li>";
+			s += "<li>" + r.n + " の全ての約数 (";
+		}
+		
+		var factors = makeAllFactors(r.factors);
+		s += factors.length + " 個、総和 " + arysum(factors) + "):<ul><li>"
+		s += factors.join("<\/li><li>");
+		s += "<\/li><\/ul><\/li>";
+	}
+	s += "<\/ul>";
+	setInfoMessage();
+	return s;
+}
+
+function resultToStringC(r) {
+	setInfoMessage("結果を出力しています...");
+	
+	var s = "<ul>";
+	
+	if (r.factors.length == 1 && r.factors[0].value == 1) {
+		if (r.remainder)
+			s += "<li>" + resultRemainderToString(r) + "<\/li>";
+		else {
+			s += "<li>" + r.n + " は素数です。<\/li>";
+			if (r.sprpResult)
+				s += "<li>" + sprpResultToString(r.sprpResult) + "<\/li>";
+		}
+	} else {
+		s += "<li>" + r.n + " = ";
+		for (var i = 0, f = r.factors; i < f.length; i++) {
+			var p = f[i];
+			if (i > 0) s += "·";
+			s += p.key;
+			if (p.value > 1) s += "<sup>" + p.value + "<\/sup>";
+		}
+	}
+	if (r.remainder) {
+		s += "<\/li><li>見つかった公約数 (";
+	} else {
+		s += "<\/li><li>全ての公約数 (";
+	}
+	
+	var factors = makeAllFactors(r.factors);
+	s += factors.length + " 個、総和 " + arysum(factors) + "):<ul><li>"
+	s += factors.join("<\/li><li>");
+	s += "<\/li><\/ul><\/li><\/ul>";
+	
+	setInfoMessage();
+	return s;
+}
+
+function resultRemainderToString(r) {
+	var s = r.remainder;
+	
+	s += r.remainderType
+		? " はおそらく素数ですが、確証はありません。" + MORE_BUTTON
+		: " は合成数ですが、素因数分解できませんでした。";
+	
+	s += RETRY_BUTTON + "<ul><li>" + r.remainder + " に " + BF2Max +
+		" 以下の素因数はありません。<\/li>"
+	if (r.fermatResult)
+		s += "<li>" + fermatResultToString(r.fermatResult) + "<\/li>";
+	if (r.sprpResult)
+		s += "<li>" + sprpResultToString(r.sprpResult) + "<\/li>";
+	
+	s += "<\/ul>";
+	return s;
+}
+
+function sprpResultToString(r) {
+	var s = r.testee + " のミラー判定結果:<ul>";
+	var f = false;  // 1 回でも不合格が出たか
+	
+	for (var i = 0; i < r.length; i++) {
+		var e = r[i];
+		if (e.value !== undefined) {
+			var t = "底 " + e.key + ": " + (e.value ? "" : "不") + "合格";
+			if (!f && !e.value && i > 6)
+				t = "<strong class='important'>" + t + "<\/strong>";
+			f |= !e.value;
+			s += "<li>" + t + "<\/li>";
+		}
+	}
+	return s + "<\/ul>";
+}
+
+function fermatResultToString(r) {
+	return Util.format("{0} に {1} 以上 {2} 以下の素因数はありません。",
+		r.target, r.x - r.y, r.x + r.y);
+}
+
+// 詳細結果メッセージを作成
+function detailInfo(r) {
+	var s = "", rr;
+	
+	if (r.fermatResult && r.fermatResult.found1) {
+		rr = r.fermatResult;
+		s = Util.format("フェルマー法で見つかった因数: {0} &amp; {1} (x = {2}, y = {3})",
+			rr.found1, rr.found2, rr.x, rr.found2 - rr.x);
+	} else if (r.pm1Result && r.pm1Result.found) {
+		rr = r.pm1Result;
+		s = Util.format("p - 1 法で見つかった因数: {0} (p = {1})", rr.found, rr.p);
+	} else if (r.rhoResult && r.rhoResult.found) {
+		rr = r.rhoResult;
+		s = Util.format("ρ 法で見つかった因数: {0} (x = {1}, y = {2}, base = {3}" +
+			", {4} 回目)", rr.found, rr.x, rr.y, rr.base, rr.i - 1);
+	}
+	
+	return s && ("<p class='debug-info'>" + s + "<\/p>");
+}
+
+// 時刻tから現在までの時間を計算し、それを経過時間として表す文字列を作る。
+function timeElapsed(t) {
+	var now = new Date().getTime();
+	
+	if (t instanceof Date) t = t.getTime();
+	return Util.formatNumber(now - t,
+		"<p class='debug\\-info'>所要時間: 0.000 秒<\/p>", -3);
+}
+
+function setInfoMessage(msg) {
+	window.status = msg || "";
+}
+
+</script>
+<style type="text/css">
+p {
+	text-indent: inherit;
+}
+.important {
+	border: 3px solid red;
+}
+.debug-info {
+	font-size: 0.8em;
+}
+</style>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+素数判定・素因数分解・公約数
+</h1>
+<address id="about_this_document">
+© 2006-2011 Magicant / 3.6.16 (2011-01-29)
+</address>
+<noscript>
+<div><strong>
+素因数分解には JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<ul>
+<li>
+<form id="mainfform" action="" onsubmit="mainf(); return false;">
+<div>
+<input type="text" id="ftestvalue" maxlength="20" size="20">
+を
+<input type="submit" value="素数判定 &amp; 素因数分解">
+</div>
+</form>
+</li>
+<li>
+<form id="mainmform" action="" onsubmit="mainm(); return false;">
+<div>
+<input type="text" id="mtestvalue" maxlength="20" size="20">
+を (底 <input type="text" id="mtestbase" maxlength="20" size="8"> で)
+<input type="submit" value="ミラー判定">
+</div>
+</form>
+</li>
+<li>
+<form id="maincform" action="" onsubmit="mainc(); return false;">
+<div>
+<input type="text" id="ctestvalue1" maxlength="20" size="20">
+と
+<input type="text" id="ctestvalue2" maxlength="20" size="20">
+の
+<input type="submit" value="公約数 &amp; 最小公倍数">
+</div>
+</form>
+</li>
+</ul>
+<div id="result">
+<p>
+9007199254740992 (=2<sup>53</sup>) 以下の自然数を扱えます。
+<script type="text/javascript">
+document.write("素数判定では、");
+document.write(SprpLimit);
+document.write(" 以下の自然数は確実に素数かどうか判定できます。また、");
+document.write(Math.floor(BF2Max * (BF2Max + 2 * FermatRange + Math.sqrt(
+	8 * BF2Max * FermatRange))));
+document.write(" 以下の自然数は 1 回の試行で確実に素因数分解できます。");
+document.write("それ以上の自然数でもほとんどの場合は数回の試行以内に素因数分解を完了できます。");
+</script>
+</p>
+<p>
+素因数分解では、虱潰しに割る方法の他にフェルマー法・p - 1 法・ρ 法を使って分解します。
+素数判定では、大きな数はミラー・ラビン判定法を使用します。
+</p>
+<p>
+<q>素数判定 &amp; 素因数分解</q>では、自然数の代わりに <q>r</q> を入力すると
+自然数をランダムに選んでそれを素数判定 &amp; 素因数分解します。
+</p>
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2004-10-17 v3.0
+2005-10-16 v3.1
+2005-11-12 v3.2.2
+2005-11-14 v3.3   ρ法を導入
+2005-11-16 v3.4   フェルマー法を導入
+2005-11-17 v3.5.1 p-1法を導入
+2005-12-11 v3.5.17
+2005-12-14 v3.6.1 Utilを導入
+2006-02-27 v3.6.10
+2006-06-17 v3.6.11
+2011-01-29 v3.6.16
+-->

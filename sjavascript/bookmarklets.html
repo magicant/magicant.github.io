@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="まじかんとが作ったブックマークレットを展示しています">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] ブックマークレット集</title>
+<style type="text/css">
+pre :link, pre :visited {
+	text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+<h1 id="title">ブックマークレット集</h1>
+
+<p>これは筆者が日常的に使う<a
+href="//d.hatena.ne.jp/keyword/%A5%D6%A5%C3%A5%AF%A5%DE%A1%BC%A5%AF%A5%EC%A5%C3%A5%C8"
+>ブックマークレット</a>を集めたものです。</p>
+<p>基本的に Windows 用 Internet Explorer 6 で使うことを前提に作ってありますが、
+多くは他のブラウザでも使えるでしょう。</p>
+<p>いくつかのブックマークレットは、innerHTML プロパティを使用して HTML
+ソースを書き換えるなど、標準規格にない機能を使用しています。</p>
+
+<h2 id="disable-css">製作者 CSS を無効にする</h2>
+<p>製作者が設定した CSS を無効にします。</p>
+<p>このブックマークレットは <a href="//bookmarklet.daa.jp/">JAVASCRIPT::BOOKMARKLET</a>
+で紹介されていたものを改造したものです。</p>
+<pre><code class="js"><a href="javascript:(function(s,i)%7Bfor(i%20in%20s)s%5Bi%5D.disabled=true%7D)(document.styleSheets)"
+>javascript:(function(s, i) {
+    for (i in s)
+        s[i].disabled = true
+})(document.styleSheets)</a></code></pre>
+
+<h2 id="disable-mouse-events">マウス関連イベントを解除する</h2>
+<p>製作者が指定したマウス関連イベントのリスナーを解除します。いわゆる「右クリック禁止」もこれで大概無効化できます。</p>
+<pre><code class="js"><a href="javascript:(function(a,i)%7Bfunction%20d(e)%7Be.oncontextmenu=e.onmousedown=e.onmouseup=e.onclick=e.onmouseover=e.onmouseout=e.onmousemove=e.onselectstart=e.onselectionchange=e.ondragstart=e.onmousewheel=null%7Dfor(i%20in%20a)d(a%5Bi%5D);d(document)%7D)(document.getElementsByTagName('*'))"
+>javascript:(function(a, i) {
+    function d(e) {
+        e.oncontextmenu = e.onmousedown = e.onmouseup = e.onclick =
+            e.onmouseover = e.onmouseout = e.onmousemove =
+            e.onselectstart = e.onselectionchange = e.ondragstart =
+            e.onmousewheel = null;
+    }
+    for (i in a)
+        d(a[i]);
+    d(document)
+})(document.getElementsByTagName('*'))</a></code></pre>
+
+<h2 id="zoom">ズーム</h2>
+<p>Internet Explorer の独自 CSS プロパティ zoom を使用してページ全体の表示倍率を変えます。
+スクリプトを実行するとダイアログが出るのでそこに希望の倍率を入力します。</p>
+<p>このブックマークレットは <a href="//bookmarklet.daa.jp/">JAVASCRIPT::BOOKMARKLET</a>
+で紹介されていたものを改造したものです。</p>
+<pre><code class="js"><a href="javascript:void(document.body.style.zoom=window.prompt('Magnification?',1))"
+>javascript:void(
+  document.body.style.zoom
+    = window.prompt('Magnification?', 1))</a></code></pre>
+<p>Internet Explorer 7 以降ではセキュリティ設定を変えないと動きません。ただし、Internet Explorer 7
+以降はブラウザ本体にズーム機能があるのでこのブックマークレットはそもそも必要ありません。</p>
+
+<h2 id="view-source">HTML ソース表示</h2>
+<p>Internet Explorer の独自 HTML 要素 plaintext を使用して、表示しているページの HTML
+ソースを表示します。スクリプトなどによってソースが変更されている場合、その変更後のソースを表示できます。</p>
+<pre><code class="js"><a href="javascript:void(document.body.innerHTML='%3Cplaintext%3E'+document.documentElement.outerHTML)"
+>javascript:void(
+  document.body.innerHTML = '&lt;plaintext>'
+    + document.documentElement.outerHTML)</a></code></pre>
+
+<h2 id="show-id">HTML 要素の id 属性を表示</h2>
+<p>ページ内の id 属性を持つ要素についてその id 属性を表すテキストを挿入します。</p>
+<pre><code class="js"><a href="javascript:(function%20f(t,x)%7Bif(t.id)t.innerHTML='%3Cspan%20class=%22mabml_id%22%3E%5Bid:%20'+t.id+'%5D%3C/span%3E'+t.innerHTML;for(x%20in%20t.childNodes)f(t.childNodes%5Bx%5D);%7D)(document.body)"
+>javascript:(function f(t, x) {
+    if (t.id)
+        t.innerHTML = '&lt;span class="mabml_id">[id: ' + t.id + ']&lt;/span>'
+                    + t.innerHTML;
+    for (x in t.childNodes)
+        f(t.childNodes[x]);
+})(document.body)</a></code></pre>
+
+<h2 id="show-cite">引用の出典を表示</h2>
+<p>HTML の q/blockquote/del/ins 要素の cite 属性で URI が示されている場合にその
+URI へのリンクを挿入します。</p>
+<pre><code class="js"><a href="javascript:(function%20f(t,x)%7Bif(t.cite)t.innerHTML='%3Ca%20class=%22mabml_cite%22%20href=%22'+t.cite+'%22%3E%5Bcite%5D%3C/a%3E'+t.innerHTML;for(x%20in%20t.childNodes)f(t.childNodes%5Bx%5D);%7D)(document.body)"
+>javascript:(function f(t, x) {
+    if (t.cite)
+        t.innerHTML = '&lt;a class="mabml_cite" href="' + t.cite + '">[cite]&lt;/a>'
+                    + t.innerHTML;
+    for (x in t.childNodes)
+        f (t.childNodes[x]);
+})(document.body)</a></code></pre>
+
+<h2 id="validate">W3C の Validator でソースをチェック</h2>
+<p>表示しているページのソースを <a href="//validator.w3.org/">Validator</a> でチェックします。</p>
+<pre><code class="js"><a href="javascript:void(location='http://validator.w3.org/check?uri='+encodeURIComponent(location))"
+>javascript:void(
+  location = 'http://validator.w3.org/check?uri='
+           + encodeURIComponent(location))</a></code></pre>
+
+<h2 id="invoke-refresh">Refresh を起動</h2>
+<p>HTML 文書内に <code class="html">&lt;meta http-equiv="refresh"
+content="10; url=http://example.com/"></code> のように指定されたページの更新・遷移を直ちに実行します。</p>
+<pre><code class="js"><a href="javascript:(function(a,i,e)%7Bfor(a=document.getElementsByTagName('meta'),i=a.length;e=a%5B--i%5D;)if(e.httpEquiv.toLowerCase()=='refresh'&amp;&amp;(e=e.content.match(/%5B%5Cd.%5D+%5Cs*%5B;,%5D%5Cs*(url=)?(%5CS+)/i))&amp;&amp;e%5B2%5D&amp;&amp;(location=e%5B2%5D))break;%7D)()"
+>javascript:(function(a, i, e) {
+    for (a = document.getElementsByTagName('meta'), i = a.length; e = a[--i]; )
+        if (e.httpEquiv.toLowerCase() == 'refresh'
+              &amp;&amp; (e = e.content.match(/[\d.]+\s*[;,]\s*(url=)?(\S+)/i))
+              &amp;&amp; e[2]
+              &amp;&amp; (location = e[2]))
+            break;
+})()</a></code></pre>
+
+<h2 id="show-lastmodified">ページの更新日時を表示</h2>
+<p>表示しているページの更新日時を表示します。更新日時の情報がない場合の動作は分かりません。</p>
+<pre><code class="js"><a href="javascript:window.alert(new%20Date(document.lastModified).toLocaleString())"
+>javascript:window.alert(new Date(document.lastModified).toLocaleString())</a></code></pre>
+
+<h2 id="to-parent">親階層へ移動</h2>
+<p>URL の末尾を削って親階層に移動します。</p>
+<pre><code class="js"><a href="javascript:void(location=location.href.replace(/%5C?.*$%7C%5B%5E%5C?%5C/%5D+%5C/?$/,''))"
+>javascript:void(location = location.href.replace(/\?.*$|[^\?\/]+\/?$/, ''))</a></code></pre>
+
+<h2 id="amazon-uri">Amazon.co.jp の商品ページの URI を短くする</h2>
+<p>Amazon.co.jp の商品紹介ページを閲覧中に実行するとそのページの URI を短縮したページに移動します。</p>
+<pre><code class="js"><a href="javascript:void(location='http://www.amazon.co.jp/dp/'+document.getElementById('ASIN').value)"
+>javascript:void(location = 'http://www.amazon.co.jp/dp/' + document.getElementById('ASIN').value)</a
+></code></pre>
+<p>註: http://amazon.jp/… にアクセスすると自動的に http://www.amazon.co.jp/… に飛ばされます。より短い
+URI が欲しい場合はドメイン名の部分を書き変えてください。</p>
+
+<address id="about_this_document">
+© 2006-2010 Magicant / 更新 2010-03-01 / 初出 2006-04-29
+</address>
+
+</body>
+</html>

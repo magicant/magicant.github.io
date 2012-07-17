@@ -1,0 +1,1495 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で HTML を XHTML に変換します">
+<meta name="date" content="2006-11-29T21:07:27+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] HTML to XHTML</title>
+<style type="text/css">
+textarea {
+	width: 95%;
+	_width: auto;  /* IEで入力時に幅がおかしくなるバグに対するhack */
+}
+</style>
+<script type="text/javascript" src="util.js" charset="UTF-8"></script>
+<script type="text/javascript">
+Array.prototype.peek = function peek() {
+	return this[this.length - 1];
+};
+
+// エントリポイント
+function main() {
+	var start = new Date().getTime();
+	
+	var source = document.getElementById("html-source").value;
+	var result = {
+		src: source,      // ソースコード
+		index: 0,         // src 内の解析位置
+		elms: new Array,  // 要素オブジェクトのスタック
+		include: 0,       // マーク区間宣言の入れ子のカウント
+		out: new Array,   // 出力結果
+		err: new Array    // エラー出力
+	};  // 他のプロパティ: strict, transitional, frameset
+	
+	var mr = source.match(/\n|\r\n?/);
+	
+	result.nl = mr ? mr[0] : "";
+	result.out.push("");  // 最初の要素は空文字列から XML 宣言に置換される
+	result.out.trailingWhites = "";
+	result.out.pushf = function(arg) {
+		if (this.trailingWhites) {
+			this.push(this.trailingWhites);
+			this.trailingWhites = "";
+		}
+		this.push.apply(this, arguments);
+	};
+	result.advanceCloseTag = document.getElementById("advance-close-tag").checked;
+	
+	parseBody(result);
+	addXmlDeclaration(result);
+	
+	showInfo("出力中");
+	var out = result.out.join(""), err = result.err.join("\n\n");
+	document.getElementById("xhtml-output").value = out;
+	document.getElementById("info-output").value = (err ? err + "\n\n" : "")
+		+ Util.format("入力: {0} 文字 / 出力: {1} 文字\n", source.length, out.length)
+		+ Util.formatNumber(new Date().getTime() - start, "処理完了: 0.000 秒", -3);
+	showInfo();
+}
+
+function showInfo(str) {
+	status = str || "";
+}
+function showProgress(n, d) {
+	showInfo("変換中: " + Math.floor(100 * n / d) + "%");
+//	showInfo(Util.formatNumber(n / d, "変換中: 0%", 2));
+}
+
+// 文字参照を文字に変換
+function parseCharRef(data) {
+	return data.replace(/&#([0-9]+|x[0-9a-f]+)[;\r]?/gi,
+	function (match, num) {
+		switch (num.charAt(0)) {
+		case 'x':  case 'X':
+			return String.fromCharCode(parseInt(num.substring(1), 16));
+		default:
+			return String.fromCharCode(parseInt(num, 10));
+		}
+	});
+}
+
+// 要素の内容文字列 (#PCDATA/RCDATA) を XML 形式に変換
+function normalizeContent(data) {
+	// 認知する記号一覧
+	// &# [0-9a-zA-Z] 文字参照
+	// &  [a-zA-Z]    一般実体参照
+	// <
+	// ]]>
+	
+	data = data.replace(/&(?:(#[0-9]+|#?[a-z][\w.:-]*)[;\r]?)?/gi,
+	function(match, name) {
+		switch (name) {
+		case undefined:
+		case "":        return "&amp;"; 
+		case "#SPACE":  return "&#32;";
+		case "#RE":     return "&#13;";  // CR
+		case "#RS":     return "&#10;";  // LF
+		default:
+			if (name.substring(0, 2) == "#X")
+				name = "#x" + name.substring(2);
+			return "&" + name + ";";
+		}
+	});
+	
+	data = data.replace(/<(?:)/g, "&lt;").replace(/\]\]>/g, "]]&gt;");
+	return data;
+}
+
+function tryPrintData(r, data) {
+	var c = r.elms.peek();
+	var pcdata = c && elementContentAllowed(c.tagName, "#PCDATA", r);
+	var mr;
+	
+	if (!pcdata && (mr = data.match(/\S+(?:\s+\S+)*/))) {
+		if (!checkOmittedTag(r, "#PCDATA")) {
+			c = r.elms.peek();
+			r.err.push("[P1] " + (c ? c.tagName + " 要素内" : "要素外")
+				+ "の不正な文字データ: " + mr[0]);
+		}
+	}
+	if (r.advanceCloseTag) {
+		mr = data.match(/(\s*)$/);
+		data = data.substring(0, mr.index);
+		if (data) {
+			data = r.out.trailingWhites + data;
+			r.out.trailingWhites = mr[1];
+		} else {
+			r.out.trailingWhites += mr[1];
+		}
+	}
+	r.out.push(data);
+}
+
+/*
+function flushTrailingWhites(r) {
+	if (r.trailingWhites) {
+		r.out.push(r.trailingWhites);
+		r.trailingWhites = "";
+	}
+}*/
+
+// RCDATA を解析。r.index は end の先頭に移動する。
+// end: RCDATA の終端記号 (文字列)
+function parseRCDATA(r, end) {
+	var endIndex = r.src.indexOf(end, r.index);
+	
+	if (endIndex < 0) endIndex = r.src.length;
+	tryPrintData(r, normalizeContent(r.src.substring(r.index, endIndex)));
+	r.index = endIndex;
+}
+
+// CDATA を解析。r.index は end の先頭に移動する。
+// end: CDATA の終端記号 (文字列)
+function parseCDATA(r, end) {
+	var endIndex = r.src.indexOf(end, r.index);
+	
+	if (endIndex < 0) endIndex = r.src.length;
+	tryPrintData(r, r.src.substring(r.index, endIndex));
+	r.index = endIndex;
+}
+
+// ソース解析終了後に XML 宣言を追加
+function addXmlDeclaration(r) {
+	var xd = '<?xml version="1.0"';
+	
+	if (r.charset)
+		xd += ' encoding="' + r.charset + '"';
+	xd += "?>";
+	
+	r.out[0] = xd + r.nl;
+}
+
+// HTML 本文を解析。
+function parseBody(r) {
+	var loopCount = 0;
+	
+	while (r.index < r.src.length) {
+		if ((loopCount++ & 0x1f) === 0)
+			showProgress(r.index, r.src.length);
+		
+		var start = r.index;
+		var c = r.elms.peek();
+		
+		if (c && elementContentAllowed(c.tagName, "$CDATA", r)) {
+			var regexp = c.net ? /<?\//g : /<\//g;
+			var index = regexp.lastIndex = r.index;
+			var mr = regexp.exec(r.src);
+			r.index = mr ? mr.index : r.src.length;
+			
+			var data = r.src.substring(index, r.index);
+			r.out.pushf(data.match(/[&<]/)
+				? "<![CDATA[" + data.replace(/\]\]>/g, "]]>]]&gt;<![CDATA[") + "]]>"
+				: data.replace(/\]\]>/g, "]]&gt;"));
+		} else {
+			var regexp = /<|\/|\]\]>/g;
+			var index = regexp.lastIndex = r.index;
+			var mr = regexp.exec(r.src);
+			r.index = mr ? mr.index : r.src.length;
+			
+			var data = r.src.substring(index, r.index);
+			if (data) {
+				tryPrintData(r, normalizeContent(data));
+			}
+		}
+		newTag(r);
+		if (r.index == start) {
+			r.err.push("[B2!] 内部エラー (index = " + r.index + ")");
+			break;
+		}
+	}
+	while (r.elms.length > 0) {
+		var tagName = r.elms.peek().tagName;
+		if (!isEndTagOmittable(tagName)) {
+			r.err.push("[B3] " + tagName + " 終了タグの欠落: 文書の末尾");
+		}
+		closeElement(r, undefined, true);
+	}
+	r.out.pushf();
+	if (!r.root) {
+		r.err.push("[B4] 文書要素なし");
+	} else if (r.root.length < 2) {
+		r.err.push("[B5] html 要素の内容の不足");
+	}
+	if (r.include > 0) {
+		r.err.push("[B6] マーク区間宣言終了の欠落: 文書の末尾");
+	}
+}
+
+// タグ/宣言/マーク区間終了を処理
+// r.index は最初 "<" / "/" / "]" の位置を示し、復帰時にはタグの直後の位置を示す。
+function newTag(r) {
+	// 認知する記号一覧
+	// <  [a-zA-Z>]
+	// <! [a-zA-Z>[] or --
+	// <? 
+	// <​/ [a-zA-Z>]
+	// /  (開始タグがnetの場合)
+	// ]]>
+	
+	if (r.index >= r.src.length) return;
+	
+	switch (r.src.charAt(r.index)) {
+	case "/":
+		r.index += 1;
+		for (var i = r.elms.length; --i >= 0; ) {
+			if (r.elms[i].net) {
+				closeElement(r, r.elms[i]);
+				return;
+			}
+		}
+		tryPrintData(r, "/");
+		return;
+	case "]":
+		if (r.src.substring(r.index, r.index + 3) == "]]>") {
+			if (r.include > 0) {
+				r.include--;
+			} else {
+				r.err.push("[T1] 開いていないマーク区間宣言: "
+				      + r.src.substring(r.index - 16, r.index + 16));
+			}
+			r.index += 3;
+			return;
+		}
+		throw new Error("Fatal error: newTag @" + r.index);
+	case "<":
+		break;
+	default:
+		throw new Error("Fatal error: newTag @" + r.index);
+	}
+	
+	var regexp, src, index, matchresult;
+	
+	switch (r.src.charAt(r.index + 1)) {
+	case "!":
+		switch (r.src.charAt(r.index + 2)) {
+		case ">":  // 注釈宣言
+			r.out.pushf("<!---->");
+			r.index += 3;
+			return;
+		case "-":  // 注釈宣言?
+			if (r.src.charAt(r.index + 3) != "-") break;
+			
+			regexp = /^--((?:-?[^-])*)--\s*(?=--|>)/;
+			index = r.index + 2;
+			src = r.src.substring(index);
+			for (;;) {
+				matchresult = regexp.exec(src);
+				if (!matchresult) break;
+				r.out.pushf("<!--" + matchresult[1] + "-->");
+				index += matchresult[0].length;
+				src = src.substring(matchresult[0].length);
+				if (src.charAt(0) == ">") {
+					r.index = index + 1;
+					return;
+				}
+			}
+			r.err.push("[T2] 不正な注釈宣言: "
+			      + r.src.substring(r.index - 8, index + 16));
+			break;
+		case "[":  // マーク区間宣言
+			regexp = /^<!\[([^\[]*)\[/;
+			matchresult = regexp.exec(r.src.substring(r.index));
+			if (!matchresult) {
+				r.err.push("[T3] 不正なマーク区間宣言: "
+				      + r.src.substring(r.index - 8, r.index + 24));
+				r.include++;
+				break;
+			}
+			r.index += matchresult[0].length;
+			evalMarkedSection(r, matchresult);
+			return;
+		default:  // その他の宣言
+			regexp = /^<!([a-z]+)/i;
+			matchresult = regexp.exec(r.src.substring(r.index));
+			if (!matchresult) break;
+			switch (matchresult[1]) {
+			case "DOCTYPE":
+				evalDOCTYPE(r);
+				return;
+			default:
+				r.err.push("[T4: 警告] 未対応の宣言: "
+				      + r.src.substring(r.index - 8, r.index + 24));
+				break;
+			}
+		}
+		break;
+	case "?":  // 処理命令
+		regexp = /^<\?([^>]*?)(\??)>/;
+		matchresult = regexp.exec(r.src.substring(r.index));
+		if (!matchresult) {
+			r.err.push("[T5] 閉じていない処理命令: "
+			      + r.src.substring(r.index - 8, r.index + 32));
+			break;
+		}
+		if (!matchresult[1].match(/^(?!xml\b)[a-z_:][\w.:-]*([ \t\r\n]|$)/i)) {
+			r.out.pushf("<?PI " + matchresult[1] + "?>");
+			r.err.push("[T6: 注意] XML に適合するため、処理命令の内容を変更しました: "
+			      + matchresult[0]);
+		} else if (!matchresult[2]) {
+			r.out.pushf("<?" + matchresult[1] + "?>");
+			r.err.push("[T7: 注意] XML に適合するため、処理命令の内容を変更しました: "
+			      + matchresult[0]);
+		} else {
+			r.out.pushf(matchresult[0]);
+		}
+		r.index += matchresult[0].length;
+		return;
+	case "/":  // 終了タグ?
+		if (r.src.charAt(r.index + 2) == ">") {  // 空終了タグ
+			closeElement(r);
+			r.index += 3;
+			return;
+		}
+		regexp = /^<\/([a-z][\w.:-]*)\s*(?:>|(?=<))/i;
+		matchresult = regexp.exec(r.src.substring(r.index));
+		if (!matchresult) {  // 終了タグではない/不正なタグ
+			regexp = /^<\/([a-z][\w.:-]*)/i;
+			matchresult = regexp.exec(r.src.substring(r.index));
+			if (!matchresult) break;
+			r.err.push("[T8] 閉じていない " + matchresult[1] + " 終了タグ: "
+				+ r.src.substring(r.index - 16, r.index + 16));
+		}
+		closeElement(r, matchresult[1].toLowerCase());
+		r.index += matchresult[0].length;
+		return;
+	default:  // 開始タグ?
+		if (r.src.charAt(r.index + 1) == ">") {  // 空開始タグ
+			openElement(r);
+			r.index += 2;
+		} else {
+			regexp = /^<([a-z][\w.:-]*)/i;
+			matchresult = regexp.exec(r.src.substring(r.index));
+			if (!matchresult) break;  // 開始タグではない
+			r.index += matchresult[0].length;
+			openElement(r, matchresult[1].toLowerCase(),
+			            parseStartTagAttrs(r, matchresult));
+		}
+		return;
+	}
+	// マークとして認知しなかった場合
+	tryPrintData(r, "&lt;");
+	r.index += 1;
+	return;
+	
+	// 文書型宣言を処理する。
+	// r.index は宣言の先頭から直後まで進む。
+	function evalDOCTYPE(r) {
+		if (r.strict || r.transitional || r.frameset) {
+			r.err.push("[TD1] 文書型宣言の重複: "
+			      + r.src.substring(r.index - 8, r.index + 24));
+		} else if (r.elms.length > 0) {
+			r.err.push("[TD2] 文書型宣言の位置が不正: "
+			      + r.src.substring(r.index - 8, r.index + 24));
+		}
+		
+		var index = r.index;
+		var src = r.src.substring(index);
+		
+		var re = /^<!DOCTYPE(?:\s|--(?:-?[^-])*--)+([a-zA-Z][\w.:-]*)\s/;
+		var mr = re.exec(src);
+		if (!mr) {
+			r.err.push("[TD3] 不正な文書型宣言: "
+			      + r.src.substring(r.index - 8, r.index + 24));
+			r.index += 1;
+			return;
+		} else if (mr[1].toLowerCase() != "html") {
+			r.err.push("[TD4] HTML 文書ではありません: "
+			      + r.src.substring(r.index - 8, r.index + 24));
+		}
+		src = r.src.substring(index += mr[0].length);
+		
+		re = /^(\s|--(?:-?[^-])*--)*/;
+		mr = re.exec(src);
+		src = r.src.substring(index += mr[0].length);
+		if (src.charAt(0) == "[") {
+			r.err.push("[TD5] HTML 文書ではありません: "
+			      + r.src.substring(r.index - 8, r.index + 24));
+			r.index += 1;
+			return;
+		} else if (src.substring(0, 6) == "SYSTEM") {
+			r.err.push("[TD6] 未対応の文書型宣言");
+			r.index += 1;
+			return;
+		}
+		
+		re = /^PUBLIC(?:\s|--(?:-?[^-])*--)+(["'])([^"']*)\1/;
+		mr = re.exec(src);
+		if (!mr) {
+			r.err.push("[TD7] 不正な文書型宣言: "
+			      + r.src.substring(r.index - 8, index + 16));
+			r.index += 1;
+			return;
+		}
+		
+		var doctype;
+		switch (mr[2]) {
+		case "-//W3C//DTD HTML 4.01//EN":  // strict
+		case "-//W3C//DTD HTML 4.0//EN":
+		case "ISO/IEC 15445:2000//DTD HyperText Markup Language//EN": // ISO-HTML
+		case "ISO/IEC 15445:2000//DTD HTML//EN":
+			r.strict = true;
+			doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"'
+			        + ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">';
+			break;
+		case "-//W3C//DTD HTML 4.01 Transitional//EN":  // transitional
+		case "-//W3C//DTD HTML 4.0 Transitional//EN":
+			r.transitional = true;
+			doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"'
+			        + ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">';
+			break;
+		case "-//W3C//DTD HTML 4.01 Frameset//EN":  // frameset
+		case "-//W3C//DTD HTML 4.0 Frameset//EN":
+			r.frameset = true;
+			doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN"'
+			        + ' "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">';
+			break;
+		default:
+			r.err.push("[TD8] 未対応の公開識別子: \"" + mr[2] + "\"");
+			break;
+		}
+		
+		src = r.src.substring(index += mr[0].length);
+		re = /^(?:\s|--(?:-?[^-])*--)+|^(?=>)/;
+		mr = re.exec(src);
+		if (!mr) {
+			r.err.push("[TD9] 不正な文書型宣言: "
+			      + r.src.substring(r.index - 8, index + 16));
+			r.index += 1;
+			return;
+		}
+		
+		src = r.src.substring(index += mr[0].length);
+		if (src.charAt(0) == ">") {  // IE用hack
+			if (doctype) r.out.pushf(doctype);
+			r.index = index + 1;
+			return;
+		}
+		re = /^(?:(["'])([^"']*)\1)?(?:\s|--(?:-?[^-])*--)*/;
+		mr = re.exec(src);
+		src = r.src.substring(index += mr[0].length);
+		// システム識別子は未対応: 無視する
+		re = /^(\[(?:\]\]>|.|\s)*?\])?(?:\s|--(?:-?[^-])*--)*>/;
+		mr = re.exec(src);
+		if (!mr) {
+			r.err.push("[TD10] 不正な文書型宣言: "
+			      + r.src.substring(r.index - 8, index + 16));
+			r.index += 1;
+			return;
+		}
+		if (mr[1]) {
+			r.err.push("[TD11: 警告] 文書型宣言部分集合は未対応です: " + mr[1]);
+		}
+		if (doctype) r.out.pushf(doctype);
+		r.index = index + mr[0].length;
+	}
+	
+	// マーク区間を処理する。
+	// 最初 r.index はマーク区間宣言の二つ目の [ の直後を示す。
+	function evalMarkedSection(r, mr) {
+		var type = mr[1];
+		
+		type = type.replace(/--(?:-?[^-])*--/g, " ");  // コメントを除去
+		type = replaceParameterEntityReference(r, type);  // 引数実体参照を展開
+		if (type.match(/\b(?!(?:IGNORE|R?CDATA|INCLUDE|TEMP)\b)\w+\b|[^\w\s]/)) {
+			// 不正な状態見出し語指定
+			r.err.push("[TM1] 不正な状態見出し語指定: " + mr[0]
+			      + r.src.substring(r.index, r.index + 16));
+			r.include++;
+			return;
+		}
+		
+		if (type.indexOf("IGNORE") >= 0) {
+			var re = /<!\[|\]\]>/g;
+			var count = 1;
+			
+			re.lastIndex = r.index;
+			do {
+				var matchresult = re.exec(r.src);
+				
+				if (!matchresult) {
+					r.err.push("[TM2] 閉じていないマーク区間宣言: " + mr[0]
+					      + r.src.substring(r.index, r.index + 16));
+					return;
+				}
+				if (matchresult[0] == "<![") count++;
+				else                         count--;
+			} while (count > 0);
+			r.index = re.lastIndex;
+			return;
+		} else if (type.indexOf("CDATA") >= 0) {
+			var index = r.index;
+			
+			if (type.indexOf("RCDATA") >= 0) {
+				parseRCDATA(r, "]]>");
+			} else {
+				r.out.pushf("<![CDATA[");
+				parseCDATA(r, "]]>");
+				r.out.pushf("]]>");
+			}
+			if (r.index == r.src.length) {
+				r.err.push("[TM3] 閉じていないマーク区間宣言: " + mr[0]
+				      + r.src.substring(index - 8, index + 24));
+			} else {
+				r.index += 3;
+			}
+			return;
+		} else {  // INCLUDE, TEMP
+			r.include++;
+			return;
+		}
+	}
+	
+	// 開始タグの属性指定並びを解析し、属性指定の連想配列を返す。
+	// 最初 r.index は要素名の直後にあり、">" か "/" の直後または "<" の直前まで進む。
+	function parseStartTagAttrs(r, mr) {
+		var regexp = /^\s*([\w.:-]+)(\s*=\s*("[^"]*"|'[^']*'|[\w.:-]+))?/i;
+		var result = new Object;
+		var attrName, attrValue;
+		var index = r.index;
+		
+		for (;; index += matchresult[0].length) {
+			var src = r.src.substring(index);
+			var matchresult = regexp.exec(src);
+			if (!matchresult) {  // タグの終了
+				regexp = /^\s*(>|\/|(?=<))/;
+				matchresult = regexp.exec(src);
+				if (!matchresult) {
+					r.err.push("[TO1] 閉じていない " + mr[0].substring(1) + " 開始タグ: "
+					      + mr[0] + r.src.substring(r.index, index + 16));
+					r.index = index;
+					return result;
+				}
+				if (matchresult[1] == "/") result.$net = true;
+				r.index = index + matchresult[0].length;
+				if (matchresult[1] === "" && r.src.charAt(r.index) != "<") {
+					r.index = r.src.indexOf("<", index);  // IE用hack
+				}
+				return result;
+			}
+			if (matchresult[2]) {
+				attrName  = matchresult[1].toLowerCase();
+				attrValue = matchresult[3];
+			} else {
+				attrValue = matchresult[1].toLowerCase();
+				attrName = getAttrNameForValue(mr[1].toLowerCase(), attrValue);
+				if (!attrName) {
+					r.err.push("[TO2] 未定義の属性値: " + mr[1] + " 要素内 " + attrValue);
+					continue;
+				}
+			}
+			if (attrName in result) {
+				r.err.push("[TO3] 属性指定の重複: " + mr[1] + " 要素内 "
+				      + attrName + "=" + attrValue);
+			}
+			result[attrName] = attrValue;
+		}
+	}
+}
+
+// 新しい要素を開き、必要なタグを r.out に書き込む。
+// tagName: 省略時は r.elms.peek().tagName とみなす。小文字
+// attrs: 属性指定の連想配列。省略可。
+function openElement(r, tagName, attrs) {
+	var c = r.elms.peek();
+	
+	if (!tagName)
+		tagName = c ? c.tagName : "html";
+	if (!elementContentAllowed(c && c.tagName, tagName, r)) {
+		if (!checkOmittedTag(r, tagName)) {
+			c = r.elms.peek();
+			if (c)
+				r.err.push("[S1] " + c.tagName + " 要素内の不正な " + tagName
+				      + " 要素: " + r.src.substring(r.index - 24, r.index + 8));
+			else
+				r.err.push("[S2] 不正な " + tagName + " ルート要素: "
+				      + r.src.substring(r.index - 24, r.index + 8));
+		} else {
+			c = r.elms.peek();
+		}
+	}
+	if (tagName == "head" && r.elms[0].length > 0) {
+		r.err.push("[S3] 不正な位置に head 要素");
+	} else if (tagName == "body" && r.elms[0].length != 1) {
+		r.err.push("[S4] 不正な位置に body 要素");
+	}
+	
+	var newElement = new Array;
+	newElement.tagName = tagName;
+	newElement.attrs = attrs;
+	newElement.net = attrs && attrs.$net;
+	
+	if (!c) {
+		if (r.root)
+			r.err.push("[S5] 複数の文書要素");
+		else if (!(r.strict || r.transitional || r.frameset))
+			r.err.push("[S6] 文書型宣言なし");
+		r.root = newElement;
+	}
+	
+	r.out.pushf("<" + tagName);
+	if (tagName == "html") {
+		r.out.push(' xmlns="http://www.w3.org/1999/xhtml"');
+	}
+	if (attrs) {
+		for (var attr in attrs) {
+			var attrValue = attrs[attr];
+			
+			if (typeof attrValue != "string") continue;
+			switch (attrValue.charAt(0)) {
+			case "'":  case '"':
+				var attrValueN = parseCharRef(attrValue.slice(1, -1));
+				attrValueN = attrValueN.replace(/^\s+|\s+$/g, "").toLowerCase();
+				attrValue = normalizeContent(attrValue).replace("<", "&lt;");
+				break;
+			default:
+				var attrValueN = attrValue.toLowerCase();
+				attrValue = '"' + attrValue + '"';
+				break;
+			}
+			if (getAttrNameForValue(tagName, attrValueN) == attr)
+				attrValue = '"' + attrValueN + '"';
+			r.out.push(" " + attr + "=" + attrValue);
+			if (attr == "lang") r.out.push(" xml:lang=" + attrValue);
+			
+			if (attr == "http-equiv" && attrValueN == "content-type") {
+				if (tagName == "meta") {
+					var mr = attrs.content.match(
+						/;\s*charset=([a-z][\w.-]*)\s*(?=;|['"]?$)/i);
+					if (mr)
+						r.charset = mr[1];
+				}
+			}
+		}
+	}
+	if (isEmpty(tagName)) {
+		r.out.push(" /");
+		c.push(newElement);
+	} else {
+		r.elms.push(newElement);
+	}
+	r.out.push(">");
+}
+
+// 要素を閉じ、必要なタグを書き込む。
+// e: 閉じる要素オブジェクトまたはタグ名文字列 (小文字)。省略時は直近の要素を閉じる。
+function closeElement(r, e, supressFlush) {
+	norm: switch (typeof e) {
+	case "undefined":
+		e = r.elms.peek();
+		if (!e) {
+			r.err.push("[E1] 対応する要素がない空終了タグ:"
+			      + r.src.substring(r.index - 16, r.index + 16));
+			return;
+		}
+		break;
+	case "string":
+		var err = "";
+		for (var i = r.elms.length; --i >= 0; ) {
+			var c = r.elms[i];
+			
+			if (e == c.tagName) {
+				e = c;
+				if (err) r.err.push(err);
+				break norm;
+			} else if (!isEndTagOmittable(c.tagName)) {
+				err += "[E2] " + c.tagName + " 終了タグの欠落: " + e + " 終了タグの直前: "
+				    + r.src.substring(r.index - 16, r.index + 16) + "\n\n";
+			}
+		}
+		r.err.push("[E3] 対応する要素がない " + e + " 終了タグ: "
+		      + r.src.substring(r.index - 16, r.index + 16));
+		r.out.pushf("<!--/" + e + "-->");
+		return;
+	}
+	
+	do {
+		var c = r.elms.pop();
+		
+		if (!c) {
+			r.err.push("[E4!] 内部エラー (tagName=" + e.tagname + ")");
+			return;
+		}
+		if (e == c && !supressFlush) {
+			r.out.pushf();
+		}
+		r.out.push("<\/" + c.tagName + ">");
+		
+		var d = r.elms.peek();
+		
+		if (d) {
+			d.push(c);
+		}
+	} while (e != c);
+}
+
+// inner 要素が outer 要素の子要素として存在しうるか
+// outer/inner: 要素名 (小文字) または #PCDATA, $CDATA。
+// r: strict/transitional/frameset の判別に使用。また、
+//    elms 内に body 要素があるかを見て del/ins 要素の可否を決める
+function elementContentAllowed(outer, inner, r) {
+	var e = elementContents[outer || ""];
+	
+	if (!e)
+		return false;
+	if (inner in e)
+		return test(e[inner]);
+	
+	if (inner == "del" || inner == "ins") {
+		return !!r.elms[1] && r.elms[1].tagName == "body";
+	}
+	
+	var inline = test(e.$inline), block = test(e.$block), flow = test(e.$flow);
+	
+	return (inline || flow) && test(elementContents.$inline[inner])
+	    || (block  || flow) && test(elementContents.$block [inner]);
+
+	function test(x) {
+		switch (x) {
+		case "t":
+			return !r.strict;
+		case "f":
+			return !!r.frameset;
+		case "F":
+			return !r.frameset;
+		case true:
+			return true;
+		case false:
+		default:
+			return false;
+		}
+	}
+}
+
+// 値は true, false, "t", "f", "F" のどれか
+// "t": Transitional&Frameset, "f": Frameset, "F": Transitional
+// null は空要素。
+var elementContents = {
+	$inline: {
+		"#PCDATA": true,
+		tt: true, i: true, b: true, u: "t", s: "t", strike: "t", big: true,
+		small: true,
+		em: true, strong: true, dfn: true, code: true, samp: true, kbd: true,
+		"var": true, cite: true, abbr: true, acronym: true,
+		a: true, img: true, applet: "t", object: true, font: "t", basefont: "t",
+		br: true, script: true, map: true, q: true, sub: true, sup: true,
+		span: true, bdo: true, iframe: "t",
+		input: true, select: true, textarea: true, label: true, button: true
+	},
+	$block: {
+		p: true, h1: true, h2: true, h3: true, h4: true, h5: true, h6: true,
+		ul: true, ol: true, dir: "t", menu: "t", pre: true,
+		dl: true, div: true, center: "t", noscript: true, noframes: "t",
+		blockquote: true, form: true, isindex: "t", hr: true, table: true,
+		fieldset: true, address: true
+	},
+	$flow: {
+		$inline: true, $block: true
+	},
+	basefont: null,
+	br: null,
+	area: null,
+	link: null,
+	img: null,
+	param: null,
+	hr: null,
+	input: null,
+	col: null,
+	frame: null,
+	isindex: null,
+	base: null,
+	meta: null,
+	$CDATA: null,
+	"#PCDATA": null
+};
+
+elementContents[""] = { html: true };
+elementContents.body = {
+	$block: true, $flow: "t", script: true, del: true, ins: true
+};
+elementContents.address = { $inline: true, p: "t" };
+elementContents.a = { $inline: true, a: false };
+elementContents.map = { $block: true, area: true };
+elementContents.object =
+elementContents.applet = { $flow: true, param: true };
+elementContents.pre = {
+	$inline: true,
+	img: false, object: false, applet: false, big: false, small: false,
+	sub: false, sup: false, font: false, basefont: false
+};
+elementContents.blockquote = { $block: true, $flow: "t", script: true };
+elementContents.dl = { dt: true, dd: true };
+elementContents.ol =
+elementContents.ul =
+elementContents.dir =
+elementContents.menu = { li: true };
+elementContents.form = { $block: true, $flow: "t", script: true, form: false };
+elementContents.label = { $inline: true, label: false };
+elementContents.select = { optgroup: true, option: true };
+elementContents.optgroup = { option: true };
+elementContents.option =
+elementContents.textarea = { "#PCDATA": true };
+elementContents.fieldset = { $flow: true, legend: true };
+elementContents.button = {
+	$flow: true,
+	a: false, input: false, select: false, textarea: false, label: false,
+	button: false, form: false, isindex: false, fieldset: false, iframe: false
+};
+elementContents.table = {
+	caption: true, col: true, colgroup: true,
+	thead: true, tfoot: true, tbody: true
+};
+elementContents.thead =
+elementContents.tfoot =
+elementContents.tbody = { tr: true };
+elementContents.colgroup = { col: true };
+elementContents.tr = { th: true, td: true };
+elementContents.frameset = { frameset: true, frame: true, noframes: true };
+elementContents.noframes = { $flow: "F", body: "f" };
+elementContents.head = {
+	title: true, isindex: "t", base: true, script: true, style: true,
+	meta: true, link: true, object: true
+};
+elementContents.title = { "#PCDATA": true };
+elementContents.style =
+elementContents.script = { $CDATA: true };
+elementContents.noscript = { $block: true, $flow: "t" };
+elementContents.html = { head: true, body: "F", frameset: "f" };
+
+elementContents.tt = elementContents.i = elementContents.b = elementContents.u =
+elementContents.s = elementContents.strike =
+elementContents.big = elementContents.small =
+elementContents.em = elementContents.strong = elementContents.dfn =
+elementContents.code = elementContents.samp = elementContents.kbd =
+elementContents["var"] = elementContents.cite = elementContents.abbr =
+elementContents.acronym =
+elementContents.sub = elementContents.sup =
+elementContents.span =
+elementContents.bdo =
+elementContents.font =
+elementContents.p =
+elementContents.h1 = elementContents.h2 = elementContents.h3 =
+elementContents.h4 = elementContents.h5 = elementContents.h6 =
+elementContents.q =
+elementContents.dt =
+elementContents.legend =
+elementContents.caption =
+	elementContents.$inline;
+
+elementContents.div =
+elementContents.center =
+elementContents.ins = elementContents.del =
+elementContents.dd = elementContents.li =
+elementContents.th = elementContents.td =
+elementContents.iframe =
+	elementContents.$flow;
+
+// ある要素の親要素が決まっている場合はその親要素名を返す
+function getParentName(r, tagName) {
+	switch (tagName) {
+	case "#PCDATA":
+		return r.elms.length == 1 && r.elms[0] && r.elms[0][0] && "body";
+	case "script":
+		return r.elms.length == 1 && r.elms[0] && r.elms[0][0] ? "body" : "head";
+	case "noframes":
+		if (r.frameset) return "frameset";
+		// 下に続く
+	default:
+		return elementParent[tagName];
+	}
+}
+
+var elementParent = {
+	body: "html",
+	area: "map",
+	link: "head",
+	dt: "dl",
+	dd: "dl",
+	optgroup: "select",
+	option: "select",
+	legend: "fieldset",
+	caption: "table",
+	thead: "table",
+	tfoot: "table",
+	tbody: "table",
+	colgroup: "table",
+	col: "table",
+	tr: "tbody",
+	th: "tr",
+	td: "tr",
+	frameset: "html",
+	frame: "frameset",
+	//noframes: "",
+	head: "html",
+	title: "head",
+	base: "head",
+	meta: "head",
+	style: "head",
+	//script: ""
+	html: ""
+};
+
+// 空要素であるか判定
+// tagName: 要素名。小文字。
+function isEmpty(tagName) {
+	return elementContents[tagName] === null;
+}
+
+// 現在の状態に content を挿入する際におけるタグの省略をチェックする。
+// !elementContentAllowed(r.elms.peek(), content, r) の時専用
+// 省略があるならば省略されたタグを openElement/closeElement する。
+// content: 要素名または "#PCDATA"
+function checkOmittedTag(r, content) {
+	for (var i = r.elms.length, e = r.elms[--i]; i > 0; ) {
+		if (!isEndTagOmittable(e.tagName)) break;
+		
+		var f = e;
+		e = r.elms[--i];
+		if (elementContentAllowed(e.tagName, content, r)) {
+			closeElement(r, f, true);
+			return true;
+		}
+	}
+	
+	var newParent = getParentName(r, content);
+	if (newParent) {
+		if (!isStartTagOmittable(newParent))
+			r.err.push("[O1] " + newParent + " 開始タグの欠落: "
+			      + content + " 開始タグの直前: "
+			      + r.src.substring(r.index - 16, r.index + 16));
+		openElement(r, newParent);
+		return true;
+	}
+	
+	var parent = r.elms.peek();
+	var pName = parent ? parent.tagName : "";
+	var parent2 = r.elms[r.elms.length - 2];
+	var p2Name = parent2 ? parent2.tagName : "";
+	
+	if (!pName || pName == "html") {
+		if (elementContentAllowed("head", content, r)) {
+			openElement(r, "head");
+			return true;
+		} else if (elementContentAllowed("body", content, r)) {
+			openElement(r, "body");
+			return true;
+		}
+	} else if (pName == "head") {
+		if (elementContentAllowed("body", content, r)) {
+			openElement(r, "body");
+			return true;
+		}
+	} else if (pName == "table") {
+		if (elementContentAllowed("tbody", content, r)) {
+			openElement(r, "tbody");
+			return true;
+		}
+	} else if (pName == "noframes") {
+		if (elementContentAllowed("body", content, r)) {
+			openElement(r, "body");
+			return true;
+		}
+	} else {
+		if (!isEndTagOmittable(pName) || content == "#PCDATA")
+			return false;
+		closeElement(r);
+		if (!elementContentAllowed(p2Name, content, r))
+			return checkOmittedTag(r, content);
+	}
+	return false;
+}
+
+// 開始タグが省略可能か判定
+function isStartTagOmittable(tagName) {
+	return startTagOmittable[tagName];
+}
+// 終了タグが省略可能か判定
+function isEndTagOmittable(tagName) {
+	return endTagOmittable[tagName] || isEmpty(tagName)
+		|| !(tagName in elementContents);
+}
+
+var startTagOmittable = {
+	body: true, tbody: true, head: true, html: true
+};
+var endTagOmittable = {
+	body: true,
+	p: true,
+	dt: true,
+	dd: true,
+	li: true,
+	option: true,
+	thead: true,
+	tfoot: true,
+	tbody: true,
+	colgroup: true,
+	col: true,
+	tr: true,
+	th: true,
+	td: true,
+	head: true,
+	html: true
+};
+
+// 属性値に対する属性名を返す
+// 引数は小文字
+// 無効な属性値なら undefined を返す
+function getAttrNameForValue(tagName, value) {
+	var obj = attrNameForValue[tagName] || attrNameForValue.$default;
+	
+	do {
+		if (value in obj) return obj[value];
+		obj = attrNameForValue[obj.$default];
+	} while (obj);
+	return undefined;
+}
+
+var attrNameForValue = {
+	$default: {
+		ltr: "dir", rtl: "dir"
+	}
+};
+
+attrNameForValue.a = {
+	rect: "shape", circle: "shape", poly: "shape", "default": "shape",
+	$default: "$default"
+};
+attrNameForValue.applet = {
+	top: "align", middle: "align", bottom: "align", left: "align", right: "align",
+	$default: "$default"
+};
+attrNameForValue.area = {
+	nohref: "nohref", $default: "a"
+};
+attrNameForValue.base = {};
+attrNameForValue.br = {
+	left: "clear", all: "clear", right: "clear", none: "clear"
+};
+attrNameForValue.button = {
+	button: "type", submit: "type", reset: "type",
+	$default: "optgroup"
+};
+attrNameForValue.caption = {
+	top: "align", bottom: "align", left: "align", right: "align",
+	$default: "$default"
+};
+attrNameForValue.col =
+attrNameForValue.colgroup = {
+	"char": "align",
+	top: "valign", middle: "valign", bottom: "valign", baseline: "valign",
+	$default: "div"
+};
+attrNameForValue.div = {
+	left: "align", center: "align", right: "align", justify: "align",
+	$default: "$default"
+};
+attrNameForValue.dir =
+attrNameForValue.dl = {
+	compact: "compact",
+	$default: "$default"
+};
+attrNameForValue.form = {
+	"get": "method", post: "method",
+	$default: "$default"
+};
+attrNameForValue.frame = {
+	0: "frameborder", 1: "frameborder",
+	noresize: "noresize",
+	yes: "scrolling", no: "scrolling", auto: "scrolling"
+};
+attrNameForValue.frameset = attrNameForValue.base;
+attrNameForValue.h1 =
+attrNameForValue.h2 =
+attrNameForValue.h3 =
+attrNameForValue.h4 =
+attrNameForValue.h5 =
+attrNameForValue.h6 = attrNameForValue.div;
+attrNameForValue.hr = {
+	left: "align", center: "align", right: "align", noshade: "noshade",
+	$default: "$default"
+};
+attrNameForValue.iframe = {
+	0: "frameborder", 1: "frameborder",
+	yes: "scrolling", no: "scrolling", auto: "scrolling",
+	top: "align", middle: "align", bottom: "align", left: "align", right: "align"
+};
+attrNameForValue.img = {
+	ismap: "ismap",
+	$default: "applet"
+};
+attrNameForValue.input = {
+	text: "type", password: "type", checkbox: "type", radio: "type",
+	submit: "type", reset: "type", file: "type", hidden: "type",
+	image: "type", button: "type",
+	checked: "checked", disabled: "disabled", readonly: "readonly",
+	$default: "img"
+};
+attrNameForValue.legend = attrNameForValue.caption;
+attrNameForValue.menu = attrNameForValue.dl;
+attrNameForValue.object = {
+	declare: "declare",
+	$default: "applet"
+};
+attrNameForValue.optgroup = {
+	disabled: "disabled",
+	$default: "$default"
+};
+attrNameForValue.option = {
+	selected: "selected",
+	$default: "optgroup"
+};
+attrNameForValue.p = attrNameForValue.div;
+attrNameForValue.param = {
+	data: "valuetype", ref: "valuetype", object: "valuetype"
+};
+attrNameForValue.script = {
+	defer: "defer"
+};
+attrNameForValue.select = {
+	multiple: "multiple",
+	$default: "optgroup"
+};
+attrNameForValue.table = {
+	"void": "frame", above: "frame", below: "frame", hsides: "frame",
+	lhs: "frame", rhs: "frame", vsides: "frame", box: "frame",
+	border: "frame",
+	none: "rules", groups: "rules", rows: "rules", cols: "rules", all: "rules",
+	left: "align", center: "align", right: "align",
+	$default: "$default"
+};
+attrNameForValue.tbody =
+attrNameForValue.tfoot =
+attrNameForValue.thead =
+attrNameForValue.tr    = attrNameForValue.col;
+attrNameForValue.td =
+attrNameForValue.th = {
+	row: "scope", col: "scope", rowgroup: "scope", colgroup: "scope",
+	nowrap: "nowrap",
+	$default: "col"
+};
+attrNameForValue.textarea = {
+	readonly: "readonly",
+	$default: "optgroup"
+};
+attrNameForValue.ul = {
+	disc: "type", square: "type", circle: "type",
+	$default: "dl"
+};
+
+// data に含まれる引数実体参照を展開 (完全ではない)
+function replaceParameterEntityReference(r, data) {
+	return data.replace(/%([a-z][\w.:-]*)[;\r]?/gi,
+	function(match, name) {
+		switch (name) {
+		case "HTML.Frameset":  case "HTML.Reserved":
+			return " IGNORE ";
+		case "FrameTarget":  case "Color":
+			if (r.strict)
+				return "#";
+			// 下に続く
+		case "ContentType":  case "ContentTypes":  case "Charset":
+		case "Charsets":     case "Character":     case "LinkTypes":
+		case "MediaDesc":    case "URI":           case "Datetime":
+		case "Script":       case "StyleSheet":    case "Text":
+		case "Coords":       case "Length":        case "MultiLength":
+		case "Pixels":       case "OLStyle":       case "LIStyle":
+		case "":
+			return " CDATA ";
+		case "reserved":
+			return " ";
+		default:
+			return " # ";
+		}
+	});
+}
+</script>
+</head>
+
+<body>
+<h1 id="title">
+HTML to XHTML
+</h1>
+<address id="about_this_document">
+© 2006 Magicant / 0.4.1 (2006-11-29)
+</address>
+<noscript>
+<div><strong>
+変換を行うには JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<p>
+HTML 4 ソースを XHTML 1.0 ソースに変換します。
+</p>
+<fieldset>
+<legend>入力</legend>
+<form id="main-form" action=""
+  onsubmit="main(); return false;"
+  onreset="document.getElementById('output-form').reset();">
+<dl>
+<dt>変換元 (HTML ソース)</dt>
+<dd>
+<textarea id="html-source" rows="8" cols="60"></textarea>
+</dd>
+<dt>設定</dt>
+<dd>
+<ul>
+<li>
+<label for="advance-close-tag">
+<input type="checkbox" id="advance-close-tag">
+省略された終了タグを空白類の前に補う
+</label>
+</li>
+</ul>
+</dd>
+<dt>操作</dt>
+<dd>
+<input type="submit" id="submit-conversion" value="変換">
+<input type="reset" id="reset-conversion" value="クリア">
+</dd>
+</dl>
+</form>
+</fieldset>
+<fieldset>
+<legend>出力</legend>
+<form id="output-form" method="post" enctype="multipart/form-data"
+  action="http://validator.w3.org/check">
+<dl>
+<dt>変換結果 (XHTML ソース)</dt>
+<dd>
+<textarea id="xhtml-output" name="fragment" rows="8" cols="60" readonly></textarea>
+</dd>
+<dt>情報</dt>
+<dd>
+<textarea id="info-output" rows="8" cols="60" readonly></textarea>
+</dd>
+<dt>変換結果を <a href="http://validator.w3.org/">W3C の Validator</a> でチェック</dt>
+<dd>
+<ul>
+<li>
+<label for="show-source">
+<input type="checkbox" id="show-source" name="ss" value="1">
+ソースを表示
+</label>
+</li>
+<li>
+<label for="show-parse-tree">
+<input type="checkbox" id="show-parse-tree" name="sp" value="1">
+パース木を表示
+</label>
+<ul>
+<li>
+<label for="no-attrs">
+<input type="checkbox" id="no-attrs" name="noatt" value="1">
+属性を表示しない
+</label>
+</li>
+</ul>
+</li>
+<li>
+<label for="show-outline">
+<input type="checkbox" id="show-outline" name="outline" value="1">
+アウトラインを表示
+</label>
+</li>
+</ul>
+<input type="submit" id="submit-validation" value="チェック">
+</dd>
+</dl>
+</form>
+</fieldset>
+<h2 id="about">説明</h2>
+<p><a href="http://www.w3.org/TR/1998/REC-html40-19980424">HTML 4.0</a> または
+<a href="http://www.w3.org/TR/1999/REC-html401-19991224">HTML 4.01</a>
+でマークアップされた文書を <a href="http://www.w3.org/TR/2004/REC-xml-20040204">XML
+1.0</a> に基づく <a href="http://www.w3.org/TR/2002/REC-xhtml1-20020801">XHTML
+1.0</a> 文書に変換します。
+また、<a href="http://purl.org/NET/ISO+IEC.15445/15445.html">ISO-HTML (ISO/IEC
+15445:2000)</a> でマークアップされた文書を HTML 4.01 Strict 文書とみなして
+XHTML 1.0 Strict 文書に変換することもできます。</p>
+<h3 id="setting">設定</h3>
+<dl>
+<dt>省略された終了タグを空白類の前に補う</dt>
+<dd>
+このオプションを使うと、マークアップとしてより自然な位置に省略された終了タグが補われます。
+<dl>
+<dt>入力例</dt>
+<dd><pre><code>&lt;dl>
+&lt;dt>要素 1
+&lt;dd>要素 2
+&lt;/dl></code></pre></dd>
+<dt>出力例 (省略された終了タグを空白類の前に補わない)</dt>
+<dd><pre><code>&lt;dl>
+&lt;dt>要素 1
+&lt/dt>&lt;dd>要素 2
+&lt/dd>&lt;/dl></code></pre></dd>
+<dt>出力例 (省略された終了タグを空白類の前に補う)</dt>
+<dd><pre><code>&lt;dl>
+&lt;dt>要素 1&lt;/dt>
+&lt;dd>要素 2&lt;/dd>
+&lt;/dl></code></pre></dd>
+</dl>
+</dd>
+</dl>
+<h3 id="notice">変換に関する注意</h3>
+<ul>
+<li>
+<p>このスクリプトは、入力された HTML 文書をおおよそ HTML
+の文法に忠実に従って解析します。正しく解析できなかった場合はエラーが出力され、変換は正しく行われません。</p>
+<p>HTML の文法に関するよくある誤りには、例えば次のようなものがあります。</p>
+<ul>
+<li>引用符で囲むべき属性値を囲んでいない。
+<pre>誤 <code>&lt;a href=http://example.com/></code>
+正 <code>&lt;a href="http://example.com/"></code></pre>
+</li>
+<li>コメントの中の <code>--</code> の数が正しい注釈の形式に則っていない。
+<pre>誤 <code>&lt;!----------></code>
+正 <code>&lt;!--------></code></pre>
+</li>
+</ul>
+<p>当然のことながら、HTML 4 の仕様に定義されていない要素 (特定のブラウザでのみ有効な要素)
+は使用できません。</p>
+<p>ただし、入力 HTML 文書に関する全ての誤りがエラーとして指摘されるわけではありません。
+入力 HTML 文書に誤りがあっても、エラーなく変換処理が完了する場合もあります。しかし、この場合は出力 XHTML
+文書も当然誤りを含むものになります。</p>
+</li>
+<li>
+<p>入力が HTML 4 の仕様に適合する (<span lang="en">valid</span> である) HTML 文書ならば
+出力は XHTML 1.0 に適合する筈です。もし HTML 4 適合文書の入力に対し XHTML 1.0 に適合しない
+(<span lang="en">valid</span> でない) 出力が得られた場合は、<a
+href="/magicant/author.html">作者</a>宛にご連絡下さい。</p>
+<p>なお、文書型宣言における文書型宣言部分集合には対応していません。</p>
+</li>
+<li>
+<p><cite>SGML 仕様 (JIS X 4151-1992) 6.6.1 記録の境界</cite>に規定されている
+RS と RE の扱いには対応していません。この規定によって無視すべき RS または RE があっても、
+それらは無視せずにそのまま出力に反映します。</p>
+<p>出力 XHTML 文書についてこのことによって大きな不具合が発生することはないと思われるため、
+今後も RS と RE の扱いを変える予定はありません。</p>
+</li>
+<li>
+<p>SCRIPT 要素および STYLE 要素の内容はそれに含まれる文字に応じて CDATA セクションとして出力します。
+内容に <code>]]&gt;</code> が含まれる場合は CDATA セクションが複数に分かれます。
+<abbr title="Document Object Model">DOM</abbr> では CDATA セクションが独立したノードとして
+出現することに注意してください。</p>
+</li>
+<li>
+<p>A 要素や IMG 要素の name 属性は XHTML 1.0 では非推奨となり、id
+属性に置き換えるべきものとされていますが、このスクリプトは name 属性を id
+属性に変更するなどの処理は特に行いません。
+また、各要素の lang 属性は xml:lang 属性と lang 属性の二つ両方を出力します。</p>
+</li>
+<li>
+<p>文書型宣言やマーク区間宣言の状態見出し語指定に含まれるコメントはすべて無視し、
+出力 XHTML 文書には一切反映しません。通常のコメントは出力に反映します。</p>
+</li>
+<li>
+<p>入力の META 要素の一つに次のような形式で文書のエンコーディングを示す情報が含まれている場合は、
+出力の XML 宣言のエンコーディング宣言にその情報を反映します。</p>
+<ul>
+<li>
+<code>&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></code>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="testers">変換テスト用文書</h3>
+<p>変換テスト用文書を変換して、スクリプトが正しく動作しているかを確認できます。</p>
+<ol>
+<li><a href="html2xhtml-tester1.html">変換テスト用文書 1</a>
+と<a href="html2xhtml-tester1r.xhtml">その正しい変換結果</a></li>
+<li><a href="html2xhtml-tester2.html">変換テスト用文書 2</a>
+と<a href="html2xhtml-tester2r.xhtml">その正しい変換結果</a></li>
+<li><a href="html2xhtml-tester3.html">変換テスト用文書 3</a>
+と<a href="html2xhtml-tester3r.xhtml">その正しい変換結果</a></li>
+</ol>
+<h2 id="version-info">バージョン情報</h2>
+<table summary="バージョン情報の一覧。">
+<thead>
+<tr>
+<th scope="col">バージョン</th>
+<th scope="col">日付</th>
+<th scope="col">備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>v0.2.2</td>
+<td>2005 年 12 月 18 日</td>
+<td>ほぼ完成</td>
+</tr>
+<tr>
+<td>v0.3.6</td>
+<td>2005 年 12 月 28 日</td>
+<td>各種修正</td>
+</tr>
+<tr>
+<td>v0.3.10</td>
+<td>2006 年 1 月 31 日</td>
+<td>瑣末な修正</td>
+</tr>
+<tr>
+<td>v0.4</td>
+<td>2006 年 2 月 17 日</td>
+<td>省略された終了タグを空白類の前に補うオプションを追加</td>
+</tr>
+<tr>
+<td>v0.4.1</td>
+<td>2006 年 11 月 29 日</td>
+<td>瑣末な修正</td>
+</tr>
+</tbody>
+</table>
+
+<script type="text/javascript">
+if ("location" in this && location.protocol == "http:") {
+	document.write('<address id="counter"><script type="text/javascript" ');
+	document.write('src="//hpcounter.nifty.com/cgi-bin/t_counter.cgi?f=magicant&amp;n=2&amp;d=2">');
+	document.write('<\/script><\/address>');
+}
+</script>
+
+</body>
+</html>
+<!--
+覚え:
+del/ins 要素は body 要素内のどこにでも出現できる。
+内容が CDATA なのはscript/style。
+省略できる開始タグは html/head/body/tbody。noframes 内の body タグ省略に注意。
+<! の後に来れるのは、注釈、マーク区間、ENTITY、DOCTYPE、ELEMENT、ATTLIST、NOTATION、SHORTREF、
+USEMAP、LINKTYPE、LINK、IDLINK、USELINK、SYSTEM
+このうち文書中に現れ得るのは、注釈、マーク区間、USEMAP、USELINK。
+-->
+<!--
+programed by magicant
+2005年12月12日 v0.0   α版
+2005年12月14日 v0.1   β版
+2005年12月16日 v0.1.4
+2005年12月20日 v0.2.3
+2005年12月28日 v0.3.6
+2006年01月31日 v0.3.10
+2006年02月17日 v0.4
+2006年11月29日 v0.4.1
+-->

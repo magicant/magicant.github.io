@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-07-25T15:17:55+09:00">
+<title>Boolean 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-null.html" title="Null 組込みオブジェクト">
+<link rel="next" href="b-number.html" title="Number 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Boolean</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Boolean</code> 組込みオブジェクトを定義する。</p>
+<p><code>Boolean</code> は特殊なオブジェクト <code>true</code> および
+<code>false</code> に対応する <a href="b-type.html"><code>Type</code></a>
+のインスタンスである。<code>true</code> と <code>false</code>
+の二つを合わせて<dfn>真偽値オブジェクト</dfn>という。</p>
+
+<h2 id="members"><code>Boolean</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Boolean"</code></dd>
+<dt id="m-true"><code>true</code></dt>
+<dd>真偽値オブジェクトの一つ。
+このオブジェクトの全てのメンバ・内部メンバは不変である。
+このオブジェクトは次のプロパティを持つ:
+	<dl class="member-def">
+	<dt id="m-true.tostring"><code>toString</code></dt>
+	<dd><code>Boolean.true</code> を @this 値として関数として呼び出されると
+	[[<a href="b-string.html#string-object">文字列オブジェクト</a>
+	<code>"true"</code>]] を返すような関数オブジェクト。</dd>
+	</dl>
+またこのオブジェクトは以下の内部メンバを持つ:
+	<dl class="member-def">
+	<dt id="im-true.-prototype"><code>$prototype</code></dt>
+	<dd><code>Boolean.prototype</code></dd>
+	<dt id="im-true.-isimmutable"><code>$isImmutable</code></dt>
+	<dd><code>Boolean.true</code></dd>
+	</dl>
+このオブジェクトは関数として呼出し可能でない。</dd>
+<dt id="m-false"><code>false</code></dt>
+<dd>真偽値オブジェクトの一つ。
+このオブジェクトの全てのメンバ・内部メンバは不変である。
+このオブジェクトは次のプロパティを持つ:
+	<dl class="member-def">
+	<dt id="m-false.tostring"><code>toString</code></dt>
+	<dd><code>Boolean.false</code> を @this 値として関数として呼び出されると
+	[[<a href="b-string.html#string-object">文字列オブジェクト</a>
+	<code>"false"</code>]] を返すような関数オブジェクト。</dd>
+	</dl>
+またこのオブジェクトは以下の内部メンバを持つ:
+	<dl class="member-def">
+	<dt id="im-false.-prototype"><code>$prototype</code></dt>
+	<dd><code>Boolean.prototype</code></dd>
+	<dt id="im-false.-isimmutable"><code>$isImmutable</code></dt>
+	<dd><code>Boolean.true</code></dd>
+	</dl>
+このオブジェクトは関数として呼出し可能でない。</dd>
+<dt id="m-and"><code>and</code> メソッド</dt>
+<dd>2-ary メソッド。関数として呼出すと次の動作を行う:
+	<ol>
+	<li>渡された全ての引数について、それぞれ <a
+	href="expressions.html#to-boolean">to-boolean</a> を行う。</li>
+	<li>全ての to-boolean の結果が true である (引数の個数が 0 である場合を含む)
+	ならば [[初期の <a href="#m-true"><code>Boolean.true</code></a>]]
+	を、さもなくば [[初期の <a href="#m-false"><code>Boolean.false</code></a>]]
+	を返す。</li>
+	</ol>
+</dd>
+<dt id="m-or"><code>or</code> メソッド</dt>
+<dd>2-ary メソッド。関数として呼出すと次の動作を行う:
+	<ol>
+	<li>渡された全ての引数について、それぞれ <a
+	href="expressions.html#to-boolean">to-boolean</a> を行う。</li>
+	<li>全ての to-boolean の結果が false である (引数の個数が 0 である場合を含む)
+	ならば [[初期の <a href="#m-false"><code>Boolean.false</code></a>]]
+	を、さもなくば [[初期の <a href="#m-true"><code>Boolean.true</code></a>]]
+	を返す。</li>
+	</ol>
+</dd>
+<dt id="m-xor"><code>xor</code> メソッド</dt>
+<dd>2-ary メソッド。関数として呼出すと次の動作を行う:
+	<ol>
+	<li>渡された全ての引数について、それぞれ <a
+	href="expressions.html#to-boolean">to-boolean</a> を行う。</li>
+	<li>to-boolean の結果が true であった回数が偶数である (引数の個数が 0
+	である場合を含む) ならば
+	[[初期の <a href="#m-false"><code>Boolean.false</code></a>]] を、さもなくば
+	[[初期の <a href="#m-true"><code>Boolean.true</code></a>]] を返す。</li>
+	</ol>
+</dd>
+<dt id="m-not"><code>not</code> メソッド</dt>
+<dd>1-ary  メソッド。一つの引数で関数として呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数について、<a href="expressions.html#to-boolean">to-boolean</a>
+	を行う。</li>
+	<li>to-boolean の結果が true ならば
+	[[初期の <a href="#m-false"><code>Boolean.false</code></a>]] を、さもなくば
+	[[初期の <a href="#m-true"><code>Boolean.true</code></a>]] を返す。</li>
+	</ol>
+関数呼出しにおいて引数の個数が 1 でない場合の動作は未定義である。
+</dd>
+</dl>
+
+<h2 id="internal-members"><code>Boolean</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Boolean</code> の関数としての呼出し</h2>
+<p><code>Boolean</code> は関数として呼出し可能であり、関数として呼出されると
+新しい <a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。</p>
+
+<!--h2 id="prototype-members"><code>Boolean.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members">真偽値オブジェクトのプロパティ</h2>
+<p>真偽値オブジェクトは以下のプロパティを持つ。ただし、
+<code>Boolean.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-and"><code>and</code> メソッド</dt>
+<dt id="p-math-and"><code>Math$and</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Boolean</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-and"
+><code>Boolean.and</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-or"><code>or</code> メソッド</dt>
+<dt id="p-math-or"><code>Math$or</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Boolean</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-or"
+><code>Boolean.or</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-xor"><code>xor</code> メソッド</dt>
+<dt id="p-math-xor"><code>Math$xor</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Boolean</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-xor"
+><code>Boolean.xor</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-not"><code>not</code> メソッド</dt>
+<dt id="p-math-nor"><code>Math$not</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出したとき、@this 値が
+<code>Boolean</code> オブジェクトであり、引数の個数が 0 ならば、その @this
+値を引数として <a href="#m-not"><code>Boolean.not</code></a>
+を関数として呼出し、その結果を返す。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

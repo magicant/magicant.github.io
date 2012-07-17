@@ -1,0 +1,117 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>Rational 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-integer.html" title="Integer 組込みオブジェクト">
+<link rel="next" href="b-float.html" title="Float 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Rational</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Rational</code> 組込みオブジェクトを定義する。</p>
+<p><a href="calculations.html#rational-objects"><code>Rational</code>
+オブジェクト</a>は、スクリプトで扱われる有理数を表すオブジェクトである。</p>
+
+<h2 id="members"><code>Rational</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-real.html#m-prototype"><code>Real.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Rational"</code></dd>
+<dt id="m-zero"><code>zero</code></dt>
+<dd>有理数 0/1 を表す <code>Rational</code> オブジェクト</dd>
+<dt id="m-one"><code>one</code></dt>
+<dd>有理数 1/1 を表す <code>Rational</code> オブジェクト</dd>
+</dl>
+
+<h2 id="internal-members"><code>Rational</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Rational</code> の関数としての呼出し</h2>
+<p><code>Rational</code>
+は関数として呼出し可能であり、関数として呼出されると次の処理を実行する:</p>
+<dl>
+<dt>引数が <code>Rational</code> オブジェクト一つの場合</dt>
+<dd>[[引数]] を返す。</dd>
+<dt>引数が <a href="b-integer.html"><code>Integer</code></a>
+オブジェクト一つの場合</dt>
+<dd>引数を <code>Rational</code> に<a
+href="calculations.html#integer-to-rational-conversion">拡大変換</a
+>し、その結果を値とする正常終了の結果を返す。</dd>
+<dt>引数が <code>Integer</code> オブジェクト二つの場合</dt>
+<dd>
+	<ol>
+	<li>一つ目の引数の表す整数を <var>a</var>、二つ目の表す整数を <var>b</var>
+	とする。</li>
+	<li><var>b</var> = 0 ならば、新しい <a href="b-error.html"><code
+	>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>a</var> と <var>b</var> の最大公約数を <var>g</var> とする。</li>
+	<li><var>b</var> &lt; 0 ならば、−<var>g</var> を改めて <var>g</var>
+	とする。</li>
+	<li>整数 <var>a</var> / <var>g</var> を表す
+	<code>Integer</code> オブジェクトを <var>n</var> とする。</li>
+	<li>整数 <var>b</var> / <var>g</var> を表す
+	<code>Integer</code> オブジェクトを <var>d</var> とする。</li>
+	<li><var>n</var> を <code>nu</code> プロパティの値とし、<var>d</var> を
+	<code>de</code> プロパティの値とする <code>Rational</code>
+	オブジェクトを値とする正常終了の結果を返す。</li>
+	</ol>
+</dd>
+<dt>引数が <a href="b-float.html"><code>Float</code></a>
+オブジェクト一つの場合</dt>
+<dd>引数を <code>Rational</code> に<a
+href="calculations.html#float-to-rational-conversion">縮小変換</a
+>し、その結果を値とする正常終了の結果を返す。</dd>
+<dt>引数が<a href="b-string.html#string-object">文字列オブジェクト</a
+>一つの場合</dt>
+<dd>引数である文字列オブジェクトの内容を数値として解釈し、その値を表す
+<code>Rational</code> オブジェクトを値とする正常終了の結果を返してもよい。
+文字列を数値として解釈しないまたはできない場合は、新しい <a
+href="b-error.html"><code>ArgumentError</code></a>
+のインスタンスを投げる。文字列の解釈の方法は実行環境に任せる。</dd>
+<dt>上記以外の引数の場合</dt>
+<dd>規定しない。</dd>
+</dl>
+
+<!--h2 id="prototype-members"><code>Rational.prototype</code>
+のプロパティ</h2-->
+<h2 id="instance-members"><code>Rational</code> オブジェクトのプロパティ</h2>
+<p><code>Rational</code> オブジェクトは以下のプロパティを持つ。ただし、<code
+>nu</code>・<code>de</code> プロパティ以外のプロパティについては、
+<code>Rational.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-nu"><code>nu</code></dt>
+<dd><a href="b-integer.html"><code>Integer</code></a>
+オブジェクト。この値は有理数の分子を表す。</dd>
+<dd>このプロパティは不変である。</dd>
+<dt id="p-de"><code>de</code></dt>
+<dd><a href="b-integer.html"><code>Integer</code></a>
+オブジェクト。この値は有理数の分母を表す。この値は正であって、かつ
+<code>nu</code> プロパティの値が表す分子の値と互いに素でなければならない。</dd>
+<dd>このプロパティは不変である。</dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。<code>Rational</code> オブジェクトを @this
+値としてこのメソッドを呼出すと、渡された @this 値を<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>に変換したものを結果として返す。
+文字列への変換の方法は実行環境に任せる。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

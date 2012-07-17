@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-03-23T21:26:16+09:00">
+<title>文法総則 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="next" href="execution.html" title="プログラムの実行">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">文法総則</h1>
+<p>この章では、#Script のソースコードの文法を規定する
+解析表現文法について説明する。</p>
+
+<h2 id="source-code">ソースコード</h2>
+<p>スクリプトプログラムのソースコードは、一つの Unicode 文字列として表される。
+<dfn id="unicode-string">Unicode 文字列</dfn>とは、Unicode
+規格で定めるところの<q>コード済み文字列 <span lang="en">(coded character
+sequence)</span></q> すなわち Unicode コードポイントの列である。
+ソースコードは、Unicode 正規化形式 C に基づいて正規化してあることが望まれるが、
+必須ではない。
+また、実行環境はソースコードを解釈するときにそれを正規化する必要はない。</p>
+
+<h2 id="peg">解析表現文法</h2>
+<p>#Script の構文は解析表現文法によって定義する。</p>
+<p><dfn>解析表現文法 <span lang="en">(parsing expression grammar:
+<abbr>PEG</abbr>)</span></dfn> は、有限個の<dfn title="terminal symbols"
+>終端記号</dfn>、<dfn title="nonterminal symbols">非終端記号</dfn>、<dfn
+title="(parsing) rules">解析ルール</dfn>および一つの<dfn
+title="start expression">開始表現</dfn>から成る。
+#Script のソースコードの構文解析において、各終端記号は一つの Unicode
+コードポイントである。非終端記号は、解析ルールによる置換の対象となる
+抽象的構成要素である。解析ルールは、非終端記号を解析表現に置換する写像である。
+開始表現は、非終端記号の一つである。</p>
+
+<h3 id="pe">解析表現</h3>
+<p><dfn title="parsing expression">解析表現</dfn>は、
+解析ルールによって置換される非終端記号に対応する、
+文法上の構成要素を表す式である。
+解析表現は、原子解析表現と解析表現演算子から成る。</p>
+
+<h4 id="atomic-pe">原始解析表現</h4>
+<p><dfn title="atomic parsing expression">原始解析表現</dfn
+>は、解析表現の最も基本的な構成要素であり、次の三つのうちのどれかである:</p>
+<dl>
+<dt>一つの終端記号</dt>
+<dd>終端記号そのものを表す。</dd>
+<dt>一つの非終端記号</dt>
+<dd>解析ルールがこの非終端記号に対応させる解析表現を表す。</dd>
+<dt>[空]</dt>
+<dd>0 個の Unicode コードポイントを表す。</dd>
+</dl>
+<p>原始解析表現は、それ自身が解析表現である。</p>
+
+<h4 id="pe-operators">解析表現演算子</h4>
+<p>ある解析表現 <var>e</var>, <var>e</var><sub>1</sub>, <var>e</var><sub>2</sub>
+に対して、以下の解析表現演算子を適用した結果もまた解析表現である:</p>
+<dl>
+<dt>連続: <var>e</var><sub>1</sub> <var>e</var><sub>2</sub></dt>
+<dd>解析表現 <var>e</var><sub>1</sub> の直後に解析表現 <var>e</var><sub>2</sub>
+	が続いたものを表す。</dd>
+<dt>選択: <var>e</var><sub>1</sub> / <var>e</var><sub>2</sub></dt>
+<dd>解析表現 <var>e</var><sub>1</sub>, <var>e</var><sub>2</sub>
+	のどちらでもよいことを表す。</dd>
+<dt>0 個以上: <var>e</var>*</dt>
+<dd>解析表現 <var>e</var> が 0 個以上連続しているものを表す。これは
+	<var>e</var>+ / [空] と等価である。</dd>
+<dt>1 個以上: <var>e</var>+</dt>
+<dd>解析表現 <var>e</var> が 1 個以上連続しているものを表す。これは
+	<var>e</var> <var>e</var>* と等価である。</dd>
+<dt>任意: <var>e</var>?</dt>
+<dd>解析表現 <var>e</var> が 0 個または 1 個存在することを表す。これは
+	<var>e</var> / [空] と等価である。</dd>
+<dt>肯定先読み: &amp;<var>e</var></dt>
+<dd>その直後に <var>e</var> が連続するような [空] を表す。ただし、<var>e</var>
+	自身は &amp;<var>e</var> には当てはまらない。</dd>
+<dt>否定先読み: !<var>e</var></dt>
+<dd>その直後に <var>e</var> が連続しないような [空] を表す。ただし、<var>e</var>
+	自身は !<var>e</var> には当てはまらない。</dd>
+</dl>
+<p>演算子の優先順位は、以下の一覧に挙げる順番である
+(先にあるほうが優先順位が高い):</p>
+<ol>
+<li>0 個以上、1 個以上、任意</li>
+<li>肯定先読み、否定先読み</li>
+<li>連続</li>
+<li>選択</li>
+</ol>
+<p>演算子の優先順位を変更するために、数学の数式と同じように括弧を用いる。</p>
+<p>文法解析において、0 個以上、1 個以上、および任意の演算子は、<em>貪欲</em
+>に振舞う。すなわちこれらの演算子は解析表現の他の部分がどのようになっているかに
+かかわらず (文脈に依存せず)、出来るだけ多くの <var>e</var> を当てはめる。
+従って、例えば解析表現 (<code>a</code>* <code>a</code>)
+に当てはまる入力は存在しない。連続する <code>a</code> は全て <code>a</code>*
+の部分に当てはまるため、その後の <code>a</code> の部分に当てはまる
+<code>a</code> は残っていないからである。</p>
+<p>また、選択の演算子は、当てはまる表現の長さやその他の条件によらず、常に
+<var>e</var><sub>1</sub> を優先して選択する。従って、<var>e</var><sub>2</sub>
+が当てはまる可能性があるのは <var>e</var><sub>1</sub>
+が当てはまらなかった場合のみである。</p>
+<p>肯定先読み、否定先読みの演算子は、解析表現が当てはまるための条件を指定する。
+例えば解析表現 (<code>a</code> &amp;<code>b</code>) は、<code>ab</code> の
+<code>a</code> の部分には当てはまるが <code>ac</code> や <code>ad</code> の
+<code>a</code> の部分には当てはまらない。また解析表現 (<code>a</code>
+!<code>b</code>) は、<code>ac</code> や <code>ad</code> の <code>a</code>
+の部分には当てはまるが <code>ab</code> の <code>a</code>
+の部分には当てはまらない。</p>
+
+<h3 id="notation">この仕様書での表記規則</h3>
+<p>この仕様書は、HTML によって書いてある。以下に、
+この仕様書において解析表現文法を記述するための規則を定める。</p>
+<ul>
+<li>終端記号は HTML の code 要素として直接に、または括弧 { }
+で囲んだ説明として間接に、表す。</li>
+<li>複数の連続する終端記号を、一つの code 要素でまとめて表す。このとき、code
+要素はひとかたまりのものとして扱う。</li>
+<li>非終端記号は Pascal 形式綴りのローマ字文字列として表す。</li>
+<li>解析ルールは、class="definition" 属性の付いた dl 要素によって表す。
+非終端記号は dt 要素として、それに対応する解析表現は dd 要素として表す。一つの
+dt 要素に対して複数の dd 要素を指定してある場合は、各 dd 要素の内容を選択演算子
+/ によって繋いだものを表す。例えば、以下に示す二つの Integer
+の解析ルールの記述例は等価である:
+<dl class="definition">
+<dt>Integer</dt>
+<dd>BinaryInteger</dd>
+<dd>OctalInteger</dd>
+<dd>HexadecimalInteger</dd>
+<dd>DecimalInteger</dd>
+<dt>Integer</dt>
+<dd>BinaryInteger / OctalInteger / HexadecimalInteger / DecimalInteger</dd>
+</dl>
+</li>
+</ul>
+
+<h2 id="parsing">ソースコードの解析</h2>
+<p>ソースコードの解析は、与えられたソースコードを
+指定された開始表現に当てはめることによって行う。</p>
+<p>ソースコード全体が解析の対象となる開始表現に当てはまらない場合は、
+<dfn>文法エラー</dfn>とする。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-07-25T15:17:55+09:00">
+<title>NaN 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-infinity.html" title="Infinity 組込みオブジェクト">
+<link rel="next" href="b-interval.html" title="Interval 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>NaN</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>NaN</code> 組込みオブジェクトを定義する。</p>
+<p><code>NaN</code> は <a href="calculations.html#nan-object"><code>NaN</code
+> オブジェクト</a>に対応する
+<a href="b-type.html"><code>Type</code></a> のインスタンスである。</p>
+
+<h2 id="members"><code>NaN</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-number.html#m-prototype"><code>Number.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NaN"</code></dd>
+<dt id="m-nan"><code>nan</code></dt>
+<dd><a href="calculations.html#nan-object"><code>NaN</code>
+オブジェクト</a>。</dd>
+</dl>
+
+<h2 id="internal-members"><code>NaN</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>NaN</code> の関数としての呼出し</h2>
+<p><code>NaN</code> は関数として呼出し可能であり、関数として呼出されると
+新しい <a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。</p>
+
+<!--h2 id="prototype-members"><code>NaN.prototype</code> のプロパティ</h2>
+<p>この仕様では、<code>NaN.prototype</code> のプロパティは定義しない。</p-->
+<h2 id="instance-members"><code>NaN</code> オブジェクトのプロパティ</h2>
+<p><code>NaN</code> オブジェクトは以下のプロパティを持つ。ただし、初期の
+<code>NaN.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-math-abs"><code>Math$abs</code> メソッド</dt>
+<dt id="p-math-abs2"><code>Math$abs2</code> メソッド</dt>
+<dt id="p-math-re"><code>Math$re</code> メソッド</dt>
+<dt id="p-math-im"><code>Math$im</code> メソッド</dt>
+<dt id="p-math-conj"><code>Math$conj</code> メソッド</dt>
+<dt id="p-math-arg"><code>Math$arg</code> メソッド</dt>
+<dt id="p-math-sign"><code>Math$sign</code> メソッド</dt>
+<dt id="p-math-exp"><code>Math$exp</code> メソッド</dt>
+<dt id="p-math-log"><code>Math$log</code> メソッド</dt>
+<dt id="p-math-sin"><code>Math$sin</code> メソッド</dt>
+<dt id="p-math-cos"><code>Math$cos</code> メソッド</dt>
+<dt id="p-math-tan"><code>Math$tan</code> メソッド</dt>
+<dt id="p-math-asin"><code>Math$asin</code> メソッド</dt>
+<dt id="p-math-acos"><code>Math$acos</code> メソッド</dt>
+<dt id="p-math-atan"><code>Math$atan</code> メソッド</dt>
+<dt id="p-math-sinh"><code>Math$sinh</code> メソッド</dt>
+<dt id="p-math-cosh"><code>Math$cosh</code> メソッド</dt>
+<dt id="p-math-tanh"><code>Math$tanh</code> メソッド</dt>
+<dt id="p-math-asinh"><code>Math$asinh</code> メソッド</dt>
+<dt id="p-math-acosh"><code>Math$acosh</code> メソッド</dt>
+<dt id="p-math-atanh"><code>Math$atanh</code> メソッド</dt>
+<dt id="p-math-floor"><code>Math$floor</code> メソッド</dt>
+<dt id="p-math-ceil"><code>Math$ceil</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @nan }</code> または <code>@{ @this }</code></dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。<code>NaN</code> オブジェクトを @this
+値として関数として呼び出されると、渡された @this
+値を文字列に変換し、その文字列を内容とする<a href="b-string.html#string-object"
+>文字列オブジェクト</a>を値とする正常終了の結果を返す。
+文字列への変換の方法は実行環境に任せる。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

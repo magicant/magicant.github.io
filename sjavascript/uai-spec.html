@@ -1,0 +1,303 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="ユーザエージェントを判別する JavaScript です">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>JavaScript によるユーザエージェント判別</title>
+</head>
+
+<body>
+<h1 id="title">
+UAIdentifier - JavaScript によるユーザエージェント判別
+</h1>
+<address id="about_this_document">
+© 2006-2011 Magicant / 1.14 (2011-04-10)
+</address>
+
+<p>
+JavaScript を実行しているブラウザの種類およびそのレンダリングエンジン・
+オペレーティングシステムの種類を判別します。
+<a href="uai.html">テストページ</a>で実際に試すことができます。
+</p>
+<p>
+<a href="uai.js">uai.js</a> は自由に使用していただいて構いません。
+</p>
+
+<h2 id="how-to-use">
+uai.js の使い方
+</h2>
+<p>
+実装ファイルは <a href="uai.js">uai.js</a> です。
+このファイルは単独では実行しても意味がありません。
+uai.js には UA&shy;Identifier オブジェクトの定義が含まれており、これを他の
+JavaScript コードから呼び出して使います。
+</p>
+<p>
+UA&shy;Identifier オブジェクトの使用例を以下に挙げます。
+</p>
+<pre class="code-sample"><code class="javascript">var uai = new UAIdentifier();
+if (uai.ie >= 5.0)
+    write("Internet Explorer 5.0 or later");
+if (uai.firefox)
+    write("Mozilla Firefox");
+if (uai.opera)
+    write("Opera");
+alert(uai.toString());</code></pre>
+<p>
+詳細は <a href="#api">API 仕様</a>と<a href="#result">判定結果の使い方</a>をご覧下さい。
+</p>
+
+<h2 id="api">
+uai.js の API 仕様
+</h2>
+
+<h3 id="api-constructor">
+UA&shy;Identifier コンストラクタ
+</h3>
+<div class="code-definition"><code class="javascript">
+new UAIdentifier()
+</code></div>
+<p>
+UA&shy;Identifier オブジェクトを初期化します。
+</p>
+<p>
+引数はありません。コンストラクタ内でユーザエージェント判定コードが実行され、判定結果の値を含む
+オブジェクトが作成されます。
+</p>
+<p>
+このコンストラクタを単なるメソッドとして呼び出した場合の動作は保証されません。
+</p>
+
+<h3 id="api-toString">
+to&shy;String メソッド
+</h3>
+<div class="code-definition"><code class="javascript">
+string toString()
+</code></div>
+<p>
+判定結果を表す文字列を返します。
+</p>
+<p>
+返される文字列には、次に示す文字のみが含まれます。
+</p>
+<ul>
+<li>英字 (A-Z および a-z) およびアラビア数字 (0-9)</li>
+<li>コロン、カンマ、ピリオドの記号</li>
+</ul>
+<p>
+文字列の大まかな書式は、該当する判定結果の名前をカンマで区切ってつなげたものです。
+バージョン番号等も分かっている場合は、名前に続いてコロンとその番号が続きます。
+</p>
+<p>
+このメソッドが返す文字列の例:
+</p>
+<ul>
+<li>IE:6.0,Trident:6.0,WinNT:5.1</li>
+<li>Mozilla:5.0:1.7.12,Firefox:1.0.7,Gecko:20050919,WinNT:5.1</li>
+<li>Safari:312,Mac</li>
+</ul>
+<p>
+WinNT の値が存在する場合、Win の値は文字列に含まれません。
+</p>
+<p>
+Mozilla Revision のバージョンは Mozilla のバージョンに続いて出力されます。
+(上の二つ目の例を参照)
+</p>
+
+<h3 id="api-properties">
+各プロパティ
+</h3>
+<div class="code-definition"><code class="javascript">
+ie, mozilla, mozillarv, firefox, netscape, opera, safari, chrome, konqueror, epiphany, unknown,
+trident, tasman, gecko, presto, applewebkit,
+win, winnt, mac, linux, bsd : string/boolean/undefined
+</code></div>
+<p>
+これらのプロパティの値は判別結果を表します。詳細は<a href="#result">判定結果の使い方</a>を参照。
+</p>
+
+<h2 id="detail">
+判別機能の詳細
+</h2>
+<p>
+UA&shy;Identifier コンストラクタは、HTML 文書を表示するブラウザ上で実行されることで、
+そのブラウザ (ユーザエージェント) を判別します。
+判別は主に navigator オブジェクトの userAgent プロパティ文字列を元に行います。
+グローバルオブジェクトに navigator プロパティが存在しない場合、判定は行われません。
+</p>
+<p>
+また、より確実に判別を行うために、グローバルオブジェクトの以下の名前のプロパティについても調べます。
+</p>
+<ul>
+<li>RegExp</li>
+<li>opera</li>
+<li>Components</li>
+<li>XMLHttpRequest</li>
+</ul>
+<p>
+これらのプロパティが他のスクリプトなどにより上書きされている場合、正しく判別できない可能性があります。
+</p>
+<p>
+ユーザエージェントが Internet Explorer である場合、判別に JScript の条件コンパイル機能を使用します。
+UA&shy;Identifier スクリプト内で <code class="jscript">@cc_on</code> ステートメントが実行されるため、
+他のスクリプトで条件コンパイルを使用している場合はその動作に影響を与える可能性があります。
+</p>
+<p>
+UA&shy;Identifier が判別できる内容は以下の通りです。
+</p>
+<dl>
+<dt>ブラウザの種類</dt>
+<dd>
+<ul>
+<li>Internet Explorer</li>
+<li>Mozilla</li>
+<li>Mozilla Firefox</li>
+<li>Netscape</li>
+<li>Opera</li>
+<li>Safari</li>
+<li>Google Chrome</li>
+<li>Konqueror</li>
+<li>Epiphany</li>
+</ul>
+</dd>
+<dt>レンダリングエンジンの種類</dt>
+<dd>
+<ul>
+<li>Trident (Windows 版 Internet Explorer 用エンジン)</li>
+<li>Tasman (Mac OS 版 Internet Explorer 用エンジン)</li>
+<li>Gecko</li>
+<li>Presto (Opera 用エンジン)</li>
+<li>AppleWebKit</li>
+</ul>
+</dd>
+<dt>オペレーティングシステムの種類</dt>
+<dd>
+<ul>
+<li>Windows</li>
+<li>Mac OS</li>
+<li>Linux</li>
+<li>BSD 系 OS</li>
+<li>Solaris</li>
+</ul>
+</dd>
+</dl>
+<p>
+<strong>注意:</strong> このスクリプトによる判定結果は、必ずしも正しいとは限りません。
+レンダリングエンジンの判別はほぼ確実ですが、ブラウザおよびオペレーティングシステムの判別は
+ブラウザの種類や設定によっては誤った判定結果を出す可能性があります。
+判定結果は参考情報としてお使い下さい。
+</p>
+
+<h2 id="result">
+判定結果の使い方
+</h2>
+<p>
+判定結果は、UA&shy;Identifier オブジェクトのプロパティとして表されます。
+各プロパティはそれぞれ一つのブラウザ、レンダリングエンジン、またはオペレーティングシステムに
+対応しています。
+プロパティの値の型・形式は判定要素によって異なります。
+</p>
+<p>
+判定の結果に該当するプロパティに結果の値が設定されます。
+該当しないその他のプロパティは未定義 (<code>undefined</code>) のままです。
+</p>
+<table summary="UAIdentifier のプロパティ名と判定結果との対応を示します。">
+<caption>プロパティ名・判定結果値一覧</caption>
+<thead>
+<tr>
+<th scope="col">プロパティ名</th>
+<th scope="col">判定対象</th>
+<th scope="col">値の書式</th>
+</tr>
+</thead>
+<tbody>
+<tr><td><code>ie</code></td><td>Internet Explorer</td><td>タイプ A</td></tr>
+<tr><td><code>mozilla</code></td><td>Mozilla</td><td>タイプ A</td></tr>
+<tr><td><code>mozillarv</code></td><td>Mozilla Revision</td><td>タイプ B</td></tr>
+<tr><td><code>firefox</code></td><td>Firefox</td><td>タイプ B</td></tr>
+<tr><td><code>netscape</code></td><td>Netscape</td><td>タイプ B</td></tr>
+<tr><td><code>opera</code></td><td>Opera</td><td>タイプ A</td></tr>
+<tr><td><code>safari</code></td><td>Safari</td><td>タイプ B</td></tr>
+<tr><td><code>chrome</code></td><td>Chrome</td><td>タイプ B</td></tr>
+<tr><td><code>konqueror</code></td><td>Konqueror</td><td>タイプ B</td></tr>
+<tr><td><code>epiphany</code></td><td>Epiphany</td><td>タイプ B</td></tr>
+<tr><td><code>unknown</code></td><td>User agent 不明</td><td>タイプ E</td></tr>
+</tbody>
+<tbody>
+<tr><td><code>trident</code></td><td>Trident</td><td>タイプ A</td></tr>
+<tr><td><code>tasman</code></td><td>Tasman</td><td>タイプ A</td></tr>
+<tr><td><code>gecko</code></td><td>Gecko</td><td>タイプ C</td></tr>
+<tr><td><code>presto</code></td><td>Presto</td><td>タイプ B</td></tr>
+<tr><td><code>applewebkit</code></td><td>AppleWebKit</td><td>タイプ B</td></tr>
+</tbody>
+<tbody>
+<tr><td><code>win</code></td><td>Windows</td><td>タイプ D</td></tr>
+<tr><td><code>winnt</code></td><td>Windows NT</td><td>タイプ A</td></tr>
+<tr><td><code>mac</code></td><td>Mac OS</td><td>タイプ E</td></tr>
+<tr><td><code>linux</code></td><td>Linux</td><td>タイプ E</td></tr>
+<tr><td><code>bsd</code></td><td>BSD</td><td>タイプ D</td></tr>
+<tr><td><code>sunos</code></td><td>Solaris</td><td>タイプ E</td></tr>
+</tbody>
+</table>
+<p>
+プロパティ値の書式の種類:
+</p>
+<dl>
+<dt>タイプ A</dt>
+<dd>"1.2" や "34.56" のように小数に変換できる文字列、または <code>true</code></dd>
+<dt>タイプ B</dt>
+<dd>"1.2" や "3.4.56" のようにアラビア数字とピリオドで構成される文字列、または <code>true</code></dd>
+<dt>タイプ C</dt>
+<dd>"20050123" のように年月日を 8 文字で表す文字列、または <code>true</code></dd>
+<dt>タイプ D</dt>
+<dd>文字列、または <code>true</code>。文字列の書式は不定。</dd>
+<dt>タイプ E</dt>
+<dd><code>true</code></dd>
+</dl>
+<h3 id="result-appendix">
+補足
+</h3>
+<ul>
+<li>
+各プロパティの値は、原則としてその判定対象のバージョンを表す文字列です。
+その判定対象に該当することは確かだが、バージョンまでは分からない場合、値は
+<code>true</code> になります。
+</li>
+<li>
+Trident および Tasman の判定結果の値は、JScript 実行エンジンのバージョンを基に、対応する
+Windows 版 Internet Explorer のバージョンを表しています。
+</li>
+<li>
+ブラウザの種類が判定できなかった場合は <code>unknown</code> プロパティが <code>true</code>
+になります。レンダリングエンジンおよびオペレーティングシステムについては、
+当てはまるものがない場合に特にそのことを示すプロパティはありません。
+</li>
+<li>
+オペレーティングシステムの判定結果として Windows NT が当てはまった場合、<code>win</code>
+プロパティの値は <code>winnt</code> プロパティの値の先頭に文字列 "NT"
+を付けたものになります。
+</li>
+</ul>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+</body>
+
+</html>
+<!--
+UAIdentifier
+programed by Magicant
+-->

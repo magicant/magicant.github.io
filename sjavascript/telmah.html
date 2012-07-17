@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="オセロ盤表示アプレット Hamlet 用の HTML ソースから Ria 形式の棋譜を抜き出します。">
+<meta name="date" content="2007-08-04T13:46:54+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] Telmah</title>
+<style type="text/css">
+#mainform input[type="text"] {
+	width: 100%;
+}
+</style>
+<script type="text/javascript">
+
+var elhamletcode, elresult;
+
+var INIT_EXAMPLE = [
+"<!--ここに以下のような HTML ソースを入力してください。-->",
+'<param name="line1" value="|46|45|28|20|19|18|50|53|">',
+'<param name="line2" value="|55|54|44|27|17|47|58|52|">',
+'<param name="line3" value="|13|34|10|01|04|08|40|41|">',
+'<param name="line4" value="|14|11|07|()|##|05|33|32|">',
+'<param name="line5" value="|12|21|02|##|()|06|29|31|">',
+'<param name="line6" value="|15|36|16|03|09|22|37|30|">',
+'<param name="line7" value="|48|60|38|35|23|42|56|43|">',
+'<param name="line8" value="|49|57|39|26|25|24|51|59|">'
+].join("\n");
+
+function init() {
+	if ("document" in this && document.getElementById) {
+		elhamletcode = document.getElementById("hamletcode");
+		elresult = document.getElementById("result");
+		
+		if (document.implementation && document.implementation.hasFeature &&
+				document.implementation.hasFeature("HTML", "2.0") &&
+				document.implementation.hasFeature("Events", "2.0")) {
+			elhamletcode.addEventListener("focus", clearExample, false);
+			elhamletcode.value = INIT_EXAMPLE;
+		}
+		/*@cc_on
+		@if (@_jscript && @_jscript_version >= 5.0)
+			elhamletcode.attachEvent("onfocus", clearExampleIE);
+			elhamletcode.value = INIT_EXAMPLE;
+		@end @*/
+	} else {
+		telmah = function() {};
+	}
+}
+
+function clearExample() {
+	elhamletcode.value = "";
+	elhamletcode.removeEventListener("focus", clearExample, false);
+}
+
+function clearExampleIE() {
+	elhamletcode.value = "";
+	elhamletcode.detachEvent("onfocus", clearExampleIE);
+}
+
+function telmah() {
+	var src = elhamletcode.value;
+	var resultary = new Array;
+	var regex = new RegExp("<param\\b", "gim");
+	
+	resultary.error = false;
+	src = removeComments(src);
+	
+	while (regex.lastIndex < src.length) {
+		var match = regex.exec(src);
+		if (!match)
+			break;
+		parseOneTag(src, regex.lastIndex, resultary);
+	}
+	
+	elresult.value = makeResultString(resultary);
+}
+
+function removeComments(str) {
+	return str.replace(/<!(--.*?--\s*)*>/gm, "");
+}
+
+function parseOneTag(src, index, resultary) {
+	var row, linedata;
+	var regex = /\s*([\w.:-]+)(\s*=\s*("[^"]*"|'[^']*'|[\w.:-]+))?/ig;
+	regex.lastIndex = index;
+	while (regex.lastIndex < src.length) {
+		index = regex.lastIndex;
+		var match = regex.exec(src);
+		if (!match || match.index != index) {
+			parseOneLine(resultary, row, linedata);
+			break;
+		}
+		switch (match[1].toLowerCase()) {
+			case "name":
+				if (match[3]) {
+					var match2 = match[3].match(/line(\d+)/i);
+					if (match2 && match2[1])
+						row = match2[1] - 0;
+				}
+				break;
+			case "value":
+				linedata = match[3];
+				if (linedata.charAt(0) == '"' || linedata.charAt(0) == "'")
+					linedata = linedata.substring(1, linedata.length - 1);
+				break;
+		}
+	}
+}
+
+function parseOneLine(resultary, row, line) {
+	if (1 <= row && row <= 8) {
+		var regex = /\d{1,2}|##|\(\)/g;
+		var col = 1;
+		regex.lastIndex = 0;
+		while (regex.lastIndex < line.length) {
+			var match = regex.exec(line);
+			if (!match)
+				break;
+			if (col > 8) {
+				resultary.error = "一行に九個以上の石があります";
+				return;
+			}
+			var val = parseInt(match[0], 10);
+			if (!isNaN(val)) {
+				if (1 <= val && val <= 60) {
+					resultary[val] = { col: col, row: row, toString: toColRowString };
+				} else if (val != 0) {
+					resultary.error = "棋譜データが正しくありません";
+					return;
+				}
+			}
+			col++;
+		}
+	}
+}
+
+var cols = [ "", "a", "b", "c", "d", "e", "f", "g", "h" ]
+
+function toColRowString() {
+	return cols[this.col] + this.row;
+}
+
+function makeResultString(resultary) {
+	for (var i = resultary.length; --i >= 1 && !resultary.error; )
+		if (!resultary[i])
+			resultary.error = "棋譜の一部が欠けています";
+	return resultary.error ? "エラー発生: " + resultary.error : resultary.join("");
+}
+
+</script>
+</head>
+<body onload="init();">
+<h1 id="title">
+Hamlet 用 HTML ソース解析
+</h1>
+<address id="about_this_document">
+© 2007 Magicant / 0.0 (2007-08-04)
+</address>
+<noscript>
+<div><strong>
+Hamlet 用 HTML ソース解析には JavaScript が必要です。
+</strong></div>
+</noscript>
+
+<p>後藤幸信さんが作られたオセロ (リバーシ) 盤を表示する Java アプレット Hamlet を表示する HTML
+ソースから棋譜情報を取り出して、<a href="//www.asahi-net.or.jp/~bc2r-hs/ria/index.html"
+>Ria</a> などで使われている単純な文字列の形式に変換します。</p>
+<form id="mainform" action=""
+onsubmit="telmah(); return false;" onreset="init(); return false;">
+<fieldset>
+<legend>入力</legend>
+<dl>
+<dt>Hamlet 表示用の HTML ソース</dt>
+<dd><textarea id="hamletcode" rows="10" cols="60"></textarea></dd>
+<dt>操作</dt>
+<dd>
+<input id="bstart" type="submit" value="実行">
+<input id="breset" type="reset" value="リセット">
+</dd>
+</dl>
+</fieldset>
+<fieldset>
+<legend>出力</legend>
+<dl>
+<dt>棋譜データ</dt>
+<dd><input id="result" type="text" size="60"></dd>
+</dl>
+</fieldset>
+</form>
+
+<h2 id="usage">使い方</h2>
+<p>フォームのソース入力欄に Hamlet アプレットを表示するための HTML ソースを記入し、
+実行ボタンを押してください。HTML ソースは棋譜データが含まれている param タグだけで十分です。</p>
+
+<h2 id="caution">注意</h2>
+<p>HTML ソースの解析はそれほど厳密には行っていないので、場合によっては正しく解析できないことがあります。</p>
+<p>一度に複数の棋譜を解析することはできません。</p>
+
+</body>
+</html>
+<!--
+programmed by magicant
+2007-08-04 0.0
+-->

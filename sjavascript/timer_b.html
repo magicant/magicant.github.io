@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で作ったストップウォッチです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] ストップウォッチ</title>
+<style type="text/css">
+h1 {
+	font-size: 1em;
+	margin: 0;
+}
+#button0, #button1 {
+	height: 1.8em;
+	width: 10em;
+}
+#maintime {
+	font-weight: bold;
+	font-size: 1.2em;
+	text-align: left;
+}
+#laptime {
+	margin-bottom: 0.5em;
+}
+#laptable td {
+	text-align: right;
+	padding-right: 1em;
+}
+span.aco {
+	display: none;
+}
+span.aci {
+	text-decoration: underline;
+}
+</style>
+<script type="text/javascript" src="uai.js" charset="UTF-8"></script>
+<script type="text/javascript" src="titlechange.js" charset="UTF-8"></script>
+<script type="text/javascript">
+// 定数宣言
+var msPerSecond = 1000;
+var msPerMinute = msPerSecond * 60;
+var msPerHour   = msPerMinute * 60;
+
+// グローバル変数
+var markDate;          // 最後にスタート・スプリットした時刻
+var elapsed  = 0;      // markDateまでに経過した全計測時間
+var lapCount = 0;      // スプリット回数
+var isGoing  = false;  // 計測中ならtrue
+var intervalID;
+
+// グローバルオブジェクト
+var elh, elm, els, elc, elll, ellh, ellm, ells, ellc, elt;
+
+// 初期化
+function init() {
+	elh = document.getElementById("maintimehours");
+	elm = document.getElementById("maintimeminutes");
+	els = document.getElementById("maintimeseconds");
+	elc = document.getElementById("maintimemss");
+	elll = document.getElementById("laptimelaps");
+	ellh = document.getElementById("laptimehours");
+	ellm = document.getElementById("laptimeminutes");
+	ells = document.getElementById("laptimeseconds");
+	ellc = document.getElementById("laptimemss");
+	elt = document.getElementById("laptable");
+	
+	var uai = new UAIdentifier();
+	if (uai.trident || uai.tasman || uai.opera) {
+		button0.ondblclick = startStop;
+		button1.ondblclick = splitReset;
+		button0ac.style.display = "inline";
+		button1ac.style.display = "inline";
+		document.body.onkeydown = keydown;
+	} else if (document.body.addEventListener) {
+		document.getElementById("button0ac").style.display = "inline";
+		document.getElementById("button1ac").style.display = "inline";
+		document.body.addEventListener("keydown", keydown, true);
+	}
+	
+	document.getElementById("button0").focus();
+}
+
+// キー操作用
+function keydown(e) {
+	e = e || window.event;
+	switch (e && e.keyCode) {
+		case 0x20:  case 0x53:  case 0x73:  // ' ' 'S' 's'
+			startStop();
+			return false;
+		case 0x41:  case 0x61:              // 'A' 'a'
+			splitReset();
+			return false;
+		default:
+			return true;
+	}
+}
+
+// スタート/ストップ
+function startStop() {
+	var nowDate = new Date().getTime();
+	if (isGoing) {
+		window.clearInterval(intervalID);
+		displayMaintime(nowDate, true);
+		split(nowDate);
+	} else {
+		markDate = nowDate;
+		elll.innerHTML = ++lapCount;
+		displayMaintime(nowDate, false);
+		intervalID = window.setInterval("interval();", 40);
+	}
+	isGoing = !isGoing;
+	return true;
+}
+
+// スプリット/リセット
+function splitReset() {
+	if (isGoing) {
+		split(new Date().getTime());
+		elll.innerHTML = ++lapCount;
+	} else {
+		elapsed  = 0;
+		elll.innerHTML = lapCount = 0;
+		elc.innerHTML = ellc.innerHTML = "000";
+		els.innerHTML = ells.innerHTML = "00";
+		elm.innerHTML = ellm.innerHTML = "00";
+		elh.innerHTML = ellh.innerHTML = "0";
+		setDocumentTitle("[#JavaScript] ストップウォッチ");
+		while (elt.rows.length > 0) {
+			elt.deleteRow(0);
+		}
+	}
+	return true;
+}
+
+function interval() {
+	displayMaintime(new Date().getTime(), false);
+}
+
+// maintime/laptimeを更新
+// nowDate: 現在時刻のDateオブジェクトの値
+// msFull : maintimemssを3桁まで表示
+function displayMaintime(nowDate, msFull) {
+	var span = new Span(nowDate - markDate + elapsed, msFull);
+	elc.innerHTML = span.milliseconds;
+	els.innerHTML = span.seconds;
+	elm.innerHTML = span.minutes;
+	elh.innerHTML = span.hours;
+	setDocumentTitle(span.hours + ":" + span.minutes + ":" +
+	                 span.seconds + " - ストップウォッチ");
+	
+	span = new Span(nowDate - markDate, msFull);
+	ellc.innerHTML = span.milliseconds;
+	ells.innerHTML = span.seconds;
+	ellm.innerHTML = span.minutes;
+	ellh.innerHTML = span.hours;
+}
+
+// スプリットを取り、laptableを更新
+// nowDate: 現在時刻のDateオブジェクトの値
+function split(nowDate) {
+	var span;
+	var row = elt.insertRow(-1);
+	
+	row.insertCell(-1).innerHTML = lapCount;
+	
+	span = new Span(nowDate - markDate, true);
+	row.insertCell(-1).innerHTML = span.hours   + ":" + span.minutes + ":" +
+	                             span.seconds + "." + span.milliseconds;
+	
+	span = new Span(nowDate - markDate + elapsed, true);
+	row.insertCell(-1).innerHTML = span.hours   + ":" + span.minutes + ":" +
+	                             span.seconds + "." + span.milliseconds;
+	
+	elapsed += nowDate - markDate;
+	markDate = nowDate;
+}
+
+// 時間の値を文字列に変換
+function Span(time, msFull) {
+	var ms = time % msPerSecond;
+	time -= ms;
+	var s = time % msPerMinute;
+	time -= s;
+	s /= msPerSecond;
+	var m = time % msPerHour;
+	time -= m;
+	m /= msPerMinute;
+	var h = time / msPerHour;
+	
+	if (msFull) {
+		ms = (ms >= 100 ? "" : ms >= 10 ? "0" : "00") + ms;
+	} else {
+		ms = Math.floor(ms / 100);
+	}
+	this.milliseconds = ms;
+	this.seconds = (s >= 10 ? "" : "0") + s;
+	this.minutes = (m >= 10 ? "" : "0") + m;
+	this.hours   = h;
+}
+
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+ストップウォッチ
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 3.6.4 (2005-12-19)
+</address>
+<noscript>
+<div><strong>
+このストップウォッチは JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<div>
+<input type="button" id="button0" value="START/STOP"
+ onmousedown="return startStop();"
+ title="時間の計測を開始・終了します。">
+<span class="aco" id="button0ac">(<span class="aci">S</span>)</span>
+<br>
+<input type="button" id="button1" value="SPLIT/RESET"
+ onmousedown="return splitReset();"
+ title="途中経過時間を記録・計測結果を消去します。">
+<span class="aco" id="button1ac">(<span class="aci">A</span>)</span>
+</div>
+<div id="maintime">
+<span id="maintimehours">0</span
+>:<span id="maintimeminutes">00</span
+>:<span id="maintimeseconds">00</span
+>.<span id="maintimemss">000</span>
+</div>
+<div id="laptime">
+Lap <span id="laptimelaps">0</span
+> - <span id="laptimehours">0</span
+>:<span id="laptimeminutes">00</span
+>:<span id="laptimeseconds">00</span
+>.<span id="laptimemss">000</span>
+</div>
+<div>
+<table id="laptable"></table>
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2004-09-12 v3.0
+2004-09-19 v3.1
+2004-09-27 v3.2
+2004-10-09 v3.3
+2004-11-27 v3.4
+2005-07-10 v3.5
+2005-10-22 v3.6
+2005-10-27 v3.6.2
+2005-11-19 v3.6.3
+2005-12-19 v3.6.4
+-->

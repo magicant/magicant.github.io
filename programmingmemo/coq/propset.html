@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq の基本的データ型の Prop, Set, Type の対応">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Prop vs. Set vs. Type</title>
+</head>
+
+<body>
+<h1 id="title">Prop vs. Set vs. Type</h1>
+<p>これを見ればカリー・ハワード対応の神髄が見える……かもしれない。
+
+<table>
+<caption>そのものの種類での比較</caption>
+<thead>
+<tr><th><code>Prop</code><th><code>Set</code><th><code>Type</code>
+<tbody>
+<tr><td><code>I : True</code><td><code>tt : unit</code><td>
+<tr><td><code>False</code><td><code>Empty_set</code><td>
+<tr><td><td><code>true, false : bool</code><td>
+<tr><td><td><td><code>Some _, None : option A</code>
+<tr><td><code>or_introl _, or_intror _ : or P Q</code><td><code>left _, right _ : sumbool P Q</code><td><code>inl _, inr _ : sum A B</code><br><code>inleft _, inright _ : sumor A Q</code>
+<tr><td><code>conj _ _ : and P Q</code><td><td><code>pair _ _ : prod A B</code>
+<tr><td><code>proj1 : and P Q -> P</code><td><td><code>fst : prod A B -> A</code>
+<tr><td><code>proj2 : and P Q -> Q</code><td><td><code>snd : prod A B -> B</code>
+<tr><td><code>ex_intro _ : ex P</code><td><td><code>exist _ : sig P</code><br><code>existT _ : sigT B</code>
+<tr><td><td><td><code>proj1_sig : sig P -> A</code><br><code>projT1 : sigT B -> A</code>
+<tr><td><td><td><code>proj2_sig : sig P -> P x</code><br><code>projT2 : sigT B -> B x</code>
+<tr><td><code>ex_intro2 _ : ex2 P Q</code><td><td><code>exist2 _ : sig2 P Q</code><br><code>existT2 _ : sigT2 B C</code>
+<tr><td><code>refl_equal : eq a a</code><td><td><code>refl_identity : identity a a</code>
+<tr><td><code>inhabits _ : inhabited A</code><td><td>
+</table>
+
+<table>
+<caption>引数の種類での比較</caption>
+<thead>
+<tr><th><code>Prop</code><th><code>Type</code>
+<tbody>
+<tr><td><code>not : Prop -> Prop</code><td><code>notT : Type -> Prop</code>
+<tr><td><code>sig : forall A : Type, (A -> Prop) -> Type</code><td><code>sigT : forall A : Type, (A -> Type) -> Type</code>
+</table>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / <!--更新 2009-09-18 /--> 初出 2010-06-20
+</address>
+
+</body>
+</html>

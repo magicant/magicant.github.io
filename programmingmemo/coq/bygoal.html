@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq での証明における、ゴール別事例集">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq 証明事例集: ゴールが……のとき</title>
+</head>
+
+<body>
+<h1 id="title">証明事例集: ゴールが……のとき</h1>
+
+<p>以下の例では、全て予め <code>Parameters P Q R : Prop.</code> を実行してあるものとする。</p>
+
+<h2 id="hypothesis">ゴールが前提に等しい場合</h2>
+<p><a href="byhyp.html#goal">前提がゴールに等しい場合</a>を参照。</p>
+
+<h2 id="implication">ゴールが含意の場合 (<code><var>P</var> -> <var>Q</var></code> の形) およびゴールが全称量化子 (<code>forall</code>) の場合</h2>
+<p><code>intro</code> または <code><a href="t-induct.html#intros">intros</a></code> で含意の仮定を前提に移動する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> P.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> P
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : P
+  ============================
+   P</samp></code></pre>
+
+<h2 id="adt">ゴールが代数的データ型の場合</h2>
+<p>ゴールの型が代数的データ型の場合は、適当なコンストラクタを適用する。コンストラクタが引数を取る場合は、それが新たなゴールとなり得る。</p>
+
+<h3 id="true">ゴールが <code>True</code> の場合</h3>
+<p><code>True</code> は代数的データ型として定義されている:</p>
+<pre><code>Inductive True := I.</code></pre>
+<p>ゴールが <code>True</code> の場合は、引数を取らないコンストラクタ <code>I</code> を適用すれば証明が完了する:
+<pre><code><samp>Coq < </samp><kbd>Goal True.
+</kbd><samp>1 subgoal
+
+  ============================
+   True
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> I.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="false">ゴールが <code>False</code> の場合</h3>
+<p><code>False</code> は代数的データ型として定義されている:</p>
+<pre><code>Inductive False := .</code></pre>
+<p>この型はコンストラクタを持たないため、この型を持つ値は存在しない。よって、前提から <code>False</code> を導かない限りこれを証明することはできない。</p>
+
+<h3 id="conjunction">ゴールが連言の場合 (<code><var>P</var> /\ <var>Q</var></code> の形)</h3>
+<p>連言は代数的データ型として定義されている:</p>
+<pre><code>Inductive and (A B : Prop) := conj : A -> B -> A /\ B.</code></pre>
+<p>従って、その (唯一の) コンストラクタ <code>conj</code> が適用でき、その結果二つのサブゴールが生成される。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> Q -> Q /\ P.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> Q -> Q /\ P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : Q
+  ============================
+   Q /\ P
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> conj.  (* 代わりに <a href="t-constr.html#split">split</a>. でもよい *)
+</kbd><samp>2 subgoals
+
+  H1 : P
+  H2 : Q
+  ============================
+   Q
+
+subgoal 2 is:
+ P
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H1.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="disjunction">ゴールが選言の場合 (<code><var>P</var> \/ <var>Q</var></code> の形)</h3>
+<p>選言は代数的データ型として定義されている:</p>
+<pre><code>Inductive or (A B : Prop) :=
+  | or_introl : A -> A \/ B
+  | or_intror : B -> A \/ B.</code></pre>
+<p>従って、二つのコンストラクタ <code>or_introl</code>, <code>or_intror</code> のうちどちらかを適用でき、その結果新たなサブゴールが生成される。なお、<code>P \/ Q \/ R</code> は <code>P \/ (Q \/ R)</code> であることに注意。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal Q -> P \/ Q \/ R.
+</kbd><samp>1 subgoal
+
+  ============================
+   Q -> P \/ Q \/ R
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : Q
+  ============================
+   P \/ Q \/ R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> or_intror.  (* 代わりに <a href="t-constr.html#right">right</a>. でもよい *)
+</kbd><samp>1 subgoal
+
+  H : Q
+  ============================
+   Q \/ R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> or_introl.  (* 代わりに <a href="t-constr.html#left">left</a>. でもよい *)
+</kbd><samp>1 subgoal
+
+  H : Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="exists">ゴールが存在量化子 (<code>exists</code>) の場合</h3>
+<p>存在量化子は代数的データ型として定義されている:</p>
+<pre><code>Inductive ex (A : Type) (P : A -> Prop) :=
+    ex_intro : forall x : A, P x -> ex P.</code></pre>
+<p>従ってその (唯一の) コンストラクタ <code>ex_intro</code> を適用すればよいのであるが、普通に <code><a href="t-apply.html#apply">apply</a> ex_intro</code> したのでは値 <code>x</code> の推論に失敗してエラーとなる。ゆえに、<code>x</code> を明示して適用せねばならない。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> ex_intro with 0.  (* 代わりに <a href="t-constr.html#exists">exists</a> 0. でもよい*)
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 0
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>eapply</code> でメタ変数を導入し、後で実例を与えることもできる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal exists n : nat, forall m : nat, m = n -> m = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, forall m : nat, m = n -> m = 0
+
+Unnamed_thm < </samp><kbd>eapply ex_intro.  (* 代わりに eexists. でもよい *)
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m : nat, m = ?31 -> m = 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> m H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  H : m = ?31
+  ============================
+   m = 0
+
+Unnamed_thm < </samp><kbd>eapply H.  (* 代わりに eexact H. や eassumption. でもよい*)
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="eq">ゴールが等式の場合 (<code><var>a</var> = <var>b</var></code> の形)</h3>
+<p>等式は代数的データ型として定義されている:</p>
+<pre><code>Inductive eq (A : Type) (x : A) : A -> Prop :=
+    refl_equal : eq A x x.</code></pre>
+<p>従って、その (唯一の) コンストラクタ <code>refl_equal</code> を適用すればよい。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal 1 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   1 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> refl_equal.  (* 代わりに reflexivity. でもよい *)
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>ただし、両辺が可換でない場合は <code><a href="t-apply.html#apply">apply</a> refl_equal</code> (<code>reflexivity</code>) は失敗する。このような場合は両辺が可換となるように前提を用いて式変形する (→<a href="byhyp.html#eq">前提が等式の場合</a>の例)。</p>
+<p>ゴール <code><var>f</var> <var>a</var> = <var>f</var> <var>b</var></code> を <code><var>a</var> = <var>b</var></code> に変形するには <code>f_equal</code> が使える。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n, m = n -> S m = S n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m n : nat, m = n -> S m = S n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> m n H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : m = n
+  ============================
+   S m = S n
+
+Unnamed_thm < </samp><kbd>f_equal.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : m = n
+  ============================
+   m = n
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>ゴールが同値変形の繰り返しで導ける場合は <code>congruence</code> が使える。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall a b c d e, a = b + c -> a = e -> b + c = d -> d = e.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall a b c d e : nat, a = b + c -> a = e -> b + c = d -> d = e
+
+Unnamed_thm < </samp><kbd>congruence.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h2 id="not">ゴールが否定の場合 (<code>~ <var>P</var></code> の形)</h2>
+<p><code>~ <var>P</var></code> の定義は <code><var>P</var> -> False</code> であることに注意。<a href="#implication">ゴールが含意の場合</a>を参照。</p>
+
+<h3 id="neq">ゴールが不等式の場合 (<code><var>a</var> &lt;> <var>b</var></code> の形)</h3>
+<p><code><var>a</var> &lt;> <var>b</var></code> の定義は <code>~ <var>a</var> = <var>b</var></code> すなわち <code><var>a</var> = <var>b</var> -> False</code> であることに注意。<a href="#implication">ゴールが含意の場合</a>および<a href="byhyp.html#eq">前提が等式の場合</a>を参照。</p>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / <!--更新 2009-09-18 /--> 初出 2010-06-20
+</address>
+
+</body>
+</html>

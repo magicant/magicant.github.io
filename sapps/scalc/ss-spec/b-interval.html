@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-10-02T22:04:14+09:00">
+<title>Interval 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-nan.html" title="NaN 組込みオブジェクト">
+<link rel="next" href="b-math.html" title="Math 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Interval</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Interval</code> 組込みオブジェクトを定義する。</p>
+<p><code>Interval</code> のインスタンスは、区間を表す。</p>
+
+<h2 id="members"><code>Interval</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-enum.html#m-prototype"><code>Enum.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Interval"</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>Object</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Interval</code> の関数としての呼出し</h2>
+<p><code>Interval</code> は関数として呼出し可能であり、
+関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>呼出しで渡された引数が二つ未満ならば新しい <a href="b-error.html"><code
+>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+<li>新しいオブジェクトを作成し、それを <var>I</var> とする。
+このオブジェクトはこの時点では何もメンバ・内部メンバを持たない。</li>
+<li><var>I</var> に <code>$prototype</code> 内部メンバを作成し、<code
+>Interval.prototype</code> をその値とする。</li>
+<li><var>I</var> に <code>inf</code>
+メンバを作成し、一つ目の引数をその値とする。</li>
+<li><var>I</var> に <code>sup</code>
+メンバを作成し、二つ目の引数をその値とする。</li>
+<li><var>I</var> に <code>containsInf</code>
+メンバを作成し、三つ目の引数を値とする。ただし、
+渡された引数が三つに満たなければ、初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> をメンバの値とする。三つ目の引数が<a
+href="b-boolean.html">真偽値オブジェクト</a>でなければ、新しい <a
+href="b-error.html"><code>ArgumentError</code></a> のインスタンスを投げる。</li>
+<li><var>I</var> に <code>containsSup</code>
+メンバを作成し、四つ目の引数を値とする。ただし、
+渡された引数が四つに満たなければ、初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> をメンバの値とする。
+四つ目の引数が真偽値オブジェクトでなければ、新しい <code>ArgumentError</code>
+のインスタンスを投げる。</li>
+<li><var>I</var> の四つのメンバを読み取り専用とするために、
+実行環境の定めるところにより適切なメンバを <var>I</var> に追加する。</li>
+<li>[[<var>I</var>]] を返す。</li>
+</ol>
+
+<!--h2 id="prototype-members"><code>Interval.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>Interval</code> のインスタンスのプロパティ</h2>
+<p><code>Interval</code> のインスタンスは以下のプロパティを持つ。ただし、
+<code>Interval.prototype</code>
+のプロパティがスクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-inf"><code>inf</code></dt>
+<dd>読み取り専用プロパティ。このプロパティの値はオブジェクトであり、<code
+>Interval</code> のインスタンスが表す区間の下限を表す。</dd>
+<dt id="p-sup"><code>sup</code></dt>
+<dd>読み取り専用プロパティ。このプロパティの値はオブジェクトであり、<code
+>Interval</code> のインスタンスが表す区間の上限を表す。</dd>
+<dt id="p-containsinf"><code>containsInf</code></dt>
+<dd>読み取り専用プロパティ。このプロパティの値は<a href="b-boolean.html"
+>真偽値オブジェクト</a>であり、<code>Interval</code>
+のインスタンスが表す区間の下限が区間に含まれているかどうかを表す。</dd>
+<dt id="p-containssup"><code>containsSup</code></dt>
+<dd>読み取り専用プロパティ。このプロパティの値は<a href="b-boolean.html"
+>真偽値オブジェクト</a>であり、<code>Interval</code>
+のインスタンスが表す区間の上限が区間に含まれているかどうかを表す。</dd>
+<dt id="p-contains"><code>contains</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[obj] {
+   @var a = @this.containsInf
+      ? @bind @this.inf.$lessEqual : @bind @this.inf.$less;
+   @var b = @this.containsSup
+      ? @bind @this.sup.$greaterEqual : @bind @this.sup.$greater;
+   @return $args.<a href="b-enum.html#p-forall">forAll</a
+   >[&amp; a[#] &amp;&amp; b[#]];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、
+引数全てがこの区間に含まれているかどうかを調べる。</dd>
+<dt id="p--equal"><code>$equal</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[x] {
+   @return Interval.isTypeOf[x]
+        &amp;&amp; @this.inf == x.inf &amp;&amp; @this.sup == x.sup
+        &amp;&amp; @this.containsInf == x.containsInf
+        &amp;&amp; @this.containsSup == x.containsSup;
+}</code></pre></dd>
+<dt id="p-getenum"><code>getEnum</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、以下の動作を行う:
+	<ol>
+	<li>呼出しにおける @this 値に対して <a href="#ints-in-interval"
+	>ints-in-interval</a> を行い、その結果を <var>I</var> とする。<var>I</var>
+	が正常終了でなければ直ちにそれを返す。</li>
+	<li><var>I</var> の値を <var>R</var> とする。<var>R</var> が null
+	ならば新しい <a href="b-error.html"><code>TypeError</code></a>
+	のインスタンスを投げる。</li>
+	<li><var>R</var> に下界が存在しなければ、新しい <a href="b-error.html"><code
+	>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>R</var> に含まれる全ての整数について、それを表す <a
+	href="calculations.html#integer-objects"><code>Integer</code> オブジェクト</a
+	>をその値の小さいものから順に一度づつ列挙する新しい<a
+	href="b-enum.html#enumeration-object">開始列挙オブジェクト</a
+	>を作成し、<var>E</var> とする。(<var>R</var> が空集合ならば、何も列挙しない。
+	<var>R</var> が無限集合ならば、列挙は永遠に終わらない)</li>
+	<li>[[<var>E</var>]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、この区間に含まれている整数を昇順に
+列挙する列挙オブジェクトを返す。区間が実数の範囲を表していない場合は、<code
+>TypeError</code> を投げる。区間の <code>inf</code> プロパティが <code
+>-@inf</code> の場合、すなわち区間が負の無限大の方に無限に伸びている場合は、
+<code>OutOfRangeError</code> を投げる。</dd>
+<dt id="p-getrevenum"><code>getRevEnum</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、以下の動作を行う:
+	<ol>
+	<li>呼出しにおける @this 値に対して <a href="#ints-in-interval"
+	>ints-in-interval</a> を行い、その結果を <var>I</var> とする。<var>I</var>
+	が正常終了でなければ直ちにそれを返す。</li>
+	<li><var>I</var> の値を <var>R</var> とする。<var>R</var> が null
+	ならば新しい <a href="b-error.html"><code>TypeError</code></a>
+	のインスタンスを投げる。</li>
+	<li><var>R</var> に上界が存在しなければ、新しい <a href="b-error.html"><code
+	>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>R</var> に含まれる全ての整数について、それを表す <a
+	href="calculations.html#integer-objects"><code>Integer</code> オブジェクト</a
+	>をその値の大きいものから順に一度づつ列挙する新しい<a
+	href="b-enum.html#enumeration-object">開始列挙オブジェクト</a
+	>を作成し、<var>E</var> とする。(<var>R</var> が空集合ならば、何も列挙しない。
+	<var>R</var> が無限集合ならば、列挙は永遠に終わらない)</li>
+	<li>[[<var>E</var>]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、この区間に含まれている整数を降順に
+列挙する列挙オブジェクトを返す。区間が実数の範囲を表していない場合は、<code
+>TypeError</code> を投げる。区間の <code>sup</code> プロパティが <code
+>@inf</code> の場合、すなわち区間が正の無限大の方に無限に伸びている場合は、
+<code>OutOfRangeError</code> を投げる。</dd>
+<dt id="p-tonext"><code>toNext</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.getEnum[].toNext[] }</code></dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>関数として呼び出されると、渡された @this 値を文字列に変換し、その文字列を
+内容とする<a href="b-string.html#string-object">文字列オブジェクト</a
+>を値とする正常終了の結果を返す。文字列への変換の方法は実行環境に任せるが、
+<code>inf</code>・<code>sup</code> プロパティを <code>toString</code>
+メソッドで文字列に変換したものを含み、かつ <code>containsInf</code>・<code
+>containsSup</code> プロパティの値を反映しているのが望ましい。</dd>
+</dl>
+
+<h2 id="ints-in-interval">区間に含まれる整数</h2>
+<p>ここでは、区間に含まれる整数を求める操作 ints-in-interval を定義する。
+ints-in-interval の結果が正常終了ならば、その値は整数の集合または特殊な値 null
+である。</p>
+<p>オブジェクト <var>O</var> に対する ints-in-interval
+の動作は、次の通りとする:</p>
+<ol>
+<li><var>O</var> が <code>Interval</code> のインスタンスでなければ、[[null]]
+を返す。</li>
+<li>式 <code><var>o</var>.containsInf
+? Math.<a href="b-math.html#m-ceil">ceil</a>[<var>o</var>.inf]
+: Math.<a href="b-math.html#m-floor">floor</a
+>[<var>o</var>.inf].$increment[]</code>
+を評価し、その結果を <var>I</var> とする。これが正常終了でなければ、
+直ちにそれを返す。ただし、式の評価において部分式 <code><var>o</var></code>
+の評価結果は [[<var>O</var>]] とする。</li>
+<li>同じく式 <code><var>o</var>.containsSup
+? Math.floor[<var>o</var>.sup] : Math.ceil[<var>o</var>.sup].$decrement[]</code>
+を評価し、その結果を <var>S</var> とする。これが正常終了でなければ、
+直ちにそれを返す。</li>
+<li><var>I</var> の値が <a href="calculations.html#integer-objects"><code
+>Integer</code> オブジェクト</a>ならば、それが表す整数を <var>i</var> として、
+	<ol>
+	<li><var>S</var> の値が <code>Integer</code> オブジェクトならば、
+	それが表す整数を <var>s</var> として、[[<var>i</var> 以上 <var>s</var>
+	以下の全ての整数の集合]] を返す。</li>
+	<li><var>S</var> の値が正の無限大を表す <a
+	href="calculations.html#infinity-objects"><code>Infinity</code>
+	オブジェクト</a>ならば、[[<var>i</var> 以上の全ての整数の集合]]
+	を返す。</li>
+	<li><var>S</var> の値が負の無限大を表す <code>Infinity</code>
+	オブジェクトならば、[[整数の空集合]] を返す。</li>
+	</ol>
+<li><var>I</var> の値が正の無限大を表す <code>Infinity</code>
+オブジェクトならば、[[整数の空集合]] を返す。</li>
+<li><var>I</var> の値が負の無限大を表す <code>Infinity</code>
+オブジェクトならば、
+	<ol>
+	<li><var>S</var> の値が <code>Integer</code> オブジェクトならば、
+	それが表す整数を <var>s</var> として、[[<var>s</var>
+	以下の全ての整数の集合]] を返す。</li>
+	<li><var>S</var> の値が正の無限大を表す <code>Infinity</code>
+	オブジェクトならば、[[全ての整数の集合]] を返す。</li>
+	<li><var>S</var> の値が負の無限大を表す <code>Infinity</code>
+	オブジェクトならば、[[整数の空集合]] を返す。</li>
+	</ol>
+</li>
+<li>[[null]] を返す。</li>
+</ol>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

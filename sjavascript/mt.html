@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="擬似乱数生成アルゴリズム「Mersenne Twister」の JavaScript による実装です">
+<meta name="date" content="2007-06-08T20:39:15+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Mersenne Twister in JavaScript</title>
+</head>
+
+<body>
+<h1 id="title">
+Mersenne Twister in JavaScript
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 0.2.4 (2005-12-23)
+</address>
+
+<p>
+高性能な擬似乱数生成アルゴリズム「<a href="//www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/mt.html"
+>Mersenne Twister</a>」の JavaScript による実装です。
+(別途<a href="mt-test.html">テストページ</a>あり)
+</p>
+<p>
+<a href="mt.js">mt.js</a> は原典のライセンスに反しない限り自由に使用してくださって構いません。
+</p>
+
+<h2 id="contents">
+目次
+</h2>
+<ul>
+<li>
+<a href="#how-to-use">mt.js の使い方</a>
+</li>
+<li>
+<a href="#api">mt.js の API 仕様</a>
+<ul>
+<li>
+<a href="#api-constructor">Mersenne&shy;Twister コンストラクタ</a>
+</li>
+<li>
+<a href="#api-setSeed">set&shy;Seed メソッド</a>
+</li>
+<li>
+<a href="#api-next">next メソッド</a>
+</li>
+<li>
+<a href="#api-nextInt">next&shy;Int メソッド</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="#output-sample">出力サンプル</a>
+</li>
+</ul>
+
+<h2 id="how-to-use">
+mt.js の使い方
+</h2>
+<p>
+実装ファイルは <a href="mt.js">mt.js</a> です。
+このファイルは単独では実行しても意味がありません。
+mt.js には Mersenne&shy;Twister オブジェクトの定義が含まれており、これを他の
+JavaScript コードから呼び出して使います。
+</p>
+<p>
+Mersenne&shy;Twister オブジェクトの一般的な使用例を以下に挙げます。
+</p>
+<pre class="code-sample"><code class="javascript">var mt = new MersenneTwister();
+var integer1 = mt.nextInt(0, 5);  // 0 以上 5 未満の整数
+var decimal1 = mt.next();         // 0 以上 1 未満の実数</code></pre>
+<p>
+詳細は <a href="#api">API 仕様</a>をご覧下さい。
+</p>
+
+<h2 id="api">
+mt.js の API 仕様
+</h2>
+
+<h3 id="api-constructor">
+Mersenne&shy;Twister コンストラクタ
+</h3>
+<div class="code-definition"><code class="javascript">
+new MersenneTwister([int/Array&lt;int> <var>seed</var>])
+</code></div>
+<p>
+Mersenne&shy;Twister オブジェクトを初期化します。
+</p>
+<p>
+乱数生成のための種 (シード) を引数として与えることもできます。
+種に関する詳細は <a href="#api-setSeed">set&shy;Seed メソッド</a>を参照してください。
+なお、引数を省略した場合は実行時の時刻を数値に変換した値が種となります。
+</p>
+<p>
+引数が数または配列ではない場合は TypeError をスローします。
+</p>
+
+<h3 id="api-setSeed">
+setSeed メソッド
+</h3>
+<div class="code-definition"><code class="javascript">
+void setSeed(int/Array&lt;int> <var>seed</var>)
+</code></div>
+<p>
+乱数の種 (シード) を再設定します。<a href="#api-constructor">Mersenne&shy;Twister
+コンストラクタ</a>とは異なり、引数を省略することはできません。
+</p>
+<p>
+有効な引数は、1 個の数値、または 0 個以上の数値の配列です。
+数値はどのような値でもかまいませんが、0 未満または 2<sup>32</sup> 以上の値は
+種として好ましくありません。また、数値は切り捨てて整数にしてから使用するので、
+例えば <code class="code-sample javascript">setSeed(3)</code>
+と <code class="code-sample javascript">setSeed(3.4)</code>
+は同じ結果になります。配列の要素が数値でない場合は、その要素は数値 0
+として解釈されます。
+</p>
+<p>
+このメソッドの戻り値はありません。
+</p>
+<p>
+引数が数値でも配列でもない場合は TypeError をスローします。
+</p>
+
+<h3 id="api-next">
+next メソッド
+</h3>
+<div class="code-definition"><code class="javascript">
+double next()
+</code></div>
+<p>
+0 以上 1 未満の一様分布乱数を一つ返します。この乱数の精度は 53 ビットです。
+</p>
+
+<h3 id="api-nextInt">
+nextInt メソッド
+</h3>
+<div class="code-definition"><code class="javascript">
+int nextInt([[int <var>min</var>,] int <var>sup</var>])
+</code></div>
+<p>
+一様分布整数乱数を一つ返します。引数の数により、返される値の範囲が異なります。
+</p>
+<dl>
+<dt>
+引数が 0 個の場合
+</dt>
+<dd>
+<p>
+返される値は 0 以上 2<sup>32</sup> 未満の整数です。
+</p>
+</dd>
+<dt>
+引数が 1 個の場合
+</dt>
+<dd>
+<p>
+引数は戻り値の範囲の上限 <var>sup</var> となります。返される値は 0 以上
+<var>sup</var> 未満の整数です。
+</p>
+<p>
+ただし、<var>sup</var> の値が 2<sup>32</sup> 以下の正数ではない場合、
+返される値は 0 以上 2<sup>32</sup> 未満の整数です。
+</p>
+</dd>
+<dt>
+引数が 2 個以上の場合
+</dt>
+<dd>
+<p>
+一つ目の引数は戻り値の範囲の最小値 <var>min</var> に、二つ目は上限
+<var>sup</var> になります。返される値は <var>min</var> 以上
+<var>sup</var> 未満の整数です。
+</p>
+<p>
+<var>min</var> が数ではない場合、最小値は 0 となります。
+最小値以上・上限未満の整数が一つも存在しない、または 2<sup>32</sup>
+個以上存在する場合、上限は (<var>min</var> + 2<sup>32</sup>) となります。
+</p>
+</dd>
+</dl>
+
+<h2 id="output-sample">
+出力サンプル
+</h2>
+<p>
+実際に以下のプログラムを実行して出力した乱数のサンプルです。
+</p>
+<pre class="code-sample"><code class="javascript"
+>var mt = new MersenneTwister([0x123, 0x234, 0x345, 0x456]);
+document.write("&lt;h3&gt;next&amp;shy;Int() による整数乱数 20 個&lt;\/h3&gt;");
+document.write("&lt;ul class='enumeration'&gt;");
+for (var i = 0; i &lt; 20; i++)
+	document.write("&lt;li&gt;&lt;samp&gt;" + mt.nextInt() + "&lt;\/samp&gt;&lt;\/li&gt;");
+document.write("&lt;\/ul&gt;");
+document.write("&lt;h3&gt;next() による実数乱数 20 個&lt;\/h3&gt;");
+document.write("&lt;ul class='enumeration'&gt;");
+for (var i = 0; i &lt; 20; i++)
+	document.write("&lt;li&gt;&lt;samp&gt;" + mt.next() + "&lt;\/samp&gt;&lt;\/li&gt;");
+document.write("&lt;\/ul&gt;");</code></pre>
+<script type="text/javascript" src="mt.js" charset="us-ascii"></script>
+<script type="text/javascript">
+var mt = new MersenneTwister([0x123, 0x234, 0x345, 0x456]);
+document.write("<h3>next&shy;Int() による整数乱数 20 個<\/h3>");
+document.write("<ul class='enumeration'>");
+for (var i = 0; i < 20; i++)
+	document.write("<li><samp>" + mt.nextInt() + "<\/samp><\/li>");
+document.write("<\/ul>");
+document.write("<h3>next() による実数乱数 20 個<\/h3>");
+document.write("<ul class='enumeration'>");
+for (var i = 0; i < 20; i++)
+	document.write("<li><samp>" + mt.next() + "<\/samp><\/li>");
+document.write("<\/ul>");
+</script>
+<noscript>
+<h3>next&shy;Int() による整数乱数 20 個</h3>
+<ul class="enumeration">
+<li><samp>1067595299</samp></li>
+<li><samp>955945823</samp></li>
+<li><samp>477289528</samp></li>
+<li><samp>4107218783</samp></li>
+<li><samp>4228976476</samp></li>
+<li><samp>3344332714</samp></li>
+<li><samp>3355579695</samp></li>
+<li><samp>227628506</samp></li>
+<li><samp>810200273</samp></li>
+<li><samp>2591290167</samp></li>
+<li><samp>2560260675</samp></li>
+<li><samp>3242736208</samp></li>
+<li><samp>646746669</samp></li>
+<li><samp>1479517882</samp></li>
+<li><samp>4245472273</samp></li>
+<li><samp>1143372638</samp></li>
+<li><samp>3863670494</samp></li>
+<li><samp>3221021970</samp></li>
+<li><samp>1773610557</samp></li>
+<li><samp>1138697238</samp></li>
+</ul>
+<h3>next() による実数乱数 20 個</h3>
+<p>(省略)</p>
+</noscript>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+</body>
+
+</html><!--
+MersenneTwister
+programed by Magicant
+0.1   (2005-02-26)
+0.2   (2005-04-07)
+0.2.4 (2005-12-23)
+-->

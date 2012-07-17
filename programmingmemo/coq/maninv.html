@@ -1,0 +1,572 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq で、組み込みの inversion タクティクを使わずに inversion を行う例">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq 証明事例集: 自前で inversion を行う</title>
+</head>
+
+<body>
+<h1 id="title">証明事例集: 自前で inversion を行う</h1>
+
+<p>ここでは、<a href="t-induct.html#inversion">組み込みの <code>inversion</code> タクティク</a>を使わずに自前で <code>inversion</code> 相当の手続きを行うやり方を、いくつかの例を通じて紹介する。</p>
+
+<h2 id="even">単純な例: even</h2>
+<p>自然数が偶数であることを表す述語 <code>even</code> を以下のように定義する。</p>
+<pre><code>Inductive even : nat -> Prop :=
+  | even_O : even O
+  | even_SS : forall n, even n -> even (S (S n))</code></pre>
+<p>この述語を使って 1 が偶数でないことを表し、<code><a href="t-induct.html#inversion">inversion</a></code> を使ってそれを証明してみよう。</p>
+<p>まず、組み込みの <code><a href="t-induct.html#inversion">inversion</a></code> タクティクを使って証明する例を挙げる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal ~ even 1.
+</kbd><samp>1 subgoal
+  
+  ============================
+   ~ even 1
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#inversion">inversion</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>even 1</code> には <code>even_O</code> と <code>even_SS</code> のどちらも当てはまらないため、<code><a href="t-induct.html#inversion">inversion</a></code> を使うと直ちに証明が完了する。</p>
+<p>では、組み込みの <code><a href="t-induct.html#inversion">inversion</a></code> タクティクを使わない場合はどうするか。以下のように単純に <code><a href="t-induct.html#case">case</a> H</code> をしただけでは、<code>even</code> の引数が <code>1</code> であることが場合分けの後に忘れられてしまうので、<code>False</code> を導くための条件が揃わない。実際、<code><a href="t-induct.html#case">case</a> H</code> した後の一つ目のサブゴールは <code>case H</code> をする前と全く変わっていない。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal ~ even 1.
+</kbd><samp>1 subgoal
+  
+  ============================
+   ~ even 1
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>2 subgoals
+  
+  H : even 1
+  ============================
+   False
+
+subgoal 2 is:
+ forall n : nat, even n -> False</samp></code></pre>
+<p><code>even</code> の引数が <code>1</code> であることを場合分けの後まで覚えておきたいので、ゴールに等式を追加し、等式の片方の辺だけを場合分けで書き換えるようにする。すると場合分けの後に矛盾を導くことのできる条件 (等式) が残る。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal ~ even 1.
+</kbd><samp>1 subgoal
+  
+  ============================
+   ~ even 1
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd>generalize (refl_equal 1).
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   1 = 1 -> False
+
+Unnamed_thm < </samp><kbd>pattern 1 at 2.
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   (fun n : nat => 1 = n -> False) 1
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>2 subgoals
+  
+  H : even 1
+  ============================
+   1 = 0 -> False
+
+subgoal 2 is:
+ forall n : nat, even n -> 1 = S (S n) -> False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>1 subgoal
+  
+  H : even 1
+  ============================
+   forall n : nat, even n -> 1 = S (S n) -> False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>pattern</code> によって等式の片方の辺だけを取り出しておくことで、<code><a href="t-induct.html#case">case</a> H</code> に等式の片方の辺だけを書き換えさせることができる。なお、上の例の <code>pattern 1 at 2; <a href="t-induct.html#case">case</a> H</code> は以下の <code><a href="t-apply.html#refine">refine</a></code> タクティクにほぼ等しい。</p>
+<pre><code><a href="t-apply.html#refine">refine</a> (match H in (even n) return (1 = n -> False) with
+        | even_O => _
+        | even_SS n' H' => _
+        end)</code></pre>
+<p>今度は、<code>S (S <var>n</var>)</code> が偶数ならば <code><var>n</var></code> も偶数であることを示そう。自前 <code><a href="t-induct.html#inversion">inversion</a></code> のやり方は上の例と同じ。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n, even (S (S n)) -> even n.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall n : nat, even (S (S n)) -> even n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  ============================
+   even n
+
+Unnamed_thm < </samp><kbd>generalize (refl_equal (S (S n))).
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  ============================
+   S (S n) = S (S n) -> even n
+
+Unnamed_thm < </samp><kbd>pattern (S (S n)) at 2.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  ============================
+   (fun n0 : nat => S (S n) = n0 -> even n) (S (S n))
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>2 subgoals
+  
+  n : nat
+  H : even (S (S n))
+  ============================
+   S (S n) = 0 -> even n
+
+subgoal 2 is:
+ forall n0 : nat, even n0 -> S (S n) = S (S n0) -> even n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  ============================
+   forall n0 : nat, even n0 -> S (S n) = S (S n0) -> even n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n' H' Heq.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  n' : nat
+  H' : even n'
+  Heq : S (S n) = S (S n')
+  ============================
+   even n
+
+Unnamed_thm < </samp><kbd>injection Heq as Heq'.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : even (S (S n))
+  n' : nat
+  H' : even n'
+  Heq : S (S n) = S (S n')
+  Heq' : n = n'
+  ============================
+   even n
+
+Unnamed_thm < </samp><kbd>rewrite Heq'; <a href="t-apply.html#exact">exact</a> H'.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h2 id="succ">複数の引数を取る述語: succ</h2>
+<p>場合分けをする述語が複数の引数を取る場合は、それに合わせて複数の等式をゴールに追加する必要がある。ここでは、二つの自然数の後者関係を表す述語 <code>succ</code> を定義し、任意の自然数は自分自身の後者ではないことを示そう。</p>
+<pre><code><samp>Inductive succ : nat -> nat -> Prop :=
+  succ_intro : forall n, succ n (S n)</samp></code></pre>
+<p><code>succ</code> は二つの引数を取るので、それらに対応する二つの等式をゴールに追加してから <code><a href="t-induct.html#case">case</a></code> する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n, ~ succ n n.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall n : nat, ~ succ n n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : succ n n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd>generalize (refl_equal n) (refl_equal n).
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : succ n n
+  ============================
+   n = n -> n = n -> False
+
+Unnamed_thm < </samp><kbd>pattern n at 2, n at 4.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : succ n n
+  ============================
+   (fun n0 n1 : nat => n = n0 -> n = n1 -> False) n n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : succ n n
+  ============================
+   forall n0 : nat, n = n0 -> n = S n0 -> False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> _ <- H'.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : succ n n
+  H' : n = S n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> (n_Sn n H').
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h2 id="le">固定パラメータのある述語: le</h2>
+<p>ここでは自然数の大小関係を表す組み込みの述語 <code>le</code> に関する <code><a href="t-induct.html#inversion">inversion</a></code> を自前でやってみよう。<code>le</code> の定義は以下のようになっている。</p>
+<pre><code>Inductive le (n : nat) : nat -> Prop :=
+  | le_n : n <= n
+  | le_S : forall m : nat, n <= m -> n <= S m</code></pre>
+<p><code>le</code> は二つの引数を受け取るように見えるが、実際には最初の引数は固定されたパラメータである。すなわち正確には、任意の自然数 <var>n</var> に対して <code>le <var>n</var></code> が一つの引数を受け取ると考える必要がある。そのため、<code><a href="t-induct.html#inversion">inversion</a></code> では最初の引数 <var>n</var> に関する条件は得られず、最後の引数に関する条件だけが得られる。最後の引数に関する条件を場合分けの後まで覚えておくために、最後の引数に関する等式をゴールに追加してから場合分けを行う。</p>
+<p>なぜ最初の引数に関する等式を追加してはいけないのかというと、もしそうすると <code>pattern</code> 後の <code><a href="t-induct.html#case">case</a></code> で正しく値が置き換えられないからである。</p>
+<p>以下の例は、<code>n <= 0</code> から <code>n = 0</code> を導く証明である。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n, n <= 0 -> n = 0.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall n : nat, n <= 0 -> n = 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   n = 0
+
+Unnamed_thm < </samp><kbd>generalize (refl_equal 0); pattern 0 at 2.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   (fun n0 : nat => 0 = n0 -> n = 0) 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>2 subgoals
+  
+  n : nat
+  H : n <= 0
+  ============================
+   0 = n -> n = 0
+
+subgoal 2 is:
+ forall m : nat, n <= m -> 0 = S m -> n = 0
+
+Unnamed_thm < </samp><kbd>congruence.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   forall m : nat, n <= m -> 0 = S m -> n = 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h2 id="vector-1">Dependent inversion: vector その 1</h2>
+<p><code>vector</code> は <code><a href="//coq.inria.fr/stdlib/Coq.Bool.Bvector.html">Coq.Bool.Bvector</a></code> モジュールで定義されているリストデータ構造であり、以下のように定義されている。<code>vector <var>A</var> <var>n</var></code> は、要素の型が <code><var>A</var></code> で要素数が <code><var>n</var></code> の単方向連結リストを表す型である。</p>
+<pre><code><samp>Inductive vector (A : Type) : nat -> Type :=
+  | Vnil : vector A 0
+  | Vcons : A -> forall n : nat, vector A n -> vector A (S n)</samp></code></pre>
+<p>これに対し、ある値があるリストに含まれているということを表す述語 <code>vector_in</code> を以下のように定義する。<code>vector_in <var>A</var> <var>a</var> <var>n</var> <var>v</var></code> は型 <code><var>A</var></code> の値 <code><var>a</var></code> が要素数 <code><var>n</var></code> のリスト <code><var>v</var></code> に含まれていることを表す。</p>
+<pre><code><samp>Inductive vector_in A : A -> forall n, vector A n -> Prop :=
+  | vin_head :
+      forall a n tl, vector_in A a (S n) (Vcons A a n tl)
+  | vin_tail :
+      forall a b n tl, vector_in A a n tl ->
+      vector_in A a (S n) (Vcons A b n tl)</samp></code></pre>
+<p>空でないリストを与えるとその最初の要素を取り出し、その要素が確かにそのリストに含まれているという証明とともに返す関数 <code>first</code> を定義しよう。</p>
+<p>場合分けの対象となるリスト <code>v</code> の型に含まれている <code>S n</code> は、これまでの他の例と同様にゴールに等式を追加して場合分けの後まで値を覚えておく。さらにこの例の場合は、場合分けの対象 <code>v</code> そのものもゴールの型の中に含まれており、それを場合分けの結果で置換する必要がある (この様な操作は <code>dependent <a href="t-induct.html#inversion">inversion</a></code> タクティクの動作に相当する)。<code>generalize</code> でゴールに等式を追加するところまではこれまでと同様だが、<code><a href="t-induct.html#case">case</a></code> タクティクでは <code>S n</code> と <code>v</code> をうまく同時に置換できないので、<code><a href="t-apply.html#refine">refine</a></code> タクティクに <code>match</code> 式を指定して手動で型を指定する必要がある。</p>
+<pre><code><samp>Coq < </samp><kbd>Definition first :
+</kbd><samp>Coq < </samp><kbd>  forall A n (v : vector A (S n)), {a : A | vector_in A a (S n) v}.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall (A : Type) (n : nat) (v : vector A (S n)),
+   {a : A | vector_in A a (S n) v}
+
+first < </samp><kbd><a href="t-induct.html#intros">intros</a> A n v.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   {a : A | vector_in A a (S n) v}
+
+first < </samp><kbd>generalize (refl_equal (S n)).
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   S n = S n -> {a : A | vector_in A a (S n) v}
+
+first < </samp><kbd><a href="t-apply.html#refine">refine</a> (match v as vv in (vector _ nn)
+</kbd><samp>first < </samp><kbd>        return (S n = nn -> {a : A | vector_in A a nn vv})
+</kbd><samp>first < </samp><kbd>        with
+</kbd><samp>first < </samp><kbd>        | Vnil => _
+</kbd><samp>first < </samp><kbd>        | Vcons a' n' v' => _
+</kbd><samp>first < </samp><kbd>        end).
+</kbd><samp>2 subgoals
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   S n = 0 -> {a : A | vector_in A a 0 (Vnil A)}
+
+subgoal 2 is:
+ S n = S n' -> {a : A | vector_in A a (S n') (Vcons A a' n' v')}
+
+first < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  v' : vector A n'
+  ============================
+   S n = S n' -> {a : A | vector_in A a (S n') (Vcons A a' n' v')}
+
+first < </samp><kbd><a href="t-induct.html#intros">intros</a> H; injection H as H'; rewrite H' in v; clear H H'.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  n' : nat
+  v : vector A (S n')
+  a' : A
+  v' : vector A n'
+  ============================
+   {a : A | vector_in A a (S n') (Vcons A a' n' v')}
+
+first < </samp><kbd><a href="t-constr.html#exists">exists</a> a.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  n' : nat
+  v : vector A (S n')
+  a' : A
+  v' : vector A n'
+  ============================
+   vector_in A a' (S n') (Vcons A a' n' v')
+
+first < </samp><kbd><a href="t-apply.html#apply">apply</a> vin_head.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code><a href="t-apply.html#refine">refine</a> (match … end)</code> が何をしているか詳しく見てみよう。</p>
+<pre><code><a href="t-apply.html#refine">refine</a> (match v as vv in (vector _ nn)
+        return (S n = nn -> {a : A | vector_in A a nn vv})
+        with
+        | Vnil => _
+        | Vcons a' n' v' => _
+        end)</code></pre>
+<p>この <code>match</code> 式では、<code>v</code> に対する場合分けを行っている。<code>as vv</code> により変数 <code>vv</code> が <code>v</code> の値に束縛される。また式 <code>v</code> の型は <code>vector A (S n)</code> なので、<code>in (vector _ nn)</code> により <code>S n</code> に対応する変数 <code>nn</code> が束縛される (<code>A</code> は固定されたパラメータなので <code>in</code> で束縛することはできない)。<code>as</code> と <code>in</code> で束縛された <code>vv</code> と <code>nn</code> は、直後の <code>return</code> 式内で使用することができる。<code>return</code> 式に示した型 <code>(S n = nn -> {a : A | vector_in A a nn vv})</code> は、この <code>match</code> 式全体の型すなわち場合分けの後にそれぞれ導きたい値の型を表している。この型は元のゴールの型 <code>(S n = S n -> {a : A | vector_in A a (S n) v})</code> と等しくなければならない。しかしこの例で行おうとしている場合分けでは、ゴールの型に含まれている <code>S n</code> と <code>v</code> を置き換えたい。それらに対応する変数として <code>nn</code> と <code>vv</code> を束縛したので、置き換えたい部分をこれらの変数に置き換えて <code>return</code> 式に指定している。</p>
+
+<h2 id="vector-2">Dependent destruction: vector その 2</h2>
+<p><a href="#vector-1">前の例</a>では <code>dependent <a href="t-induct.html#inversion">inversion</a></code> を自前で行った。ここでは空でないリストに対するより一般的な <code><a href="t-induct.html#inversion">inversion</a></code> を行おう。すなわち、空でないリストを与えると、それを先頭の要素と残りのリストに分解し、分解前のリストとの関係を示す等式の証明とともに返す関数 <code>Vcons_inv</code> を定義する。</p>
+<p>今回の場合は、<code>dependent <a href="t-induct.html#inversion">inversion</a></code> を使おうとすると以下のようにエラーとなる。</p>
+<pre><code><samp>Coq < </samp><kbd>Definition Vcons_inv : forall A n (v : vector A (S n)),
+</kbd><samp>Coq < </samp><kbd>  {a : A & {v' : vector A n | v = Vcons A a n v'}}.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall (A : Type) (n : nat) (v : vector A (S n)),
+   {a : A &  {v' : vector A n | v = Vcons A a n v'}}
+
+Vcons_inv < </samp><kbd>dependent <a href="t-induct.html#inversion">inversion</a> v.
+</kbd><samp>Toplevel input, characters 0-21:
+> dependent inversion v.
+> ^^^^^^^^^^^^^^^^^^^^^
+Error: Abstracting over the terms "S n" and "v" leads to a term
+"fun (n0 : nat) (v : vector A n0) =>
+ {a : A &  {v' : vector A n | v = Vcons A a n v'}}" which is ill-typed.</samp></code></pre>
+<p><code>dependent <a href="t-induct.html#inversion">inversion</a></code> タクティクはゴールの型に含まれる <code>n</code> と <code>v</code> を書き換えようとするが、書き換え後に <code>v = Vcons A a n v'</code> の左辺が持つ型が <code>vector A n0</code> であるのに対し右辺の型は <code>vector A (S n)</code> であるので、等式の型付けができなくなるのである。</p>
+<p><code>dependent destruction</code> タクティクは、両辺で型が異なる値の等式を表す述語 <code><a href="//coq.inria.fr/stdlib/Coq.Logic.JMeq.html">Coq.Logic.JMeq</a>.JMeq</code> を用いて式を書き換えることにより、このような型エラーを回避する。これを自前でやるとどのようになるか見てみよう。ポイントは、通常の等式 <code>eq</code> ではなく <code>JMeq</code> を <code>generalize</code> で導入する点である。場合分けの後二つ目のサブゴールでは、得られた等式 <code>n = n'</code> を利用して式を書き換えようとしているが、普通に <code>rewrite</code> タクティクを使おうとしてもうまくいかないので、いったん <code>v'</code> を前提からゴールに戻してから <code><a href="t-induct.html#case">case</a></code> タクティクで等式を分解する。<code>JMeq</code> を普通の等式に変換する際には公理 <code>JMeq_eq</code> が必要となる。</p>
+<pre><code><samp>Coq < </samp><kbd>Definition Vcons_inv : forall A n (v : vector A (S n)),
+</kbd><samp>Coq < </samp><kbd>  {a : A & {v' : vector A n | v = Vcons A a n v'}}.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall (A : Type) (n : nat) (v : vector A (S n)),
+   {a : A &  {v' : vector A n | v = Vcons A a n v'}}
+
+Vcons_inv < </samp><kbd><a href="t-induct.html#intros">intros</a> A n v.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   {a : A &  {v' : vector A n | v = Vcons A a n v'}}
+
+Vcons_inv < </samp><kbd>generalize (refl_equal (S n)) (JMeq_refl v).
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   S n = S n -> JMeq v v -> {a : A &  {v' : vector A n | v = Vcons A a n v'}}
+
+Vcons_inv < </samp><kbd><a href="t-apply.html#refine">refine</a> (match v as vv in (vector _ n')
+</kbd><samp>Vcons_inv < </samp><kbd>        return (S n = n' -> JMeq v vv ->
+</kbd><samp>Vcons_inv < </samp><kbd>          {a : A & {v' : vector A n | v = Vcons A a n v'}})
+</kbd><samp>Vcons_inv < </samp><kbd>        with
+</kbd><samp>Vcons_inv < </samp><kbd>        | Vnil => _
+</kbd><samp>Vcons_inv < </samp><kbd>        | Vcons a' n' v' => _
+</kbd><samp>Vcons_inv < </samp><kbd>        end).
+</kbd><samp>2 subgoals
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  ============================
+   S n = 0 ->
+   JMeq v (Vnil A) -> {a : A &  {v' : vector A n | v = Vcons A a n v'}}
+
+subgoal 2 is:
+ S n = S n' ->
+ JMeq v (Vcons A a' n' v') ->
+ {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminate.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  v' : vector A n'
+  ============================
+   S n = S n' ->
+   JMeq v (Vcons A a' n' v') ->
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd>intro Heq; injection Heq as Heq'; clear Heq.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  v' : vector A n'
+  Heq' : n = n'
+  ============================
+   JMeq v (Vcons A a' n' v') ->
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd>revert v'.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  Heq' : n = n'
+  ============================
+   forall v' : vector A n',
+   JMeq v (Vcons A a' n' v') ->
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd><a href="t-induct.html#case">case</a> Heq'.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  Heq' : n = n'
+  ============================
+   forall v' : vector A n,
+   JMeq v (Vcons A a' n v') ->
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd>clear Heq'; <a href="t-induct.html#intros">intros</a> v' Heq.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  v' : vector A n
+  Heq : JMeq v (Vcons A a' n v')
+  ============================
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd><a href="t-apply.html#apply">apply</a> JMeq_eq in Heq.
+</kbd><samp>1 subgoal
+  
+  A : Type
+  n : nat
+  v : vector A (S n)
+  a' : A
+  n' : nat
+  v' : vector A n
+  Heq : v = Vcons A a' n v'
+  ============================
+   {a : A &  {v'0 : vector A n | v = Vcons A a n v'0}}
+
+Vcons_inv < </samp><kbd><a href="t-constr.html#exists">exists</a> a'; <a href="t-constr.html#exists">exists</a> v'; <a href="t-apply.html#exact">exact</a> Heq.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / <!--更新 2009-09-18 /--> 初出 2010-11-27
+</address>
+
+</body>
+</html>

@@ -1,0 +1,828 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-12-02T21:37:38+09:00">
+<title>Tensor 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-list.html" title="List 組込みオブジェクト">
+<link rel="next" href="b-error.html" title="エラー型組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Tensor</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Tensor</code> 組込みオブジェクトを定義する。</p>
+<p><code>Tensor</code> はスクリプトで扱われるテンソルオブジェクトに対応する
+<a href="b-type.html"><code>Type</code></a> のインスタンスである。</p>
+
+<h2 id="tensor-object">テンソルオブジェクト</h2>
+<p>以下の条件を全て満たすオブジェクトを<dfn>テンソルオブジェクト</dfn
+>という:</p>
+<ul>
+<li>(少なくともオブジェクトが作られた当初において) <code>Tensor</code>
+のインスタンスであるか、<code>Tensor.prototype</code>
+と同じオブジェクトである。</li>
+<!--li>オブジェクトのプロトタイプは不変である。</li-->
+<li><code>dims</code> という名前の不変の内部メンバを持ち、その値は
+一つ以上の 0 以上の整数からなる<a href="primitives.html#type-primitive-list"
+>原始リスト</a>である。</li>
+<li><code>elements</code> という名前の内部メンバを持ち、その値は
+<code>dims</code> 内部メンバの値を型とする<a
+href="#tensor-primitive-list">テンソル原始リスト</a>である。</li>
+<li>関数として呼出し可能であり、呼出されると、規定の処理を行う。(→<a
+href="#instance-call">テンソルオブジェクトの関数としての呼出し</a>)</li>
+<!--li><code>elements</code> という名前の内部メンバの値の階数が 1 ならば、
+このオブジェクトはベクトルオブジェクトである。</li>
+<li><code>elements</code> という名前の内部メンバの値の階数が 2 ならば、
+このオブジェクトは行列オブジェクトである。</li-->
+</ul>
+<p>テンソルオブジェクトは、インデックスにより区別される有限個のオブジェクトの
+集合体を表す。テンソルオブジェクトの <code>elements</code> 内部メンバの値に
+含まれる各オブジェクトをテンソルオブジェクトの<dfn>要素</dfn>といい、
+<code>dims</code> 内部メンバの値をテンソルオブジェクトの<dfn>型</dfn
+>という。</p>
+<p>一般にテンソルオブジェクトの内容は読み取り専用ではないが、テンソル
+オブジェクトの <a href="#p-isreadonly"><code>isReadOnly</code> プロパティ</a>に
+<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+を設定すると、テンソルオブジェクトの要素は読み取り専用とみなされる。
+読み取り専用であるかどうかに関わらず、テンソルオブジェクトの型は
+そのテンソルオブジェクトについて不変である。</p>
+<p>テンソルオブジェクトは、少なくとも作られた当初は <code>Tensor</code>
+のインスタンスでなければならない (<code>Tensor.prototype</code>
+自身がテンソルオブジェクトと見なされる場合を除く)。
+テンソルオブジェクトのプロトタイプが変更されて <code>Tensor</code>
+のインスタンスではなくなった場合、それ以降そのオブジェクトを
+テンソルオブジェクトと見なすかどうかは実行環境の裁量による。</p>
+
+<h3 id="tensor-primitive-list">テンソル原始リスト</h3>
+<p><var>n</var> を 1 以上の整数とし、<var>n</var> 個の 0 以上の整数
+<var>d</var><sub>1</sub>, <var>d</var><sub>2</sub>, …,
+<var>d</var><sub><var>n</var></sub> からなる<a
+href="primitives.html#type-primitive-list">原始リスト</a>を <var>d</var>
+とする。原始リスト <var>l</var> が以下の条件を満たすとき、<var>l</var>
+は <var>d</var> を<dfn>型</dfn>とする<dfn>テンソル原始リスト</dfn>である:</p>
+<ul>
+<li><var>n</var> = 1 ならば、<var>l</var> は <var>d</var><sub>1</sub>
+個のオブジェクトからなる原子リストである。</li>
+<li><var>n</var> > 1 ならば、<var>l</var> は <var>d</var><sub>1</sub>
+個の <var>d</var>′ を型とするテンソル原始リストからなる原子リストである。
+ただし、<var>d</var>′ は <var>d</var> から最初の <var>d</var><sub>1</sub>
+のみを取り除いて出来る、<var>n</var> − 1 個の整数からなる原子リストである。</li>
+</ul>
+<p>またこの時、<var>n</var> を <var>l</var> の<dfn>階数</dfn>という。すなわち、
+<var>l</var> は <dfn><var>n</var> 階のテンソル原始リスト</dfn>である。</p>
+<p>さらに <var>n</var> 個の整数 <var>i</var><sub>1</sub>,
+<var>i</var><sub>2</sub>, …, <var>i</var><sub><var>n</var></sub> が <var>l</var>
+の<dfn>有効なインデックス</dfn>であるとは、1 以上 <var>n</var> 以下の任意の整数
+<var>k</var> について 1 ≤ <var>i</var><sub><var>k</var></sub> ≤
+<var>d</var><sub><var>k</var></sub> が成り立つことである。</p>
+
+<h3 id="tensor-expressions">テンソル生成式の評価</h3>
+<p><a href="expressions.html#tensor">テンソル生成式</a> Tensor:
+LeftBrace <a href="expressions.html#d-expressions">Expressions</a>? Comma?
+RightBrace の評価は、次のように行う:</p>
+<ol>
+<li>Tensor の中に Expressions が含まれていなければ、空の原始リストを
+<var>e</var> とする。</li>
+<li>Tensor の中に Expressions が含まれていれば、それを評価する。
+その結果が正常終了でなければ、直ちにそれを返す。正常終了ならば、
+その値となっている原始リストを <var>e</var> とする。</li>
+<li><var>e</var> は 1 階のテンソル原始リストであるはずである。<var>e</var>
+を <code>elements</code> 内部メンバの値とする、読み取り専用でない
+新しいテンソルオブジェクトを <var>T</var> とする。</li>
+<li>[[<var>T</var>]] を返す。</li>
+</ol>
+<p>テンソル生成式 Tensor: LeftBrace (&amp;MatrixTester Expressions Comma? EOS)+
+RightBrace の評価は、次のように行う:</p>
+<ol>
+<li>Tensor の中に含まれる Expressions の個数を <var>n</var> とし、それらの
+Expressions を <var>E</var><sub>1</sub>, <var>E</var><sub>2</sub>, …,
+<var>E</var><sub><var>n</var></sub> とする。</li>
+<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順に以下の動作を行う:
+<var>E</var><sub><var>i</var></sub> を評価し、その結果が正常終了でなければ直ちに
+その結果を返す。正常終了ならばその値となっている原始リストを
+<var>e</var><sub><var>i</var></sub> とする。</li>
+<li><var>e</var><sub>1</sub>, <var>e</var><sub>2</sub>, …, <var>e</var><sub
+><var>n</var></sub> を内容とする原始リストを <var>e</var> とする。</li>
+<li><var>e</var> は 2 階のテンソル原始リストであるはずである。<var>e</var>
+を <code>elements</code> 内部メンバの値とする、読み取り専用でない
+新しいテンソルオブジェクトを <var>T</var> とする。</li>
+<li>[[<var>T</var>]] を返す。</li>
+</ol>
+
+<h2 id="members"><code>Tensor</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Tensor"</code></dd>
+<dt id="m-map"><code>map</code> メソッド</dt>
+<dd>2-ary メソッド。関数として呼出されると、以下の処理を行う:
+	<ol>
+	<li>呼出しで渡された引数が一つもなければ、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li>一つ目の引数を <var>F</var> とする。<var>F</var>
+	が関数として呼出し可能でなければ、新しい <a href="b-error.html"><code
+	>NotCallableError</code></a> のインスタンスを投げる。</li>
+	<li>((渡された引数の個数) - 1) を <var>n</var> として、二つ目以降の引数を順に
+	<var>T</var><sub>1</sub>, <var>T</var><sub>2</sub>, …,
+	<var>T</var><sub><var>n</var></sub> とする。</li>
+	<li><var>T</var><sub>1</sub>, <var>T</var><sub>2</sub>, …, <var>T</var><sub
+	><var>n</var></sub> のどれもがテンソルオブジェクトでなければ、初期の
+	<a href="b-void.html#m-void"><code>Void.void</code></a> を @this 値とし、
+	<var>T</var><sub>1</sub>, <var>T</var><sub>2</sub>, …, <var>T</var><sub
+	><var>n</var></sub> を引数として <var>F</var>
+	を関数として呼出し、その結果を返す。</li>
+	<li><var>T</var><sub>1</sub>, <var>T</var><sub>2</sub>, …, <var>T</var><sub
+	><var>n</var></sub> のうちテンソルオブジェクトであるものについて、それらの
+	型が全て同じことを確認し、それらのテンソルオブジェクトのうちどれか一つの
+	<code>elements</code> 内部メンバの値を <var>e</var><sub>0</sub> とする。
+	もし異なる型のテンソルオブジェクトが存在すれば、新しい <a href="b-error.html"
+	><code>DimensionError</code></a> のインスタンスを投げる。</li>
+	<li><var>i</var> = 1, 2, …, <var>n</var> について、
+	<var>T</var><sub><var>i</var></sub> がテンソルオブジェクトならば、その
+	<code>elements</code> 内部メンバの値を
+	<var>e</var><sub><var>i</var></sub> とする。</li>
+	<li><var>e</var><sub>0</sub> の全ての有効なインデックス
+	<var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …, <var>i</var
+	><sub><var>m</var></sub> について、ちょうど一度づつ以下の処理を行う:
+		<ol>
+		<li>1 以上 <var>n</var> 以下の全ての整数 <var>k</var> について、
+		<var>T</var><sub><var>k</var></sub> がテンソルオブジェクトならば
+		<var>a</var><sub><var>k</var></sub> =
+		<var>e</var><sub><var>k</var></sub>[<var>i</var><sub>1</sub>][<var
+		>i</var><sub>2</sub>]...[<var>i</var><sub><var>m</var></sub>]
+		とし、テンソルオブジェクトでなければ <var>a</var><sub><var>k</var></sub> =
+		<var>T</var><sub><var>k</var></sub> とする。</li>
+		<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+		値とし、<var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …,
+		<var>a</var><sub><var>n</var></sub> を引数として <var>F</var>
+		を関数として呼出し、その結果に対して <a
+		href="primitives.html#get-reference-value">get-reference-value</a>
+		を行い、その結果を <var>r</var><sub><var>i</var><sub>1</sub
+		>,<var>i</var><sub>2</sub>,…,<var>i</var><sub><var>m</var></sub></sub>
+		とする。そしてそれが正常終了でなければ、直ちにそれを返す。</li>
+		</ol>
+	</li>
+	<li><var>e</var><sub>0</sub>
+	と同じ型で、以下に定める要素を含むテンソル原始リストを <var>e</var> とする:
+	<var>e</var> の全ての有効なインデックス <var>i</var><sub>1</sub>,
+	<var>i</var><sub>2</sub>, …, <var>i</var><sub><var>m</var></sub> について
+	<var>e</var>[<var>i</var><sub>1</sub>][<var>i</var><sub>2</sub>]...[<var
+	>i</var><sub><var>m</var></sub>] は <var>r</var><sub><var>i</var><sub>1</sub
+	>,<var>i</var><sub>2</sub>,…,<var>i</var><sub><var>m</var></sub></sub>
+	の値である。</li>
+	<li>[[<var>e</var> を <code>elements</code>
+	内部メンバの値とする読み取り専用でない新しいテンソルオブジェクト]]
+	を返す。</li>
+	</ol>
+</dd>
+</dl>
+
+<h2 id="internal-members"><code>Tensor</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Tensor</code> の関数としての呼出し</h2>
+<p><code>Tensor</code>
+は関数として呼出し可能であり、関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>呼出しで渡された引数がなければ、新しい
+<a href="b-error.html"><code>NumberOfArgumentsError</code></a>
+のインスタンスを投げる。</li>
+<li>渡された引数を <var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+<var>A</var><sub><var>r</var></sub> とする。</li>
+<li><var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+<var>A</var><sub><var>r</var></sub> が全て <a
+href="calculations.html#real-objects"><code>Real</code> オブジェクト</a
+>ならば、以下の動作を行う:
+	<ol>
+	<li><var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+	<var>A</var><sub><var>r</var></sub> の各オブジェクトに対して
+	<a href="b-integer.html#real-to-int">real-to-int</a> を行い、その結果を
+	それぞれ <var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> とする。ただし、いづれかの real-to-int
+	の結果が null であるか負数ならば、直ちに新しい <a href="b-error.html"><code
+	>OufOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub>
+	を内容とする原始リストを <var>d</var> とし、<var>d</var>
+	を型とするテンソル原始リストを <var>e</var> とする。
+	<var>e</var> に含まれるオブジェクトは全て初期の <a href="b-void.html#m-void"
+	><code>Void.void</code></a> とする。</li>
+	<li>[[<var>d</var> を <code>dims</code> 内部メンバの値とし、<var>e</var> を
+	<code>elements</code> 内部メンバの値とする、読み取り専用でない新しい
+	テンソルオブジェクト]] を返す。</li>
+	</ol>
+</li>
+<li>これ以降の動作は、未定義である。</li>
+</ol>
+
+<h2 id="instance-members">テンソルオブジェクトのプロパティ</h2>
+<p>テンソルオブジェクトは以下のプロパティを持つ。ただし、
+<code>Tensor.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-count"><code>count</code></dt>
+<dd>これは読み取り専用プロパティであり、その値は、<a href="b-integer.html"
+><code>Integer</code></a> オブジェクトである。この値は、
+このテンソルオブジェクトに含まれている要素の個数、すなわち <code
+>dims</code> 内部メンバの値に含まれている全ての整数の積を表す。</dd>
+<dt id="p-dims"><code>dims</code></dt>
+<dd>これは読み取り専用プロパティであり、その値は以下のような要素を含む<a
+href="b-list.html#list-object">リストオブジェクト</a>である:
+リストオブジェクトの要素は全て <a href="b-integer.html"><code>Integer</code></a>
+オブジェクトであり、その個数はこのテンソルオブジェクトの型に含まれる整数の個数に
+等しい。リストオブジェクトの <var>i</var> 個目の要素となっている <code
+>Integer</code> オブジェクトは、このテンソルオブジェクトの型に含まれる
+<var>i</var> 個目の整数を表す。</dd>
+<dd>同じテンソルオブジェクトについて複数回このプロパティを取得する場合、
+二回目以降の取得では以前の取得結果の値となったものと同じリストオブジェクトを
+再び値としても良い。この場合、リストオブジェクトは
+最初に取得される時点から読み取り専用でなければならない。</dd>
+<dt id="p-isreadonly"><code>isReadOnly</code></dt>
+<dd>このプロパティの値はテンソルが読み取り専用であるかどうかを表す。</dd>
+<dd>このテンソルオブジェクトが <code>isReadOnly</code> 内部メンバを持つならば、
+このプロパティの値は初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> である。さもなくば、このプロパティの値は初期の
+<a href="b-boolean.html#m-false"><code>Boolean.false</code></a> である。</dd>
+<dd>このプロパティを削除しようとすることは、このプロパティに対して初期の
+<a href="b-boolean.html#m-false"><code>Boolean.false</code></a>
+を代入することと同じように処理される。</dd>
+<dd>このプロパティに対してオブジェクト <var>N</var>
+が代入されるとき、次の動作を行う:
+	<ol>
+	<li><var>N</var> が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、
+		<ol>
+		<li>このテンソルオブジェクトが <code>isReadOnly</code>
+		内部メンバを持たなければ、<code>isReadOnly</code> 内部メンバを作成し
+		<var>N</var> をその値に設定する。</li>
+		<li>[[<var>N</var>]] を返す。</li>
+		</ol>
+	</li>
+	<li><var>N</var> が初期の <a href="b-boolean.html#m-false"><code
+	>Boolean.false</code></a> ならば、
+		<ol>
+		<li>このテンソルオブジェクトが <code>isReadOnly</code>
+		内部メンバを持つならば、新しい <a href="b-error.html"><code
+		>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+		<li>[[<var>N</var>]] を返す。</li>
+		</ol>
+	</li>
+	<li>新しい <a href="b-error.html"><code
+	>TypeError</code></a> のインスタンスを投げる。</li>
+	</ol>
+</dd>
+<dd class="informative">このプロパティに <code>@true</code> を代入することで、
+テンソルを読み取り専用にすることができる。一度読み取り専用になったテンソルを
+元の状態に戻すことは出来ない。</dd>
+<dt id="p-map"><code>map</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、以下の処理を行う:
+	<ol>
+	<li>呼出しで渡された引数が一つもなければ、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li>呼出しで渡された一つ目の引数を <var>F</var> とし、@this 値を
+	<var>T</var><sub>1</sub> とする。</li>
+	<li>渡された引数の個数を <var>n</var> として、二つ目以降の引数を順に
+	<var>T</var><sub>2</sub>, <var>T</var><sub>3</sub>, …,
+	<var>T</var><sub><var>n</var></sub> とする。</li>
+	<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+	値とし、<var>F</var>, <var>T</var><sub>1</sub>, <var>T</var><sub>2</sub>, …,
+	<var>T</var><sub><var>n</var></sub> を引数として、 <a href="#m-map"><code
+	>Tensor.map</code></a> を関数として呼出し、その結果を返す。</li>
+	</ol>
+</dd>
+<dt id="p-contractwith"><code>contractWith</code> メソッド</dt>
+<dd>3-ary メソッド。関数として呼出されると、以下の処理を行う:
+	<ol>
+	<li>呼出しで渡された引数が一つもなければ、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li>呼出しで渡された @this 値を <var>T</var> とし、渡された一つ目の引数を
+	<var>T</var>′ とする。<var>T</var> または <var>T</var>′
+	がテンソルオブジェクトでなければ、新しい <a href="b-error.html"><code
+	>TypeError</code></a> のインスタンスを投げる。</li>
+	<li>渡された二つ目の引数を <var>F</var> とする。引数の個数が二つに満たなければ
+	代わりに関数生成式 <code>&amp; #1 #2</code> を評価して得られるような
+	関数オブジェクトを <var>F</var> とする。<var>F</var>
+	が関数として呼出し可能でなければ、新しい
+	<a href="b-error.html"><code>NotCallableError</code></a>
+	のインスタンスを投げる。</li>
+	<li>渡された三つ目の引数を <var>G</var> とする。引数の個数が三つに満たなければ
+	代わりに <a href="b-math.html#m-sum"><code>Math.sum</code></a> を
+	<var>G</var> とする。<var>G</var> が関数として呼出し可能でなければ、新しい
+	<a href="b-error.html"><code>NotCallableError</code></a>
+	のインスタンスを投げる。</li>
+	<li><var>T</var>, <var>T</var>′ の <code>elements</code>
+	内部メンバの値をそれぞれ <var>e</var>, <var>e</var>′ とする。</li>
+	<li><var>e</var> の型に含まれる整数を <var>d</var><sub>1</sub>,
+	<var>d</var><sub>2</sub>, …, <var>d</var><sub><var>r</var></sub>、<var>e</var>′
+	の型に含まれる整数を <var>d</var>′<sub>1</sub>, <var>d</var>′<sub>2</sub>, …,
+	<var>d</var>′<sub><var>r</var>′</sub> とする。ただし、<var>r</var>,
+	<var>r</var>′ はそれぞれの階数である。</li>
+	<li><var>d</var><sub><var>r</var></sub> と <var>d</var>′<sub>1</sub>
+	が異なっているか、またはその値が 0 ならば、新しい <a href="b-error.html"><code
+	>DimensionError</code></a> のインスタンスを投げる。</li>
+	<li><var>r</var> = <var>r</var>′ = 1 ならば、後述の<cite
+	>結果がスカラの場合</cite>に進む。</li>
+	<li><var>d</var><sub>1</sub>, <var>d</var><sub>2</sub>,
+	…, <var>d</var><sub><var>r</var>−1</sub>, <var>d</var>′<sub>2</sub>,
+	<var>d</var>′<sub>3</sub>, …, <var>d</var>′<sub><var>r</var>′</sub>
+	を内容とする原始リストを型とする <var>r</var> + <var>r</var>′ − 2
+	階のテンソル原始リストを <var>p</var> とする。</li>
+	<li><var>p</var> の全ての有効なインデックス
+	<var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var>+<var>r</var>′−2</sub>
+	について、ちょうど一度づつ以下の処理を行う:
+		<ol>
+		<li>1 以上 <var>d</var><sub><var>r</var></sub> 以下の全ての整数
+		<var>k</var> について、初期の <a href="b-void.html#m-void"><code
+		>Void.void</code></a> を @this 値とし、
+		<var>e</var>[<var>i</var><sub>1</sub>][<var>i</var><sub>2</sub
+		>]...[<var>i</var><sub><var>r</var>−1</sub>][<var>k</var>] と
+		<var>e</var>′[<var>k</var>][<var>i</var><sub><var>r</var></sub>][<var
+		>i</var><sub><var>r</var>+1</sub>]...[<var>i</var><sub><var>r</var>+<var
+		>r</var>′−2</sub>] の二つの引数で <var>F</var> を関数として呼出し、
+		その結果に対して <a href="primitives.html#get-reference-value"
+		>get-reference-value</a> を行い、その結果を <var>s</var><sub><var>k</var
+		></sub> とする。そしてそれが正常終了でなければ直ちにそれを返す。</li>
+		<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+		値とし、<var>s</var><sub>1</sub>, <var>s</var><sub>2</sub>, …,
+		<var>s</var><sub><var>d</var><sub><var>r</var></sub></sub>
+		のそれぞれの値を引数として <var>G</var> を関数として呼出し、その結果に対して
+		<a href="primitives.html#get-reference-value">get-reference-value</a>
+		を行い、その結果を <var>t</var><sub><var>i</var><sub>1</sub>,<var>i</var
+		><sub>2</sub>,…,<var>i</var><sub><var>r</var>+<var>r</var>′−2</sub></sub>
+		とする。そしてそれが正常終了でなければ、直ちにそれを返す。</li>
+		</ol>
+	</li>
+	<li><var>p</var> と同じ型で、以下に定める要素を含むテンソル原始リストを
+	<var>q</var> とする:
+	<var>q</var> の全ての有効なインデックス <var>i</var><sub>1</sub>, <var>i</var
+	><sub>2</sub>, …, <var>i</var><sub><var>r</var>+<var>r</var>′−2</sub> について
+	<var>q</var>[<var>i</var><sub>1</sub>][<var>i</var><sub>2</sub>]...[<var
+	>i</var><sub><var>r</var>+<var>r</var>′−2</sub>] は
+	<var>t</var><sub><var>i</var><sub>1</sub>,<var>i</var><sub>2</sub>,…,<var
+	>i</var><sub><var>r</var>+<var>r</var>′−2</sub></sub> の値である。</li>
+	<li>[[<var>q</var> を <code>elements</code>
+	内部メンバの値とする読み取り専用でない新しいテンソルオブジェクト]]
+	を返す。</li>
+	</ol>
+結果がスカラの場合:
+	<ol>
+	<li>1 以上 <var>d</var><sub><var>r</var></sub> 以下の全ての整数
+	<var>k</var> について、初期の <a href="b-void.html#m-void"><code
+	>Void.void</code></a> を @this 値とし、
+	<var>e</var>[<var>k</var>] と <var>e</var>′[<var>k</var>] の二つの引数で
+	<var>F</var> を関数として呼出し、
+	その結果に対して <a href="primitives.html#get-reference-value"
+	>get-reference-value</a> を行い、その結果を <var>s</var><sub><var>k</var
+	></sub> とする。そしてそれが正常終了でなければ直ちにそれを返す。</li>
+	<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+	値とし、<var>s</var><sub>1</sub>, <var>s</var><sub>2</sub>, …,
+	<var>s</var><sub><var>d</var><sub><var>r</var></sub></sub>
+	のそれぞれの値を引数として <var>G</var>
+	を関数として呼出し、その結果を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">この関数は引数に相手のテンソルと乗算関数と加算関数を
+受け取り、このテンソルの最後の次元と相手のテンソルの最初の次元とを縮約する。
+(ドット積の一般化)</dd>
+<dt id="p--plus"><code>$plus</code> メソッド</dt>
+<dd>0-ary メソッド。引数無しで関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトを引数として
+このテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; +#</code></dd>
+<dt id="p--add"><code>$add</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 + #2</code></dd>
+<dt id="p--increment"><code>$increment</code> メソッド</dt>
+<dd>0-ary メソッド。引数無しで関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトを引数として
+このテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #.$increment[]</code></dd>
+<dt id="p--minus"><code>$minus</code> メソッド</dt>
+<dd>0-ary メソッド。引数無しで関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトを引数として
+このテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; -#</code></dd>
+<dt id="p--subtract"><code>$subtract</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 - #2</code></dd>
+<dt id="p--decrement"><code>$decrement</code> メソッド</dt>
+<dd>0-ary メソッド。引数無しで関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトを引数として
+このテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #.$decrement[]</code></dd>
+<dt id="p--multiply"><code>$multiply</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 * #2</code></dd>
+<dt id="p--reciprocal"><code>$reciprocal</code> メソッド</dt>
+<dd>0-ary メソッド。引数無しで関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトを引数として
+このテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; /#</code></dd>
+<dt id="p--divide"><code>$divide</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 / #2</code></dd>
+<dt id="p--quotient"><code>$quotient</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 \ #2</code></dd>
+<dt id="p--mod"><code>$mod</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 % #2</code></dd>
+<dt id="p--power"><code>$power</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 ^ #2</code></dd>
+<dt id="p--less"><code>$less</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 &lt; #2</code></dd>
+<dt id="p--greater"><code>$greater</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 > #2</code></dd>
+<dt id="p--lessequal"><code>$lessEqual</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 &lt;= #2</code></dd>
+<dt id="p--greaterequal"><code>$greaterEqual</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数 <var>x</var> で関数として呼出されると、
+次の関数生成式を評価して得られるような関数オブジェクトと <var>x</var>
+を引数としてこのテンソルオブジェクトの <a href="#p-map"><code>map</code></a>
+メソッドを呼出し、その結果を返す: <code>&amp; #1 >= #2</code></dd>
+<dt id="p--equal"><code>$equal</code> メソッド</dt>
+<dd>1-ary メソッド。一つのオブジェクト <var>X</var> を引数として関数として
+呼出されると、以下の動作を行う:
+	<ol>
+	<li><var>X</var> がテンソルオブジェクトであり、かつこのテンソルオブジェクトと
+	<var>X</var> の型が異なっていれば、[[初期の <a href="b-boolean.html#m-false"
+	><code>Boolean.false</code></a>]] を返す。</li>
+	<li>関数生成式 <code>&amp; #1 == #2</code> を評価して得られるような
+	関数オブジェクトと <var>X</var> を引数としてこのテンソルオブジェクトの
+	<a href="#p-map"><code>map</code></a> メソッドを呼出し、その結果を
+	<var>r</var> とする。<var>r</var>
+	が正常終了でなければ、直ちにそれを返す。</li>
+	<li><var>r</var> の値はテンソルオブジェクトであるはずである。
+	<var>r</var> の値に含まれる全ての要素に対して <a
+	href="expressions.html#to-boolean">to-boolean</a> を行い、全ての結果が true
+	ならば [[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a
+	>]] を、さもなくば [[初期の <a href="b-boolean.html#m-false"><code
+	>Boolean.false</code></a>]] を返す。</li>
+	</ol>
+</dd>
+<dt id="p--juxtapose"><code>$juxtapose</code> メソッド</dt>
+<dd>1-ary メソッド。</dd>
+<dd>テンソルオブジェクト一つを引数として関数として呼出されると、
+同じ引数でこのテンソルオブジェクトの <a href="#p-contractwith"><code
+>contractWith</code></a> メソッドを呼出し、その結果を返す。</dd>
+<dd>テンソルオブジェクトでないオブジェクト一つを引数として
+関数として呼出されると、このテンソルオブジェクトの <a href="#p-map"><code
+>map</code></a> メソッドを二つの引数で呼出し、その結果を返す。
+一つ目の引数は、関数生成式 <code>&amp; #1 #2</code>
+を評価して得られるような関数オブジェクトとする。
+二つ目の引数は、この呼出しで渡された引数とする。</dd>
+<dt id="p-tolist"><code>toList</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、[[<code>elements</code>
+内部メンバの値がこのテンソルオブジェクトの <code>elements</code>
+内部メンバの平坦化リストであるような新しい<a href="b-list.html#list-object"
+>リストオブジェクト</a>]] を返す。ただし、<var>n</var> 階のテンソル原始リスト
+<var>e</var> の平坦化リストとは、以下のような 1 階のテンソル原始リスト
+<var>f</var> である:
+<ul>
+<li><var>n</var> = 1 ならば、<var>e</var> = <var>f</var> である。</li>
+<li><var>n</var> > 1 ならば、
+	<ol>
+	<li><var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>e</var>.count]
+	の平坦化リストをそれぞれ <var>e</var>′<sub>1</sub>, <var>e</var>′<sub>2</sub>,
+	…, <var>e</var>′<sub><var>e</var>.count</sub> とする。</li>
+	<li><var>e</var>′<sub>1</sub>[1], <var>e</var>′<sub>1</sub>[2], …,
+	<var>e</var>′<sub>1</sub>[<var>e</var>′<sub>1</sub>.count],
+	<var>e</var>′<sub>2</sub>[1], <var>e</var>′<sub>2</sub>[2], …,
+	<var>e</var>′<sub>2</sub>[<var>e</var>′<sub>2</sub>.count], ……,
+	<var>e</var>′<sub><var>e</var>.count</sub>[1],
+	<var>e</var>′<sub><var>e</var>.count</sub>[2], …,
+	<var>e</var>′<sub><var>e</var>.count</sub
+	>[<var>e</var>′<sub><var>e</var>.count</sub>.count] を要素とする原始リストを
+	<var>e</var> の平坦化リスト <var>f</var> とする。</li>
+	</ol>
+</li>
+</ul>
+</dd>
+<dt id="p-copy"><code>copy</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、[[以下の条件を全て満たす
+新しいテンソルオブジェクト]] を返す:
+	<ul>
+	<li>呼出しで渡された @this 値と同じ <code>dims</code> 内部メンバおよび
+	<code>elements</code> 内部メンバを持つ。</li>
+	<li>読み取り専用でない。</li>
+	<li>プロトタイプは、呼出しで渡された @this 値である。</li>
+	</ul>
+</dd>
+<dt id="p-getenum"><code>getEnum</code> メソッド</dt>
+<dd>関数として呼びだされると、[[新しい<a href="b-enum.html#enumeration-object"
+>開始列挙オブジェクト</a>]] を返す。この列挙オブジェクトによる列挙操作は、
+このテンソルオブジェクトの全ての要素を一度づつ列挙する。ただし、
+列挙操作が完了する (列挙オブジェクトの <a href="b-enum.html#p-tonext"><code
+>toNext</code> メソッド</a>が <code>null</code> を返す) までに
+このテンソルオブジェクトの <code>elements</code> 内部メンバが変更された場合は、
+それ以降の列挙操作の挙動は規定しない。</dd>
+<dd>要素が列挙される順序は、インデックスの若い順とする。インデックス
+<var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …, <var>i</var><sub><var
+>n</var></sub> がインデックス <var>j</var><sub>1</sub>, <var>j</var><sub>2</sub
+>, …, <var>j</var><sub><var>n</var></sub> よりも若いとは、
+<var>i</var><sub><var>k</var></sub> ≠ <var>j</var><sub><var>k</var></sub>
+となる最小の自然数 <var>k</var> において
+<var>i</var><sub><var>k</var></sub> &lt; <var>j</var><sub><var>k</var></sub>
+であることである。</dd>
+<dt id="p-tonext"><code>toNext</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.getEnum[].toNext[] }</code></dd>
+</dl>
+
+<h2 id="instance-internal-members">テンソルオブジェクトの内部メンバ</h2>
+<dl class="member-def">
+<dt id="ip--prototype"><code>$prototype</code></dt>
+<dd><code>Tensor.prototype</code>、または <code>Tensor.prototype</code>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="ip-dims"><code>dims</code></dt>
+<dd>一つ以上の 0 以上の整数を内容とする<a
+href="primitives.html#type-primitive-list">原始リスト</a
+>。この原始リストはテンソルオブジェクトの型を示す。</dd>
+<dd>この内部メンバは不変である。</dd>
+<dt id="ip-elements"><code>elements</code></dt>
+<dd><code>dims</code> 内部メンバの値を型とする<a href="#tensor-primitive-list"
+>テンソル原始リスト</a>。
+このテンソル原始リストはテンソルオブジェクトの要素を保持する。</dd>
+<dt id="ip-isreadonly"><code>isReadOnly</code></dt>
+<dd>この内部メンバが存在するならばテンソルオブジェクトは読み取り専用である。</dd>
+</dl>
+
+<h2 id="instance-call">テンソルオブジェクトの関数としての呼出し</h2>
+<p>テンソルオブジェクトは関数として呼出し可能である。
+テンソルオブジェクトが関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>関数として呼出されたこの <code>Tensor</code> のインスタンスを <var>T</var>
+とする。</li>
+<li><var>T</var> の <code>elements</code> 内部メンバの値の階数を <var>r</var>
+とする。この呼出しで渡された引数の個数が <var>r</var> でなければ、新しい
+<a href="b-error.html"><code>NumberOfArgumentsError</code></a>
+のインスタンスを投げる。</li>
+<li><var>T</var> の型に含まれる整数を <var>d</var><sub>1</sub>,
+<var>d</var><sub>2</sub>, …, <var>d</var><sub><var>r</var></sub> とする。</li>
+<li>渡された引数を <var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+<var>A</var><sub><var>r</var></sub> とする。</li>
+<li><var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+<var>A</var><sub><var>r</var></sub> が全て <a
+href="calculations.html#real-objects"><code>Real</code> オブジェクト</a
+>ならば、以下の動作を行う:
+	<ol>
+	<li><var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …,
+	<var>A</var><sub><var>r</var></sub> の各オブジェクトに対して
+	<a href="b-integer.html#real-to-int">real-to-int</a> を行い、その結果を
+	それぞれ <var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> とする。ただし、real-to-int の結果が null
+	である場合は、代わりに −1 を結果とする。</li>
+	<li>[[<var>T</var> と <var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> に対応する<a
+	href="#tensor-element-reference">テンソル要素参照</a>]] を返す。</li>
+	</ol>
+</li>
+<li><var>A</var><sub>1</sub>, <var>A</var><sub>2</sub>, …, <var>A</var><sub
+><var>r</var></sub> が全て <code>Real</code> オブジェクトまたは <a
+href="b-interval.html"><code>Interval</code></a>
+のインスタンスならば、以下の動作を行う:
+	<ol>
+	<li>全ての <var>k</var> = 1, 2, …, <var>r</var> について、以下の動作を行う:
+		<ul>
+		<li><var>A</var><sub><var>k</var></sub> が <code>Real</code>
+		オブジェクトならば、それに対して real-to-int を行い、その結果を
+		<var>i</var><sub><var>k</var></sub> とする。さらに <var>i</var
+		><sub><var>k</var></sub> = <var>j</var><sub><var>k</var></sub>
+		とする。ただし、real-to-int の結果が null である場合は、代わりに
+		<var>i</var><sub><var>k</var></sub> = 1, <var>j</var><sub><var>k</var></sub>
+		= 0 とする。</li>
+		<li><var>A</var><sub><var>k</var></sub> が <code>Interval</code>
+		のインスタンスならば、それに対して <a
+		href="b-interval.html#ints-in-interval">ints-in-interval</a> を行う。
+		その結果が正常終了でなければ、直ちにそれを返す。あるいはその結果が [[null]]
+		ならば、これ以降の動作は、未定義である。さもなくば、その結果の値は
+		整数の集合であるはずであるので、それを <var>I</var> とする。
+		<var>I</var> に含まれる最小の正の整数を <var>i</var><sub><var>k</var></sub>,
+		最大の <var>d</var><sub><var>k</var></sub> 以下の正の整数を
+		<var>j</var><sub><var>k</var></sub> とする。ただし <var>I</var>
+		に正の整数が含まれていない場合は、<var>i</var><sub><var>k</var></sub> = 1,
+		<var>j</var><sub><var>k</var></sub> = 0 とする。</li>
+		</ul>
+	</li>
+	<li>[[<var>T</var> と <var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> と <var>j</var><sub>1</sub>, <var>j</var
+	><sub>2</sub>, …, <var>j</var><sub><var>r</var></sub> に対応する<a
+	href="#tensor-range-reference">テンソル範囲参照</a>]] を返す。</li>
+	</ol>
+</li>
+<!--xxx: 引数が interval, enum の場合-->
+<li>これ以降の動作は、未定義である。</li>
+</ol>
+
+<h2 id="tensor-element-reference">テンソル要素参照</h2>
+<p><dfn>テンソル要素参照</dfn>は<a href="primitives.html#type-reference"
+>参照</a>の一種である。全てのテンソル要素参照は、それぞれ対応する
+テンソルオブジェクト <var>T</var> と <var>r</var> 個の整数
+<var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+<var>i</var><sub><var>r</var></sub> を持つ。ただし <var>r</var> は
+<var>T</var> の <code>elements</code> 内部メンバの値の階数である。</p>
+<p>テンソル要素参照に対する動作を以下に定める:</p>
+<dl>
+<dt>check-reference-value</dt>
+<dd><ol>
+	<li><var>T</var> の現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> が <var>e</var> の有効なインデックスならば
+	[[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を、
+	さもなくば [[初期の <a href="b-boolean.html#m-false"><code
+	>Boolean.false</code></a>]] を返す。</li>
+</ol></dd>
+<dt>get-reference-value</dt>
+<dd><ol>
+	<li><var>T</var> の現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> が <var>e</var> の有効なインデックスならば
+	[[ <var>e</var>[<var>i</var><sub>1</sub>][<var>i</var><sub>2</sub>]...[<var
+	>i</var><sub><var>r</var></sub>] ]] を返す。さもなくば新しい <a
+	href="b-error.html"><code>OutOfRangeError</code></a>
+	のインスタンスを投げる。</li>
+</ol></dd>
+<dt>set-reference-value</dt>
+<dd><ol>
+	<li>set-reference-value の対象となるオブジェクトを <var>O</var> とする。</li>
+	<li><var>T</var> の現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>T</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+	<var>i</var><sub><var>r</var></sub> が <var>e</var>
+	の有効なインデックスでなければ新しい <a href="b-error.html"><code
+	>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>e</var> と同じ型のテンソル原始リストを <var>e</var>′ とする。<var
+	>e</var>′ は、<var>e</var>′[<var>i</var><sub>1</sub>][<var>i</var><sub>2</sub
+	>]...[<var>i</var><sub><var>r</var></sub>] = <var>O</var> であることを除いて
+	<var>e</var> と同じ要素を持つ。</li>
+	<li><var>T</var> の <code>elements</code> 内部メンバの値を <var>e</var>′
+	に変更する。</li>
+	<li>[[<var>O</var>]] を返す。</li>
+</ol></dd>
+<dt>delete-reference-value</dt>
+<dd><ol>
+	<li>新しい <a href="b-error.html"><code>ReadOnlyError</code></a>
+	のインスタンスを投げる。</li>
+</ol></dd>
+</dl>
+
+<h2 id="tensor-range-reference">テンソル範囲参照</h2>
+<p><dfn>テンソル範囲参照</dfn>は<a href="primitives.html#type-reference"
+>参照</a>の一種である。全てのテンソル範囲参照は、それぞれ対応する
+テンソルオブジェクト <var>T</var> と <var>r</var> 個の整数
+<var>i</var><sub>1</sub>, <var>i</var><sub>2</sub>, …,
+<var>i</var><sub><var>r</var></sub> および <var>j</var><sub>1</sub>,
+<var>j</var><sub>2</sub>, …, <var>j</var><sub><var>r</var></sub>
+を持つ。ただし <var>r</var> は <var>T</var> の <code>elements</code>
+内部メンバの値の階数である。</p>
+<!-- i および j の表すインデックスは有効でなければならない
+     (参照範囲のサイズが 0 の場合 (i = 1, j = 0) を除く) -->
+<p>テンソル範囲参照に対する動作を以下に定める:</p>
+<dl>
+<dt>check-reference-value</dt>
+<dd><ol>
+	<li>[[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]]
+	を返す。</li>
+</ol></dd>
+<dt>get-reference-value</dt>
+<dd><ol>
+	<li><var>T</var> の現在の <code>elements</code> 内部メンバの値を <var>e</var>
+	とする。</li>
+	<li><var>k</var> = 1, 2, …, <var>r</var> について、<var>d</var><sub><var
+	>k</var></sub> = <var>j</var><sub><var>k</var></sub> − <var>i</var><sub><var
+	>k</var></sub> + 1 とする。</li>
+	<li><var>d</var><sub>1</sub>, <var>d</var><sub>2</sub>, …, <var>d</var><sub
+	><var>r</var></sub> を型とする <var>r</var> 階のテンソル原始リストを <var
+	>e</var>′ とする。<var>e</var>′ の要素は以下のように定める:
+	<var>e</var>′ の有効な全てのインデックス <var>k</var><sub>1</sub>, <var>k</var
+	><sub>2</sub>, …, <var>k</var><sub><var>r</var></sub> について、<var>e</var
+	>′[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub>]…[<var>k</var><sub><var
+	>r</var></sub>] = <var>e</var>[<var>i</var><sub>1</sub> + <var>k</var><sub
+	>1</sub> − 1][<var>i</var><sub>2</sub> + <var>k</var><sub>2</sub> − 1]…[<var
+	>i</var><sub><var>r</var></sub> + <var>k</var><sub><var>r</var></sub> −
+	1]</li>
+	<li>[[<var>e</var>′ を <code>elements</code> 内部メンバの値とする、
+	読み取り専用でない新しいテンソルオブジェクト]] を返す。</li>
+</ol></dd>
+<dt>set-reference-value</dt>
+<dd><ol>
+	<li>set-reference-value の対象となるオブジェクトを <var>O</var> とする。</li>
+	<li><var>T</var> の現在の <code>elements</code> 内部メンバの値を <var>e</var>
+	とする。</li>
+	<li><var>T</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>k</var> = 1, 2, …, <var>r</var> について、<var>d</var><sub><var
+	>k</var></sub> = <var>j</var><sub><var>k</var></sub> − <var>i</var><sub><var
+	>k</var></sub> + 1 とする。</li>
+	<li><var>O</var> がテンソルオブジェクトならば、以下の動作を行う:
+		<ol>
+		<li><var>O</var> の <code>elements</code> 内部メンバの値を <var>e</var>″
+		とする。</li>
+		<li><var>e</var>″ の型が <var>d</var><sub>1</sub>, <var>d</var><sub>2</sub>,
+		…, <var>d</var><sub><var>r</var></sub> でなければ、新しい
+		<a href="b-error.html"><code>DimensionError</code></a>
+		のインスタンスを投げる。</li>
+		<li><var>e</var> と同じ型の、以下に定める要素を持つテンソル原始リストを
+		<var>e</var>′ とする:
+		<var>e</var>′ の有効な全てのインデックス <var>k</var><sub>1</sub>, <var
+		>k</var><sub>2</sub>, …, <var>k</var><sub><var>r</var></sub> について、
+			<dl>
+			<dt>全ての <var>l</var> = 1, 2, …, <var>r</var> について、<var>i</var
+			><sub><var>l</var></sub> ≤ <var>k</var><sub><var>l</var></sub> ≤
+			<var>j</var><sub><var>l</var></sub> ならば</dt>
+			<dd><var>e</var>′[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>] =
+			<var>e</var>″[<var>k</var><sub>1</sub> − <var>i</var><sub>1</sub> +
+			1][<var>k</var><sub>2</sub> − <var>i</var><sub>2</sub> + 1]…[<var
+			>k</var><sub><var>r</var></sub> − <var>i</var><sub><var>r</var></sub>
+			+ 1]</dd>
+			<dt>さもなくば</dt>
+			<dd><var>e</var>′[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>] =
+			<var>e</var>[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>]</dd>
+			</dl>
+		</li>
+		</ol>
+	<var>O</var> がテンソルオブジェクトでなければ、以下の動作を行う:
+		<ol>
+		<li><var>e</var> と同じ型の、以下に定める要素を持つテンソル原始リストを
+		<var>e</var>′ とする:
+		<var>e</var>′ の有効な全てのインデックス <var>k</var><sub>1</sub>, <var
+		>k</var><sub>2</sub>, …, <var>k</var><sub><var>r</var></sub> について、
+			<dl>
+			<dt>全ての <var>l</var> = 1, 2, …, <var>r</var> について、<var>i</var
+			><sub><var>l</var></sub> ≤ <var>k</var><sub><var>l</var></sub> ≤
+			<var>j</var><sub><var>l</var></sub> ならば</dt>
+			<dd><var>e</var>′[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>] = <var>O</var></dd>
+			<dt>さもなくば</dt>
+			<dd><var>e</var>′[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>] =
+			<var>e</var>[<var>k</var><sub>1</sub>][<var>k</var><sub>2</sub
+			>]…[<var>k</var><sub><var>r</var></sub>]</dd>
+			</dl>
+		</li>
+		</ol>
+	</li>
+	<li><var>T</var> の <code>elements</code> 内部メンバの値を、<var>e</var>′
+	に変更する。</li>
+	<li>[[<var>O</var>]] を返す。</li>
+</ol></dd>
+<dt>delete-reference-value</dt>
+<dd><ol>
+	<li>新しい <a href="b-error.html"><code>ReadOnlyError</code></a>
+	のインスタンスを投げる。</li>
+</ol></dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

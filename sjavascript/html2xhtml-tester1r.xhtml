@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!---->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>HTML to XHTML 変換テスト用文書</title>
+<style type="text/css"><![CDATA[
+/* <![IGNORE[ */
+p { margin: 1em } /* 有効なスタイル指定 */
+/* ]]>]]&gt;<![CDATA[ */
+]]></style>
+</head><body><p class="paragraph1">これは HTML to XHTML の変換テスト用文書です &lt;!</p><script type="text/javascript">document.write(1+2+3);</script>
+<script type="text/javascript">document.write(4+5+6);</script>
+<p id="paragraph-id" class='paragraph2' dir="ltr">属性
+</p><p>空タグ</p>
+<dl><dd>
+<p><a dir="ltr" href="sample:uri">anchor</a>>
+<!-- <a dir="ltr" href="sample:uri">anchor</a>> となる -->
+
+
+</p><p>included
+
+
+
+</p><p>
+
+&#32; &amp; &amp; &lt; >
+
+<!-- &#32; &amp; &#38; &lt; > となる -->
+<![CDATA[
+&#SPACE &amp & < >
+]]>
+<!-- &#SPACE &amp & < > となる -->
+</p></dd></dl>
+<!-- net 終了タグ (</dl>) -->
+<?processing instruction?>
+<!--end--><!--of--><!--example--></body></html>

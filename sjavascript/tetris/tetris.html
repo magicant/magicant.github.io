@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript プログラムが自動でテトリスをプレイする AI テトリスです。">
+<meta name="date" content="2008-08-29T12:38:06+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="../">
+<link rel="contents" href="../">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="../defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>AI Tetris</title>
+<style type="text/css">
+#control-buttons li {
+	display: inline;
+	margin: auto 0.5em;
+}
+#main-field, #info-panel {
+	float: left;
+}
+.matrix {
+	background: black;
+	color: black;
+	margin: 1px;
+	border: none;
+	padding: 0;
+}
+.matrix td {
+	background: black;
+	color: black;
+	width: 14px;
+	min-width: 14px;
+	max-width: 14px;
+	height: 14px;
+	min-height: 14px;
+	max-height: 14px;
+	margin: 1px;
+	border: none;
+	padding: 0;
+	font: 0px/0px monospace;
+}
+#info-panel * {
+	font-weight: normal;
+	font-style: normal;
+}
+#info-panel table, #score {
+	margin: 0.6em;
+}
+#info-panel th {
+	width: 4.5em;
+	text-align: left;
+}
+#info-panel td {
+	width: 6em;
+	text-align: right;
+}
+#score-value {
+	display: block;
+	text-align: right;
+}
+
+#description {
+	clear: both;
+}
+</style>
+<script type="text/javascript" src="../util.js" charset="us-ascii" defer></script>
+<script type="text/javascript" src="../uai.js" charset="us-ascii" defer></script>
+<script type="text/javascript" src="../mt.js" charset="us-ascii" defer></script>
+<script type="text/javascript" src="tetris.js" charset="utf-8" defer></script>
+<script type="text/javascript" src="ai-masteady-1.4.12.js" charset="utf-8" defer></script>
+</head>
+<body onload="init();" onunload="finalize();">
+<h1 id="title">
+AI Tetris
+</h1>
+<address id="copyright-info">
+&copy; 2006 Magicant / 0.1.5 (2006-01-11)
+</address>
+<noscript>
+<div><strong>
+テトリスを実行するには JavaScript が必要です。
+</strong></div>
+</noscript>
+<div id="control-panel">
+<ul id="control-buttons">
+<li>
+<input id="start-button" class="control-button"
+	type="button" value="ゲーム開始" onclick="startGame();">
+</li>
+<li>
+<label for="next-checkbox">
+<input id="next-checkbox" class="control-button"
+	type="checkbox" onclick="resetShowNext();" checked>
+<span lang="en">Next</span> 表示
+</label>
+</li>
+<li>
+<label for="manual-button">
+<input id="manual-button" class="control-button"
+	type="radio" name="player" onclick="setAIEnabled(false);">
+手動
+</label>
+<label for="ai-button">
+<input id="ai-button" class="control-button"
+	type="radio" name="player" onclick="setAIEnabled(true);" checked>
+AI
+</label>
+</li>
+<li>
+<label>
+速度:
+<select id="speed-select" onchange="resetSpeed();">
+<option value="0">停止</option>
+<option value="1" selected>標準</option>
+<option value="2">2 倍</option>
+<option value="3">3 倍</option>
+<option value="5">5 倍</option>
+<option value="10">10 倍</option>
+<option value="20">20 倍</option>
+<option value="50">50 倍</option>
+<option value="100">100 倍</option>
+<option value="200">200 倍</option>
+<option value="500">500 倍</option>
+</select>
+</label>
+</li>
+</ul>
+<div id="status">
+</div>
+<div id="status2">
+(<span id="frames-per-second">?</span> fps)
+</div>
+</div>
+<div id="main-field">
+<script type="text/javascript">
+document.write('<table id="next-matrix" class="matrix"><tbody>');
+for (var i = 0; i < 2; i++) {
+	document.write('<tr>');
+	for (var j = 0; j < 10; j++) {
+		document.write('<td>■<\/td>');
+	}
+	document.write('<\/tr>');
+}
+document.write('<\/tbody><\/table>');
+document.write('<table id="main-matrix" class="matrix"><tbody>');
+for (var i = 0; i < 20; i++) {
+	document.write('<tr>');
+	for (var j = 0; j < 10; j++) {
+		document.write('<td>■<\/td>');
+	}
+	document.write('<\/tr>');
+}
+document.write('<\/tbody><\/table>');
+</script>
+</div>
+<div id="info-panel">
+<div id="score">
+得点: <span id="score-value">0</span>
+</div>
+<table id="line-counts">
+<caption>行数カウント</caption>
+<tbody>
+<tr><th>シングル</th><td id="singles">0</td></tr>
+<tr><th>ダブル</th><td id="doubles">0</td></tr>
+<tr><th>トリプル</th><td id="triples">0</td></tr>
+<tr><th>テトリス</th><td id="tetrises">0</td></tr>
+<tr><th>行数</th><td id="lines">0</td></tr>
+</tbody>
+</table>
+<table id="tetromino-counts">
+<caption>テトロミノ出現数</caption>
+<tbody>
+<tr><th>O</th><td id="o-tetrominoes">0</td></tr>
+<tr><th>I</th><td id="i-tetrominoes">0</td></tr>
+<tr><th>S</th><td id="s-tetrominoes">0</td></tr>
+<tr><th>Z</th><td id="z-tetrominoes">0</td></tr>
+<tr><th>L</th><td id="l-tetrominoes">0</td></tr>
+<tr><th>J</th><td id="j-tetrominoes">0</td></tr>
+<tr><th>T</th><td id="t-tetrominoes">0</td></tr>
+<tr><th>合計</th><td id="total-tetrominoes">0</td></tr>
+</tbody>
+</table>
+</div>
+<div id="debug-output">
+</div>
+
+<h2 id="description">説明</h2>
+<p>
+JavaScript によるテトリスです。AI が自動でプレーします。
+</p>
+<p>
+実行環境によってはキーボードから手動 (マニュアル操作) でプレーすることができます。
+</p>
+<p>
+プレーを中断するには<q>速度</q>を<q>停止</q>に設定してください。
+</p>
+<table summary="マニュアル操作用のキー割り当てを示します。">
+<caption>マニュアル操作用キー</caption>
+<thead>
+<tr>
+<th scope="col">キー</th>
+<th scope="col">操作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>J</td>
+<td>左に動かす</td>
+</tr>
+<tr>
+<td>L</td>
+<td>右に動かす</td>
+</tr>
+<tr>
+<td>K</td>
+<td>速く落とす</td>
+</tr>
+<tr>
+<td>F</td>
+<td>回転する (反時計回り 90 度)</td>
+</tr>
+</tbody>
+</table>
+<p>
+AI は独自に開発したもので、<span lang="en">Next</span> 表示ありなら平均数万行でゲームオーバーになります。
+(ちなみに人間が普通にプレイした場合、数万行消すには 50 時間以上かかります)</p>
+
+<h2 id="others">関連情報</h2>
+<h3 id="others-tetris">他の人が作った JavaScript テトリス</h3>
+<dl>
+<dt><a href="//www.isl.cs.gunma-u.ac.jp/~shingo/make/7line/7line.html#teto"
+charset="x-sjis">7 lines programming - テトリス</a></dt>
+<dt><a href="http://web.archive.org/web/20060219203427/http://www.isl.cs.gunma-u.ac.jp/~shingo/make/7line/7line.html#teto"
+charset="x-sjis">7 lines programming - テトリス</a> (Web Archive)</dt>
+<dd>39 文字 × 7 行で書かれた JavaScript によるテトリス。
+限られた環境でしか動きませんが、プログラムの短さに脱帽です。</dd>
+<dt><a href="//qpon.cool.ne.jp/game/tetris/tetris.htm">QPON テトリス</a></dt>
+<dd>横 8 列ですが、デモプレイがなかなかうまく出来ています。</dd>
+</dl>
+
+</body>
+</html>
+<!--
+programed by magicant
+
+2005年10月29日 v0.0
+	マニュアル操作のみ。AI 未実装。
+2005年11月1日 v0.1
+	AI 実装。
+2005年11月2日 v0.1.1
+	速度調整機能
+2005年12月28日 v0.1.4
+	AI 修正。
+2006年1月11日 v0.1.5
+	説明など修正。
+-->

@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="擬似乱数生成アルゴリズム「Mersenne Twister」の JavaScript による実装のテスト用ページです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="mt.html">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Mersenne Twister in JavaScript のテスト</title>
+<style type="text/css">
+#result {
+	font: 12pt/14pt "Monaco", "Courier New", monospace;
+}
+</style>
+<script type="text/javascript" src="mt.js" charset="us-ascii"></script>
+<script type="text/javascript">
+// グローバルオブジェクト
+var elsa, elsi, elsiv, elsa, elsav;
+var eloi, eloiu, eloiuu, eloil, eloill, eloilu, elor, eloru, eloruu, elhex;
+var elol, els, elo;
+
+// 初期化
+function init() {
+	elsa   = document.getElementById("seed-type-auto");
+	elsi   = document.getElementById("seed-type-int");
+	elsiv  = document.getElementById("seed-int");
+	elsr   = document.getElementById("seed-type-ary");
+	elsrv  = document.getElementById("seed-ary");
+	eloi   = document.getElementById("output-type-int");
+	eloiu  = document.getElementById("output-type-intu");
+	eloiuu = document.getElementById("output-intu-u");
+	eloil  = document.getElementById("output-type-intul");
+	eloill = document.getElementById("output-intul-l");
+	eloilu = document.getElementById("output-intul-u");
+	elor   = document.getElementById("output-type-real");
+	eloru  = document.getElementById("output-type-realu");
+	eloruu = document.getElementById("output-realu-u");
+	elhex  = document.getElementById("output-hex");
+	elol   = document.getElementById("output-length");
+	els    = document.getElementById("start-button");
+	elo    = document.getElementById("output");
+}
+
+// エントリポイント
+function start() {
+	var mt, f, hex = false, count;
+	
+	if (elsa.checked) {
+		mt = new MersenneTwister();
+	} else if (elsi.checked) {
+		mt = new MersenneTwister(parseInt(elsiv.value));
+	} else if (elsr.checked) {
+		mt = new MersenneTwister(makeArray(elsrv.value));
+	} else {
+		return;
+	}
+	
+	if (eloi.checked) {
+		f = function() {
+			return mt.nextInt();
+		};
+		hex = elhex.checked;
+	} else if (eloiu.checked) {
+		var u = parseInt(eloiuu.value);
+		f = function() {
+			return mt.nextInt(u);
+		};
+		hex = elhex.checked;
+	} else if (eloil.checked) {
+		var u = parseInt(eloilu.value), l = parseInt(eloill.value);
+		f = function() {
+			return mt.nextInt(l, u);
+		};
+		hex = elhex.checked;
+	} else if (elor.checked) {
+		f = function() {
+			return mt.next();
+		};
+	} else if (eloru.checked) {
+		var u = parseFloat(eloruu.value);
+		if (isNaN(u)) {
+			u = 1;
+		}
+		f = function() {
+			return mt.next() * u;
+		};
+	} else {
+		return;
+	}
+	
+	count = Math.min(parseInt(elol.value), 1024);
+	if (isNaN(count) || count <= 0) {
+		count = 20;
+	}
+	
+	var result = "<ul id='result'>";
+	while (--count >= 0) {
+		result += "<li>";
+		result += hex ? toHexString(f()) : f();
+	}
+	elo.innerHTML = result + "<\/ul>";
+}
+
+function makeArray(str) {
+	var s = str.split(/[ ,]+/), r = new Array(s.length);
+	for (var i = 0; i < s.length; i++) {
+		r[i] = parseInt(s[i]);
+	}
+	return r;
+}
+
+function toHexString(v) {
+	var r = "";
+	for (var i = 0; i < 8; i++) {
+		switch (v & 0xf) {
+		case 0x0:  r = "0" + r;  break;
+		case 0x1:  r = "1" + r;  break;
+		case 0x2:  r = "2" + r;  break;
+		case 0x3:  r = "3" + r;  break;
+		case 0x4:  r = "4" + r;  break;
+		case 0x5:  r = "5" + r;  break;
+		case 0x6:  r = "6" + r;  break;
+		case 0x7:  r = "7" + r;  break;
+		case 0x8:  r = "8" + r;  break;
+		case 0x9:  r = "9" + r;  break;
+		case 0xa:  r = "a" + r;  break;
+		case 0xb:  r = "b" + r;  break;
+		case 0xc:  r = "c" + r;  break;
+		case 0xd:  r = "d" + r;  break;
+		case 0xe:  r = "e" + r;  break;
+		case 0xf:  r = "f" + r;  break;
+		}
+		v >>>= 4;
+	}
+	return r;
+}
+</script>
+</head>
+
+<body onload="init()">
+<h1 id="title">
+Mersenne Twister in JavaScript
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 0.2.4 (2005-12-23)
+</address>
+
+<form action="" onsubmit="start(); return false;">
+<p>
+JavaScript を利用して、高性能な擬似乱数生成アルゴリズム「Mersenne Twister」による乱数を生成します。
+<a href="mt.html">別ページに実装の説明</a>があります。
+</p>
+<p>
+各整数値は 10 進表記 (例: 1495) または 16 進表記 (例: 0x67ac) のどちらかで指定します。
+</p>
+<fieldset>
+<legend>種 (シード)</legend>
+<p>
+乱数の種 (シード) を指定します。種は 0 以上 2<sup>32</sup> 未満の整数です。
+</p>
+<dl class="radio-button-list">
+<dt>
+<label for="seed-type-auto">
+<input type="radio" id="seed-type-auto" name="seedtype" value="auto" checked="checked">
+自動
+</label>
+</dt>
+<dd>
+現在時刻を元に種を自動的に設定します。
+</dd>
+<dt>
+<label for="seed-type-int">
+<input type="radio" id="seed-type-int" name="seedtype" value="int">
+一つの整数
+</label>
+</dt>
+<dd>
+<input type="text" id="seed-int" size="15">
+<br>
+一つの整数を指定します。
+</dd>
+<dt>
+<label for="seed-type-ary">
+<input type="radio" id="seed-type-ary" name="seedtype" value="ary">
+整数列
+</label>
+</dt>
+<dd>
+<input type="text" id="seed-ary" size="40" value="0x123, 0x234, 0x345, 0x456">
+<br>
+複数の整数をカンマ <span lang="en">and/or</span> 空白で区切って指定します。
+</dd>
+</dl>
+</fieldset>
+<fieldset>
+<legend>出力の種類</legend>
+<ul class="radio-button-list">
+<li>
+<label for="output-type-int">
+<input type="radio" id="output-type-int" name="outputtype" value="int" checked="checked">
+0 以上 2<sup>32</sup> 未満の整数
+</label>
+</li>
+<li>
+<input type="radio" id="output-type-intu" name="outputtype" value="intu">
+0 以上 <input type="text" id="output-intu-u" size="15"> 未満の整数
+</li>
+<li>
+<input type="radio" id="output-type-intul" name="outputtype" value="intul">
+<input type="text" id="output-intul-l" size="15"> 以上
+<input type="text" id="output-intul-u" size="15"> 未満の整数
+</li>
+<li>
+<label for="output-type-real">
+<input type="radio" id="output-type-real" name="outputtype" value="real">
+0 以上 1 未満の実数
+</label>
+</li>
+<li>
+<input type="radio" id="output-type-realu" name="outputtype" value="realu">
+0 以上 <input type="text" id="output-realu-u" size="15"> 未満の実数
+</li>
+</ul>
+<p>
+<label for="output-hex">
+<input type="checkbox" id="output-hex" value="hex">
+16 進表記で出力 (整数のみ)
+</label>
+</p>
+</fieldset>
+<fieldset>
+<legend>出力</legend>
+<p>
+<input type="text" id="output-length" size="6" value="20">
+個の乱数を<input type="submit" id="start-button" value="出力">
+(1024 個まで)
+</p>
+<div id="output">
+(ここに出力されます)
+</div>
+</fieldset>
+</form>
+
+</body>
+
+</html><!--
+MersenneTwisterTest for IE6/Firefox1/Opera7
+programed by Magicant
+0.0   (2005-04-07)
+0.2.4 (2005-12-23)
+-->

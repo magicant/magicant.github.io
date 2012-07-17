@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>原始型 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="execution.html" title="プログラムの実行">
+<link rel="next" href="objects.html" title="オブジェクトとメンバ">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">原始型</h1>
+<p>この章では、実行環境の振舞いを規定する原始型について定義する。</p>
+
+<h2 id="definition">原始型の定義</h2>
+<p><dfn>原始型</dfn>は、スクリプトの動作の定義ために定義された
+特殊な抽象的データ形式である。
+原始型に属するデータをスクリプトプログラムによって直接扱うことはできない。</p>
+
+<h2 id="type-primitive-result">結果型</h2>
+<p><dfn>結果型</dfn>のデータは、処理を実行した結果についての情報であり、<dfn
+>種類</dfn>と<dfn>値</dfn>の組から成る。誤解の虞のない限り、
+結果型のデータのことを単に<dfn>結果</dfn>と呼ぶ。
+結果型の種類には以下の五つがある:</p>
+<dl>
+<dt>正常終了</dt>
+<dd>処理が正常に終了したことを表す。
+正常終了の結果の値は、一つの他の原始型の値またはオブジェクトである。</dd>
+<dt>エラー終了</dt>
+<dd>エラーが投げられることによって処理が終了したことを表す。
+エラー終了の結果の値は、一つのオブジェクトによって構成される。</dd>
+<dt>Break 終了</dt>
+<dd>Break 文が実行されたことを表す。
+Break 終了の結果の値は、移動先を表す一つの <a href="grammar.html#unicode-string"
+>Unicode 文字列</a>で構成される。</dd>
+<dt>Continue 終了</dt>
+<dd>Continue 文が実行されたことを表す。
+Continue 終了の結果の値は、移動先を表す一つの Unicode 文字列で構成される。</dd>
+<dt>復帰終了</dt>
+<dd>復帰文が実行されたことを表す。
+復帰終了の結果の値は、一つの他の原始型の値またはオブジェクトである。</dd>
+</dl>
+
+<h2 id="type-primitive-integer">原始整数型</h2>
+<p><dfn>原始整数型</dfn>のデータは、数学的な意味での整数である。すなわち、
+正の整数 (1, 2, 3, …)、0、負の整数 (−1, −2, −3, …) のどれか一つの値である。
+原始整数型の値の範囲に理論的な制限はないが、
+実行時に計算機の性能などによって実際的な制限が課される。</p>
+
+<!--"h3 id="type-primitive-integer-to-string">原始整数型の文字列への変換</h3>
+<p>原始整数型の値を文字列に変換した結果は、原始整数型の値が表す整数を
+十進位取り記数法で示したものである。
+各桁は、Unicode コードポイント U+0030 から U+0039 までの 10
+種類の数字の一つを用いて表される。(ただし、最上位の数字は 0 にはならない。)
+値が負であるならば、マイナスハイフン記号 (コードポイント U+002D)
+を先頭に置き、それに絶対値の十進位取り表記を
+続ける。また、値 0 の文字列への変換結果は、1 文字の文字列 "0" である。</p-->
+
+<!--h2 id="type-primitive-limited-integer">原始制限整数型</h2>
+<p><dfn>原始制限整数型</dfn>のデータは、数学的な意味での整数のうち、
+ある一定の範囲に属するものである。この範囲は実行環境がその裁量により定める。
+ただし、この範囲には −100000000 以上 100000000
+以下の整数が全て含まれていなければならない。</p-->
+
+<h2 id="type-primitive-real">原始実数型</h2>
+<p><dfn>原始実数型</dfn>のデータは、数学的な意味での実数である。
+原始実数型の値の範囲に理論的な制限はないが、
+実行時に計算機の性能などによって実際的な制限が課される。
+ただし、原始実数型の値が取りうる値の範囲は、原始整数型の値が取りうる値をすべて
+含んでいなければならない。</p>
+<div class="informative">
+<p>実装上の注意: 原始実数型の値が取りうる具体的な値の範囲は、
+実行環境の実装によって異なるが、できる限り稠密であるのが望ましい。
+例えば、二つの原始整数型の値 <var>s</var> と <var>e</var>
+により、十進浮動小数点数 <var>s</var> × 10<sup><var>e</var></sup>
+を作り、これを原始実数型の値とすることができる。
+このようにして構成される原始実数型は、実用上十分な稠密さを持つ。
+実行環境はさらに、√2 や <span class="pi">π</span>
+などの無理数を原子実数型の値として取れるように実装することもできる。
+しかしこれらは、原始実数型の取れる値の範囲における必須の条件ではない。</p>
+</div>
+
+<h2 id="type-primitive-limited-real">原始制限実数型</h2>
+<p><dfn>原始制限実数型</dfn>のデータは、数学的な意味での実数であるか、または<dfn
+>無限大</dfn>という特殊な値である。</p>
+<p>原始実数型の表す実数の値の範囲に理論的な制限はないが、
+実行時に計算機の性能などによって実際的な制限が課される。
+ただし、この範囲には −100000000 以上 100000000
+以下の整数が全て含まれていなければならない。</p>
+<p>原始制限実数型における演算は、できるだけ正確に (誤差がないように)
+行うものとする。ただし実行環境は、原始制限実数型における演算の結果が再び
+有効な原子制限実数型の値となるように、その裁量により適切に値を丸めるものとする。
+特に、演算の結果の値が大きすぎるときは、結果を無限大としても良い。</p>
+<div class="informative">
+<p>実装上の注意: 原始制限実数型の表しうる実数の範囲は、
+原始実数型ほどには広くなくても良いが、しかしできる限り稠密であるのが望ましい。
+例えば、原始制限実数型の値として、IEEE 754 規格で定義される
+64 ビット二進浮動小数点数を使用することができる。</p>
+</div>
+
+<h2 id="type-reference">参照型</h2>
+<p><dfn>参照型</dfn>のデータ (<dfn>参照</dfn>) は、
+値を代入したり参照したりすることの出来る記憶域を表す。</p>
+<p>参照型の値に対して代入や参照を行うために、以下の動作を定義する:</p>
+<dl>
+<dt id="check-reference-value">check-reference-value</dt>
+<dd>check-reference-value は一つの参照に対して行う動作である。
+この動作の具体的な処理内容は、その参照によって異なる。
+ただし、check-reference-value の実行結果の種類は初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a> または初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a>
+のどちらかを値とする正常終了でなければならない。</dd>
+<dt id="get-reference-value">get-reference-value</dt>
+<dd>get-reference-value
+は一つのオブジェクトまたは原始型の値に対して行う動作である。</dd>
+<dd>参照型の値に対して get-reference-value
+を実行したときの具体的な処理内容は、その参照型の値によって異なる。
+ただし、get-reference-value
+の実行結果の種類は正常終了とエラー終了のどちらかでなければならない。
+また、実行結果の種類がが正常終了ならば、
+その値はオブジェクトでなければならない。</dd>
+<dd><a href="#type-primitive-result">結果型</a>の値 <var>r</var> に対して
+get-reference-value を実行した場合の具体的な処理内容は、以下の通りである:
+<ol>
+<li><var>r</var> が正常終了でなければ、<var>r</var> を返す。</li>
+<li><var>r</var> が正常終了ならば、<var>r</var> の値に対して get-reference-value
+を実行し、その結果を返す。</li>
+</ol>
+</dd>
+<dd>参照型および結果型以外の値 <var>v</var> に対して get-reference-value
+を実行した場合の結果は、[[<var>v</var>]] である。</dd>
+<dt id="set-reference-value">set-reference-value</dt>
+<dd>set-reference-value は一つの参照と一つのオブジェクトに対して行う
+動作である。この動作の具体的な処理内容は、その参照によって異なる。
+ただし、get-reference-value の実行結果の種類は正常終了とエラー終了の
+どちらかでなければならない。また、実行結果の種類が正常終了ならば、
+その値はオブジェクトでなければならない。</dd>
+<dt id="delete-reference-value">delete-reference-value</dt>
+<dd>delete-reference-value は一つの参照に対して行う動作である。
+この動作の具体的な処理内容は、その参照によって異なる。
+ただし、delete-reference-value の実行結果の種類は正常終了とエラー終了の
+どちらかでなければならない。また、実行結果の種類が正常終了ならば、
+その値はオブジェクトでなければならない。</dd>
+</dl>
+
+<h3 id="type-member-reference">メンバ参照型</h3>
+<p><dfn>メンバ参照型</dfn>は、参照型の一種であり、あるオブジェクトのメンバへの
+参照を表す。メンバ参照型のデータすなわち<dfn>メンバ参照</dfn>は、<dfn
+>参照先オブジェクト</dfn>という一つのオブジェクトと<dfn>参照先メンバ名</dfn
+>という一つの <a href="grammar.html#unicode-string">Unicode
+文字列</a>から成る。</p>
+<p>メンバ参照型の値 <var>r</var> に対して check-reference-value
+を実行したときの具体的な処理内容は、以下の通りである:</p>
+<ol>
+<li><var>r</var> に対して <a href="objects.html#check-property"
+>check-property</a> を実行し、その結果を返す。</li>
+</ol>
+<p>メンバ参照型の値 <var>r</var> に対して get-reference-value
+を実行したときの具体的な処理内容は、以下の通りである:</p>
+<ol>
+<li><var>r</var> に対して <a href="objects.html#get-property">get-property</a>
+を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> の値がオブジェクトでなければ、新しい <a href="b-error.html"
+><code>NotExistsError</code></a> のインスタンスを投げる。</li>
+<li><var>r</var> を返す。</li>
+</ol>
+<p>メンバ参照型の値 <var>r</var> とオブジェクト <var>o</var> に対して
+set-reference-value を実行したときの具体的な処理内容は、以下の通りである:</p>
+<ol>
+<li><var>r</var> と <var>o</var> に対して
+<a href="objects.html#set-property">set-property</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>メンバ参照型の値 <var>r</var> に対して delete-reference-value
+を実行したときの具体的な処理内容は、以下の通りである:</p>
+<ol>
+<li><var>r</var> に対して
+<a href="objects.html#delete-property">delete-property</a>
+を実行し、その結果を返す。</li>
+</ol>
+
+<h2 id="type-primitive-list">原始リスト型</h2>
+<p><dfn>原始リスト型</dfn>の値 (<dfn>原始リスト</dfn>) は、任意の個数
+(0 個を含む) のデータの順序付き配列である。</p>
+<p>任意の原始リスト <var>l</var> に対して、それに含まれるデータの個数を
+<var>l</var>.count で表す。原始リストに含まれるデータは、1 から
+<var>l</var>.count までの自然数を添字として区別する。原始リスト <var>l</var>
+に含まれる <var>i</var> 個目のデータを、<var>l</var>[<var>i</var>] で表す。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

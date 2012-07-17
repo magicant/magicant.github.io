@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="#Calc の基本的な使い方の説明です">
+<meta name="date" content="2007-02-18T17:50:47+09:00">
+<title>#Calc の基本的説明</title>
+<link rel="start" href="index.html">
+<link rel="contents" href="index.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">#Calc の基本</h1>
+
+<h2 id="window-components">メイン ウィンドウ</h2>
+<p>プログラム 'scalc.exe' を起動するとメインウィンドウが表示されます。
+ウィンドウ領域の大半を占める大きなテキストボックスは<dfn>出力ボックス</dfn>で、
+ここに計算結果などが表示されます。
+出力ボックスの下にある一行のテキスト入力欄が<dfn>入力ボックス</dfn>で、
+ここに計算したい数式や実行したいコマンドを入力します。
+入力ボックスの下にある二つのボタンは<dfn>実行ボタン</dfn>と<dfn>取消ボタン</dfn>です。</p>
+
+<h3 id="menu-bar">メニューバー</h3>
+<h4 id="menu-environment">「環境」メニュー</h4>
+<dl>
+<dt>変数をリセット</dt>
+<dd>変数を全て削除して、初期状態に戻します。</dd>
+<dt>デフォルトの精度の設定</dt>
+<dd>小数の計算をする際のデフォルトの精度を設定します。</dd>
+<dt>出力ボックスをクリア</dt>
+<dd>出力ボックスの内容を消去します。</dd>
+<dt>入力履歴をクリア</dt>
+<dd>入力した数式 (コマンド) の履歴を削除します。</dd>
+<dt>終了</dt>
+<dd>プログラムを終了します。</dd>
+</dl>
+<h4 id="menu-help">「ヘルプ」メニュー</h4>
+<dl>
+<dt>バージョン情報</dt>
+<dd>バージョン情報を表示します。</dd>
+</dl>
+
+<h2 id="calculation">計算の仕方</h2>
+<p>入力ボックスに計算したい数式を入力し、実行ボタンをクリックするか Enter キーを押すと、
+計算が行われて数式と結果が出力ボックスに表示されます。
+(実行ボタンの左には所要時間が表示されます)</p>
+<p>詳しい数式の書き方については<a href="expressions.html">「数式について」</a>をご覧下さい。</p>
+<p>数式の代わりに #Script のコマンドを入力して実行することもできます。
+(厳密には、数式は #Script のコマンドの一種です。
+入力ボックスの内容は全てコマンドとして解釈されるようになっています。)
+<!--コマンドの詳細については <a>fixme</a> をご覧下さい。--></p>
+<p>数式を入力している途中で取消ボタンをクリックするか Esc キーを押すと、
+入力ボックスの内容が消去されて空になります。
+計算を行っている最中に取消ボタンをクリックするか Esc キーを押すと、計算を中止します。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 magicant / version 1.2.3</address>
+</body>
+</html>

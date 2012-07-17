@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="日本語のテキストが文字化けしたときの元の文字エンコーディングの見分け方">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>文字化け判別表</title>
+</head>
+
+<body>
+
+<h1 id="title">文字化け判別表</h1>
+
+<table>
+<tr><th><th>UTF-8 で表示<th>Shift_JIS で表示<th>EUC-JP で表示<th>ISO-2022-JP で表示
+<tr><th>UTF-8 を
+<td>文字化けした日本語のテキストの例
+<td>
+譁?蟄怜喧縺代＠縺滓律譛ｬ隱槭?ｮ繝?繧ｭ繧ｹ繝医?ｮ萓?
+<td>
+???絖???????????????ユ??茯?????????㏍?鴻?????箴?
+<td>
+????????????????????????????????????????????????
+<tr><th>Shift_JIS を
+<td>
+???????????????{???̃e?L?X?g?̗?
+<td>文字化けした日本語のテキストの例
+<td colspan="2">
+???????????????{?????e?L?X?g????
+<tr><th>EUC-JP を
+<td>
+ʸ?誶????????ܸ??Υƥ????Ȥ???
+<td>
+ﾊｸｻ嵂ｽ､ｱ､ｷ､ｿﾆ?ﾋﾜｸ?､ﾎ･ﾆ･ｭ･ｹ･ﾈ､ﾎﾎ?
+<td>文字化けした日本語のテキストの例
+<td>
+????????????????????????????????
+<tr><th>ISO-2022-JP を
+<td colspan="3">
+$BJ8;z2=$1$7$?F|K\8l$N%F%-%9%H$NNc(B
+<td>文字化けした日本語のテキストの例
+</table>
+
+<h2>で、どうすればいいのか?</h2>
+<dl>
+<dt>半角英数記号ばかりの時
+<dd>ISO-2022-JP で開く
+<dt>少し英字が見えるとき
+<dd>Shift_JIS で開く。駄目なら EUC-JP で開く
+<dt>漢字が見えるとき
+<dd>UTF-8 で開く
+<dt>半角カタカナが見えるとき
+<dd>EUC-JP で開く
+<dt>何も見えない時
+<dd>UTF-8 と EUC-JP を試す
+</dl>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / <!--更新 2010-05-01 /--> 初出 2010-12-06
+</address>
+
+</body>
+</html>

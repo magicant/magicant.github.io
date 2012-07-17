@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?> 
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+    <ShortName>Google</ShortName> 
+    <Description>Google Web 検索</Description>
+    <Url type="text/html" template="http://www.google.co.jp/search?lr=lang_ja&amp;q={searchTerms}" /> 
+	<!--Url type="application/x-suggestions+json" template="http://suggestqueries.google.com/complete/search?output=firefox&amp;client=IE8&amp;hl={Language}&amp;qu={searchTerms}" /-->
+	<Url type="application/x-suggestions+xml" template="http://clients5.google.com/complete/search?hl={language}&amp;q={searchTerms}&amp;client=ie8&amp;inputencoding={inputEncoding}&amp;outputencoding={outputEncoding}" />
+</OpenSearchDescription>

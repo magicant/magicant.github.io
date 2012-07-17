@@ -1,0 +1,418 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript でユーザエージェントを判別します">
+<link rel="start" href="/magicant/">
+<link rel="up" href="uai-spec.html">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] ユーザエージェント判別</title>
+<style type="text/css">
+th, td {
+	font-weight: normal;
+	font-style: normal;
+	text-align: left;
+}
+.undef {
+	color: gray;
+}
+</style>
+<script type="text/javascript" src="uai.js" charset="US-ASCII"></script>
+<script type="text/javascript">
+// グローバルオブジェクト
+var uai = new UAIdentifier();
+
+// 出力用
+function writeif(obj) {
+	document.write(typeof(obj) == "undefined"
+		? "<span class='undef'>-<\/span>" : obj);
+}
+function writeifu(obj) {
+	document.write(typeof(obj) == "undefined"
+		? "<span class='undef'>(undefined)<\/span>" : obj);
+}
+function writeifn(obj) {
+	document.write(obj != obj
+		? "<span class='undef'>(NaN)<\/span>" : obj);
+}
+</script>
+</head>
+
+<body>
+<h1 id="title">
+ユーザエージェント判別
+</h1>
+<address id="about_this_document">
+© 2006-2011 Magicant / 1.14.1 (2011-04-26)
+</address>
+<noscript>
+<div><strong>
+ユーザエージェント情報の取得には JavaScript が必要です。
+</strong></div>
+</noscript>
+<p>navigator.userAgent の値による判別結果です。
+判定されたユーザエージェント / レンダリングエンジン / OS のバージョンを表示します。
+判定に関する詳細は<a href="uai-spec.html">説明ページ</a>をご覧ください。</p>
+<table>
+<tbody>
+<tr>
+<th colspan="2" axis="種別" scope="rowgroup">ユーザエージェント</th>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Internet Explorer</th>
+<td><script type="text/javascript">
+writeif(uai.ie);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Mozilla</th>
+<td><script type="text/javascript">
+if (uai.mozilla) {
+	document.write(uai.mozilla);
+	if (uai.mozillarv) {
+		document.write(" (rv:" + uai.mozillarv + ")");
+	}
+} else {
+	document.write("<span class='undef'>-<\/span>");
+}
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Mozilla Firefox</th>
+<td><script type="text/javascript">
+writeif(uai.firefox);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Netscape</th>
+<td><script type="text/javascript">
+writeif(uai.netscape);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Opera</th>
+<td><script type="text/javascript">
+writeif(uai.opera);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Safari</th>
+<td><script type="text/javascript">
+writeif(uai.safari);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Google Chrome</th>
+<td><script type="text/javascript">
+writeif(uai.chrome);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Konqueror</th>
+<td><script type="text/javascript">
+writeif(uai.konqueror);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Epiphany</th>
+<td><script type="text/javascript">
+writeif(uai.epiphany);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">UA 不明</th>
+<td><script type="text/javascript">
+writeif(uai.unknown);
+</script></td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<th colspan="2" axis="種別" scope="rowgroup">レンダリングエンジン</th>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Trident</th>
+<td><script type="text/javascript">
+writeif(uai.trident);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Tasman</th>
+<td><script type="text/javascript">
+writeif(uai.tasman);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Gecko</th>
+<td><script type="text/javascript">
+writeif(uai.gecko);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Presto</th>
+<td><script type="text/javascript">
+writeif(uai.presto);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">AppleWebKit</th>
+<td><script type="text/javascript">
+writeif(uai.applewebkit);
+</script></td>
+</tr>
+</tbody>
+<tbody>
+<tr>
+<th colspan="2" axis="種別" scope="rowgroup">オペレーティングシステム</th>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Windows</th>
+<td><script type="text/javascript">
+writeif(uai.windows);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Windows NT</th>
+<td><script type="text/javascript">
+writeif(uai.winnt);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Mac OS</th>
+<td><script type="text/javascript">
+writeif(uai.mac);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Linux</th>
+<td><script type="text/javascript">
+writeif(uai.linux);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">BSD 系 OS</th>
+<td><script type="text/javascript">
+writeif(uai.bsd);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Solaris</th>
+<td><script type="text/javascript">
+writeif(uai.sunos);
+</script></td>
+</tr>
+</tbody>
+</table>
+<script type="text/javascript">
+document.write("<p>" + uai.toString() + "<\/p>");
+</script>
+
+<h2>navigator 情報</h2>
+<table>
+<tbody>
+<tr>
+<th scope="row">navigator.appName</th>
+<td><script type="text/javascript">
+writeifu(navigator.appName);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.appCodeName</th>
+<td><script type="text/javascript">
+writeifu(navigator.appCodeName);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.appVersion</th>
+<td><script type="text/javascript">
+writeifu(navigator.appVersion);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.appMinorVersion</th>
+<td><script type="text/javascript">
+writeifu(navigator.appMinorVersion);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.product</th>
+<td><script type="text/javascript">
+writeifu(navigator.product);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.productSub</th>
+<td><script type="text/javascript">
+writeifu(navigator.productSub);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.vendor</th>
+<td><script type="text/javascript">
+writeifu(navigator.vendor);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.vendorSub</th>
+<td><script type="text/javascript">
+writeifu(navigator.vendorSub);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.userAgent</th>
+<td><script type="text/javascript">
+writeifu(navigator.userAgent);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.userProfile</th>
+<td><script type="text/javascript">
+try {
+	writeifu(navigator.userProfile);
+} catch (e) {
+	document.write("エラー: " + e.message);
+}
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.language</th>
+<td><script type="text/javascript">
+writeifu(navigator.language);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.userLanguage</th>
+<td><script type="text/javascript">
+writeifu(navigator.userLanguage);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.browserLanguage</th>
+<td><script type="text/javascript">
+writeifu(navigator.browserLanguage);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.systemLanguage</th>
+<td><script type="text/javascript">
+writeifu(navigator.systemLanguage);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.platform</th>
+<td><script type="text/javascript">
+writeifu(navigator.platform);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.cpuClass</th>
+<td><script type="text/javascript">
+writeifu(navigator.cpuClass);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.oscpu</th>
+<td><script type="text/javascript">
+writeifu(navigator.oscpu);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.onLine</th>
+<td><script type="text/javascript">
+writeifu(navigator.onLine);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.cookieEnabled</th>
+<td><script type="text/javascript">
+writeifu(navigator.cookieEnabled);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.javaEnabled()</th>
+<td><script type="text/javascript">
+writeifu(navigator.javaEnabled());
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.plugins</th>
+<td><script type="text/javascript">
+writeifu(navigator.plugins);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.mimeTypes</th>
+<td><script type="text/javascript">
+writeifu(navigator.mimeTypes);
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.opsProfile</th>
+<td><script type="text/javascript">
+try {
+	writeifu(navigator.opsProfile);
+} catch (e) {
+	document.write("エラー: " + e.message);
+}
+</script></td>
+</tr>
+<tr>
+<th scope="row">navigator.taintEnabled()</th>
+<td><script type="text/javascript">
+writeifu(navigator.taintEnabled());
+</script></td>
+</tr>
+</tbody>
+</table>
+
+<script type="text/javascript">
+if (uai.trident || uai.tasman) {
+	var vs = [ '@_win16', '@_win32', '@_win64', '@_mac',
+	           '@_alpha', '@_x86', '@_mc680x0', '@_PowerPC',
+	           '@_debug', '@_fast',
+	           '@_jscript', '@_jscript_build', '@_jscript_version' ];
+	document.write("<h2>条件コンパイル変数情報<\/h2><table><tbody>");
+	for (var i = 0; i < vs.length; i++) {
+		document.write("<tr><th>" + vs[i] + "<\/th><td>");
+		writeifn(eval(vs[i]));
+		document.write("<\/td><\/tr>");
+	}
+	document.write("<\/tbody><\/table>");
+}
+</script>
+
+</body>
+
+</html><!--
+programed by Magicant
+2004-10-09 v1.0
+2004-10-15 v1.1
+2005-07-10 v1.2
+2005-09-25 v1.3
+2005-10-22 v1.5.3
+2005-10-23 v1.6
+2005-11-09 v1.6.5
+2005-11-20 v1.6.6
+2006-01-08 v1.7.2
+2006-02-03 v1.8
+2006-05-14 v1.8.1
+2006-09-09 v1.9
+2007-02-02 v1.9.2
+2008-12-28 v1.10
+2009-01-10 v1.11
+2009-03-21 v1.12
+2010-01-23 v1.13
+2011-04-10 v1.14
+2011-04-26 v1.14.1
+-->

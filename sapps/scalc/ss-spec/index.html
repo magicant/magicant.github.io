@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="author" content="まじかんと">
+<meta name="date" content="2007-12-02T21:37:38+09:00">
+<title>目次 - #Script 言語仕様 1.2</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">#Script 言語仕様 1.2 - 目次</h1>
+<p>第 22 次草稿版: 2007 年 12 月 2 日</p>
+
+<h2 id="core">言語本体の仕様</h2>
+<dl>
+<dt><a rev="contents" href="grammar.html">文法総則</a></dt>
+<dd>#Script を定義するための文法について</dd>
+<dt><a rev="contents" href="execution.html">プログラムの実行</a></dt>
+<dd>スクリプトプログラムの実行の際の正確な規則について</dd>
+<dt><a rev="contents" href="primitives.html">原始型</a></dt>
+<dd>オブジェクトを定義するための特殊なデータ形式である原始型について</dd>
+<dt><a rev="contents" href="objects.html">オブジェクトとメンバ</a></dt>
+<dd>スクリプトで扱われるオブジェクトと、そのメンバについて</dd>
+<dt><a rev="contents" href="contexts.html">実行コンテクスト</a></dt>
+<dd>スクリプトの実行を統括する実行コンテクストについて</dd>
+<dt><a rev="contents" href="calculations.html">数値計算</a></dt>
+<dd>スクリプトで行われる数値計算について</dd>
+<dt><a rev="contents" href="tokens.html">トークン</a></dt>
+<dd>式を構成するトークンについて</dd>
+<dt><a rev="contents" href="expressions.html">式</a></dt>
+<dd>文を構成する式について</dd>
+<dt><a rev="contents" href="statements.html">文</a></dt>
+<dd>スクリプトを構成する文 (ステートメント) について</dd>
+<dt><a rev="contents" href="commands.html">コマンド</a></dt>
+<dd>スクリプトを対話形式で実行する際のコマンドについて</dd>
+<dt><a rev="contents" href="functions.html">関数</a></dt>
+<dd>スクリプトで扱う関数について</dd>
+<dt><a rev="contents" href="axioms.html">公理</a></dt>
+<dd>スクリプトの動作の前提となる公理について</dd>
+</dl>
+
+<h2 id="builtin-objects">組込みオブジェクトの仕様</h2>
+<ul>
+<li><a rev="contents" href="b-object.html"><code>Object</code></a></li>
+<li><a rev="contents" href="b-type.html"><code>Type</code></a></li>
+<li><a rev="contents" href="b-void.html"><code>Void</code></a>、
+<a rev="contents" href="b-null.html"><code>Null</code></a></li>
+<li><a rev="contents" href="b-boolean.html"><code>Boolean</code></a></li>
+<li><a rev="contents" href="b-number.html"><code>Number</code></a>、
+<a rev="contents" href="b-real.html"><code>Real</code></a>、
+<a rev="contents" href="b-integer.html"><code>Integer</code></a>、
+<a rev="contents" href="b-rational.html"><code>Rational</code></a>、
+<a rev="contents" href="b-float.html"><code>Float</code></a>、
+<a rev="contents" href="b-complex.html"><code>Complex</code></a>、
+<a rev="contents" href="b-infinity.html"><code>Infinity</code></a>、
+<a rev="contents" href="b-nan.html"><code>NaN</code></a></li>
+<li><a rev="contents" href="b-interval.html"><code>Interval</code></a></li>
+<li><a rev="contents" href="b-math.html"><code>Math</code></a></li>
+<li><a rev="contents" href="b-string.html"><code>String</code></a></li>
+<li><a rev="contents" href="b-function.html"><code>Function</code></a></li>
+<li><a rev="contents" href="b-enum.html"><code>Enum</code></a>、
+<a rev="contents" href="b-list.html"><code>List</code></a>、
+<a rev="contents" href="b-tensor.html"><code>Tensor</code></a></li>
+<li><a rev="contents" href="b-error.html">各エラー型オブジェクト</a></li>
+</ul>
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>
+
+<!--
+1.2d19 → 1.2d20 の変更点
+	区間生成演算子を変更: @interval キーワード廃止
+	リストの要素は有限個に限ることを明示
+	contexts.html: 組込みオブジェクトのリスト修正
+	新規: axioms.html
+	新規: Number#Math${zero,one}
+	新規: Math.{sum,prod}
+	新規: Tensor, DimensionError
+	FloatLiteral と IntegerLiteral の順位を修正
+	構文: テンソル生成式追加、LeftBrace/RightBrace を statements.html から移動
+1.2d20 → 1.2d21 の変更点
+	誤植の修正
+		区間生成式の定義
+		b-number.html: Number オブジェクトのプロパティ
+	テンソル要素参照 set-reference-value: エラーの順序を変更
+	リスト要素参照 同上
+	リスト範囲参照 {set,delete}-reference-value: 読み取り専用対策忘れ
+	Tensor#contractWith:
+		ベクトル同士の縮約はスカラを返す
+		縮約する次元の大きさが 0 ならエラー
+	Tensor#{contractWith,map}: 結果は読み取り専用でない
+	Tensor#${add,multiply,equal}: 関数の内容を変更
+	構文: JuxtapositionDeterminant に { を追加
+	{テンソル,リスト}オブジェクト: インスタンスの条件
+	Enum#{forAll,exists}: 引数がないとき
+	Tensor#各種演算子: 引数の数が本来と違うときの動作の制約を緩める
+1.2d21 → 1.2d22 の変更点
+	Tensor.map, Tensor#map
+	Tensor#{getEnum,toNext}
+	テンソルオブジェクトの関数としての呼出し、テンソル範囲参照
+	Tensor: Object のサブタイプに
+-->
+
+<!--
+fixme/todo:
+future plan:
+	Error#toString: refine
+	数値計算: 左辺が数値で右辺がテンソルのとき
+	List#reverse: 引数で範囲を指定?
+	Real#quoMod
+	Complex.fromPolar
+	複素数: abs/arg オプショナルメンバ
+	{Integer,Rational}.prototype.set{Abs,Rel}Prec
+	ArgumentError 廃止?
+	CalculationError 廃止?
+	Math.atan 複素数の2引数??
+	数値計算: 値自身よりも誤差のほうが大きい (精度が小さすぎる) 場合の扱いについて
+	比較演算を改定
+		比較を続けて x < y <= z などとできるように
+		$compare メソッド / <=> 演算子導入?
+		$unequal 廃止、!= を !(a == b) の糖衣構文に?
+	各組込みクラスのコンストラクタとしての定義
+	Tensor
+		Enum の例を Vector に
+		enumerate-all で Vector を特殊扱い
+	Enum 各種プロパティ: toVector
+	List 各種プロパティ: sort
+	Tensor 各種プロパティ
+	疎な List, Tensor
+	単位
+	@eval
+	ネスト可能なコメント
+	文字列オブジェクトでメンバ名を指定してメンバにアクセスする
+	switch 文
+	数値に対する toString をより正確に定義
+	String#[?]/concat/join etc.
+	String を Enum のサブタイプに
+	Interval 各種メソッド
+	Function 各種メソッド
+	同じ関数生成式の複数回の評価で関数オブジェクトを使いまわすことを認める
+	Boolean[] : 引数に to-boolean を適用して返す。
+	@returnraw: 戻り値に get-reference-value を適用せずに返す
+	Math.{{,a}{sec,csc,cot}{,h}}
+	Math.{round{,Up,Down,Half{Floor,Ceil,Up,Down,Even,Odd}}}
+	Math.{ulp,min,max,gcd,expm1,log1p,gamma,loggamma,erf{,c}}
+	階乗・順列組合せ
+	Mod
+	Polynomial
+	自動微分
+-->

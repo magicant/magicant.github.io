@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="任意精度複素数計算プログラム #Calc の更新履歴と今後の予定">
+<meta name="date" content="2007-11-18T22:19:01+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="favicon.ico">
+<title>#Calc バージョン履歴</title>
+</head>
+
+<body>
+<h1 id="title">#Calc バージョン履歴</h1>
+
+<h2 id="v1.0.0">バージョン 1.0.0</h2>
+<p>第一次開発途上版。2006 年 4 月 3 日。アセンブリバージョン 1.0.2284.22111。</p>
+
+<h2 id="v1.0.5">バージョン 1.0.5</h2>
+<p>第二次開発途上版。2006 年 4 月 16 日。アセンブリバージョン 1.0.2297.27667。</p>
+
+<h2 id="v1.0.12">バージョン 1.0.12</h2>
+<p>第三次開発途上版。2006 年 5 月 30 日。アセンブリバージョン 1.0.2341.40124。</p>
+
+<h2 id="v1.0.13">バージョン 1.0.13</h2>
+<p>第四次開発途上版。2006 年 6 月 12 日。アセンブリバージョン 1.0.2353.41740。</p>
+
+<h2 id="v1.1.2">バージョン 1.1.2</h2>
+<p>第五次開発途上版。2006 年 8 月 8 日。アセンブリバージョン 1.1.2411.39882。</p>
+
+<h2 id="v1.1.4">バージョン 1.1.4</h2>
+<p>第六次開発途上版。2006 年 9 月 27 日。アセンブリバージョン 1.1.2461.38961。</p>
+
+<h2 id="v1.2.3">バージョン 1.2.3</h2>
+<p>第七次開発途上版。2007 年 2 月 18 日。アセンブリバージョン 1.2.2605.31172。</p>
+<p>いくつかの各種数学関数などを実装しました。</p>
+
+<h2 id="v1.2.4">バージョン 1.2.4</h2>
+<p>第八次開発途上版。2007 年 3 月 15 日。アセンブリバージョン 1.2.2630.22152。</p>
+<p>残りの各種数学関数などを実装しました。</p>
+
+<h2 id="v1.2.6">バージョン 1.2.6</h2>
+<p>第九次開発途上版。2007 年 3 月 30 日。アセンブリバージョン 1.2.2645.38302。</p>
+<ul>
+<li>プロトタイプチェーン導入。その他 #Script 仕様の変更。</li>
+<li>実行結果の出力を、各オブジェクトの <code class="sscript">toString</code>
+メソッド経由で行うように。</li>
+</ul>
+
+<h2 id="v1.2.6.1">バージョン 1.2.6.1</h2>
+<p>2007 年 3 月 30 日。アセンブリバージョン 1.2.2645.39566。</p>
+<p>実数の乗算が正しく行われないバグを修正。</p>
+
+<h2 id="v.1.2.8">バージョン 1.2.8</h2>
+<p>第十次開発途上版。2007 年 5 月 12 日。アセンブリバージョン 1.2.2687.43136。</p>
+<ul>
+<li>log の計算で十分な精度が出ないことがあったのを修正</li>
+<li>環境をリセットしたときにガーベジコレクションを強制するようにした。</li>
+<li>新しい機能の追加と変更:<ul>
+	<li>Math.re/im/conj/floor/ceil</li>
+	<li>Math.and/or/xor/not</li>
+	<li>無限大・NaN</li>
+	<li>Complex.conj</li>
+	<li>\ 演算子と % 演算子による除算・剰余演算の定義を変更</li>
+	<li>Integer.prototype.shiftLeft/shiftRight</li>
+	<li>Boolean/Integer.prototype.(Math$)and/or/xor/not</li>
+</ul></li>
+<li>機能の廃止:<ul>
+	<li>Math.shiftLeft/shiftRight</li>
+</ul></li>
+</ul>
+
+<h2 id="v.1.2.10">バージョン 1.2.10</h2>
+<p>第十一次開発途上版。2007 年 5 月 30 日。アセンブリバージョン 1.2.2706.33388。</p>
+<p>言語仕様の主な変更点はブログの記事 <a
+href="//magicant.txt-nifty.com/main/2007/05/script_12_10_4974.html"><cite>#Script 1.2
+草稿版 10</cite></a> を参照。</p>
+<p>アイコンを新しくした。</p>
+
+<h2 id="v.1.2.10.1">バージョン 1.2.10.1</h2>
+<p>第十二次開発途上版。2007 年 6 月 7 日。アセンブリバージョン 1.2.2714.38561。</p>
+<ul>
+<li>CUI 版で複数行に亘る文字列・コメントが入力できなかったのを修正。</li>
+<li>内部で sin と cos、および sinh と cosh をそれぞれ同時に求めるコードを実装した。tan
+の計算や複素数を引数とする三角関数・双曲線関数の計算時間を改善。</li>
+<li>Cos の計算時、元の値の精度が無限でかつ結果が 0
+に近くなるとき強制終了になることがあったのを修正。</li>
+<li>値の相対精度が 0 未満のとき、値を 0 と表示するようにした。</li>
+<li>NotExistsError に関するエラーメッセージの一部を変更。</li>
+<li>エラーメッセージなどの管理をハードコーディングからリソースに変更。</li>
+<li>GUI 版で実行中に中止ボタンを押したとき、実行を再開するか中止するか選べるようにした。</li>
+</ul>
+
+<h2 id="v.1.2.12">バージョン 1.2.12</h2>
+<p>第十三次開発途上版。2007 年 7 月 13 日。アセンブリバージョン 1.2.2750.40380。</p>
+<ul>
+<li><code>@p</code>, <code>@pl</code></li>
+<li>未定義の変数に対する <code>&amp;&amp;</code> 演算子などの動作の変更。</li>
+<li><code>Object#$prototype</code> メソッド</li>
+<li><code>Type#isTypeOf</code> メソッド</li>
+<li><code>Enum</code>、<code>Interval</code> 型</li>
+<li><code>@interval</code> 式</li>
+<li>If 文や for 文の構文の大幅な変更</li>
+<li>Try 文、throw 文導入</li>
+</ul>
+
+<h2 id="v.1.2.14">バージョン 1.2.14</h2>
+<p>第十四次開発途上版。2007 年 8 月 12 日。アセンブリバージョン 1.2.2780.27995。</p>
+<ul>
+<li><code>~</code> 演算子導入</li>
+<li>数値オブジェクトに <code>sin</code>, <code>abs</code> などのプロパティ導入</li>
+<li>オブジェクトの <code>$isImmutable</code> プロパティ導入。<code>is/makeImmutable</code>
+メソッド廃止。</li>
+<li>複数のバグ修正</li>
+</ul>
+
+<h2 id="v.1.2.14.1">バージョン 1.2.14.1</h2>
+<p>バージョン 1.2.14 の修正版。2007 年 9 月 13 日。アセンブリバージョン 1.2.2812.38728。</p>
+<ul>
+<li>(有理数)の(浮動小数点数)乗の計算がおかしい (場合によっては突如強制終了する)
+のを修正。</li>
+</ul>
+
+<h2 id="v.1.2.16">バージョン 1.2.16</h2>
+<p>第十五次開発途上版。2007 年 10 月 2 日。アセンブリバージョン 1.2.2831.39673。</p>
+<ul>
+<li>オブジェクトの <code>toString</code> メソッドで再帰表示の仕方を変更。</li>
+<li><code>Interval</code> オブジェクトによる整数の列挙を高速化。</li>
+<li>#Script 言語仕様の変更:
+<ul>
+<li><code>[[ ... ]]</code> による関数呼出し</li>
+<li><code>#<var>x</var></code> 記法で関数の引数にアクセス</li>
+<li><code>&amp;</code> 演算子</li>
+<li><code>List</code> への機能追加</li>
+</ul>
+</li>
+</ul>
+
+<h2 id="v.1.2.16.1">バージョン 1.2.16.1</h2>
+<p>バージョン 1.2.16 の改良版。2007 年 10 月 10 日。アセンブリバージョン 1.2.2839.38995。</p>
+<ul>
+<li>スクリプトコード内で作成した関数オブジェクトに <code>code</code> プロパティを追加。
+関数のソースコードを文字列として取得できる。(#Script 仕様にない機能)</li>
+<li><code>Function.id</code> メソッドを先取りして実装。</li>
+</ul>
+
+<h2 id="v.1.2.19">バージョン 1.2.19</h2>
+<p>第十六次開発途上版。2007 年 10 月 14 日。アセンブリバージョン 1.2.2843.39113。</p>
+<ul>
+<li>リストオブジェクトの列挙オブジェクトをネイティブで実装し直して高速化</li>
+<li>関数呼出しで新しい実行コンテクストのデフォルトの精度が正しく設定されていなかったのを修正</li>
+<li>言語仕様の変更・新機能
+	<ul>
+	<li><code>Enum#map</code>/<code>fold</code>/<code>filter</code>/<code>head</code>/<code>skip</code></li>
+	<li><code>Enum.map</code>/<code>zip</code></li>
+	<li><code>List#getCyclicEnum</code></li>
+	<li><code>Function#$juxtapose</code>/<code>Function.compose</code></li>
+	</ul>
+</li>
+</ul>
+
+<h2 id="v.1.2.21">バージョン 1.2.21</h2>
+<p>第十七次開発途上版。2007 年 11 月 18 日。アセンブリバージョン 1.2.2878.39612。</p>
+<ul>
+<li>十進数の字句解析が誤っていたのを修正</li>
+<li>区間の生成法を変更: <code>@interval</code> キーワードを廃止して <code>~</code> 演算子を拡張</li>
+<li><code>Math.sum/prod</code> メソッド追加</li>
+<li>テンソルの基本的な機能の追加</li>
+<li>その他の機能追加・修正</li>
+</ul>
+
+<h2 id="plan">今後の予定</h2>
+<ol>
+<li>いくつかの数学関数の実装の効率化。およびそのための仕様の変更。</li>
+<li>テンソル (ベクトル・行列含む) の導入</li>
+<li>説明書の充実</li>
+</ol>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2006-2007 Magicant / 更新 2007-11-18 / 初出 2007-02-18
+</address>
+
+</body>
+</html>

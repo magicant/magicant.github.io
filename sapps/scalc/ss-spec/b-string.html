@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>String 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-math.html" title="Math 組込みオブジェクト">
+<link rel="next" href="b-function.html" title="Function 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>String</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>String</code> 組込みオブジェクトを定義する。</p>
+<p><code>String</code> は文字列オブジェクトに対応する <a
+href="b-type.html"><code>Type</code></a> のインスタンスである。</p>
+
+<h2 id="string-object">文字列オブジェクト</h2>
+<p>以下の条件を全て満たすオブジェクトを<dfn>文字列オブジェクト</dfn>という:</p>
+<ul>
+<li>初期の <code>String</code> のインスタンスであるか、初期の
+<code>String.prototype</code> と同じオブジェクトである。</li>
+<li>オブジェクトのプロトタイプは不変である。</li>
+<!--li>全てのメンバ・内部メンバは不変である。</li>
+<li><code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li-->
+<li><code>value</code> という名前の不変の内部メンバを持ち、その値は
+<a href="grammar.html#unicode-string">Unicode 文字列</a>である。</li>
+</ul>
+<p>文字列オブジェクトの <code>value</code>
+内部メンバの値を、その文字列オブジェクトの<dfn>内容</dfn>という。</p>
+<p>文字列オブジェクトやその内容のことを単に<dfn>文字列</dfn
+>ということがある。</p>
+
+<h2 id="members"><code>String</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"String"</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>String</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>String</code> の関数としての呼出し</h2>
+<p><code>String</code>
+は関数として呼出し可能であり、関数として呼出されると次の処理を実行する:</p>
+<ol>
+<li>渡された引数オブジェクトが一つであることを確認する。
+引数オブジェクトが複数ある場合または 0 個の場合は、新しい <a href="b-error.html"
+><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+<li>引数を <var>a</var> として、次の式の評価結果を返す:
+<code><var>a</var>.toString[]</code></li>
+</ol>
+
+<!--h2 id="prototype-members"><code>String.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>String</code> のインスタンスのプロパティ</h2>
+<p><code>String</code> のインスタンスは以下のプロパティを持つ。ただし、
+<code>String.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p--equal"><code>$equal</code> メソッド</dt>
+<dd>1-ary メソッド。呼び出されると次の動作を行う:
+	<ol>
+	<li>渡された引数の個数が一つであり、@this
+	値と引数がどちらも文字列オブジェクトならば、
+		<ul>
+		<li>二つの文字列の内容が等しければ [[初期の
+		<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を</li>
+		<li>二つの文字列の内容が異なっていれば [[初期の
+		<a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]] を</li>
+		</ul>
+	返す。</li>
+	<li>さもなくば動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="p--unequal"><code>$unequal</code> メソッド</dt>
+<dd>1-ary メソッド。呼び出されると次の動作を行う:
+	<ol>
+	<li>渡された引数の個数が一つであり、@this
+	値と引数がどちらも文字列オブジェクトならば、
+		<ul>
+		<li>二つの文字列の内容が等しければ [[初期の
+		<a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]] を</li>
+		<li>二つの文字列の内容が異なっていれば [[初期の
+		<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を</li>
+		</ul>
+	返す。</li>
+	<li>さもなくば動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="p--add"><code>$add</code> メソッド</dt>
+<dd>1-ary メソッド。呼び出されると次の動作を行う:
+	<ol>
+	<li>渡された引数の個数が一つであり、@this
+	値および引数が全て文字列オブジェクトであることを確認する。
+	この条件に当てはまらない場合、動作は未定義である。</li>
+	<li>@this 値の文字列オブジェクトの内容の後に引数の文字列オブジェクトの内容を
+	連結してできる文字列を表す文字列オブジェクトを値とする正常終了の結果を返す。
+	</li>
+	</ol>
+</dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。呼び出されると次の動作を行う:
+	<ol>
+	<li>渡された @this 値が文字列オブジェクトならば、[[@this 値]] を返す。</li>
+	<li>さもなくば動作は規定しない。</li>
+	</ol>
+</dd>
+</dl>
+
+<h2 id="instance-internal-members">String オブジェクトの内部メンバ</h2>
+<dl class="member-def">
+<dt id="ip--prototype"><code>$prototype</code></dt>
+<dd><code>String.prototype</code>、または <code>String.prototype</code>
+を準プロトタイプとするオブジェクト。</dd>
+<dd>この内部メンバは不変である。</dd>
+<dt id="ip-value"><code>value</code></dt>
+<dd><a href="grammar.html#unicode-string">Unicode 文字列</a>。</dd>
+<dd>この内部メンバは不変である。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

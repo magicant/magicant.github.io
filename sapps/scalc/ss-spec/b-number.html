@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-18T22:11:28+09:00">
+<title>Number 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-boolean.html" title="Boolean 組込みオブジェクト">
+<link rel="next" href="b-real.html" title="Real 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Number</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Number</code> 組込みオブジェクトを定義する。</p>
+<p><a href="calculations.html#number-objects"><code>Number</code>
+オブジェクト</a>は、スクリプトで扱われる数値を表すオブジェクトである。</p>
+
+<h2 id="members"><code>Number</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Number"</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>Number</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Number</code> の関数としての呼出し</h2>
+<p><code>Number</code> は関数として呼出し可能であり、関数として呼出されると新しい
+<a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。<!--xxx--></p>
+<!--p><code>Number</code> は関数として呼出し可能であり、
+関数として呼出されると次の処理を実行する:</p>-->
+
+<h2 id="instance-members"><code>Number</code> オブジェクトのプロパティ</h2>
+<p><code>Number</code> オブジェクトは以下のプロパティを持つ。ただし、初期の
+<code>Number.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-math-zero"><code>Math$zero</code></dt>
+<dd>整数 0 を表す <a href="calculations.html#integer-objects"
+><code>Integer</code> オブジェクト</a></dd>
+<dt id="p-math-one"><code>Math$one</code></dt>
+<dd>整数 1 を表す <a href="calculations.html#integer-objects"
+><code>Integer</code> オブジェクト</a></dd>
+<dt id="p--get-log10"><code>$get$log10</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ <a href="b-math.html#m-log">Math.log</a>[10, @this] }</code></dd>
+<dt id="p--get-sqrt"><code>$get$sqrt</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this ^ /2 }</code></dd>
+<dt id="p--get-cbrt"><code>$get$cbrt</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this ^ /3 }</code></dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

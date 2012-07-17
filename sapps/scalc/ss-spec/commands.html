@@ -1,0 +1,87 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-05-27T12:56:58+09:00">
+<title>コマンド - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="statements.html" title="文">
+<link rel="next" href="functions.html" title="関数">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">コマンド</h1>
+<p>この章では、プログラムを対話形式で実行する際に使用するコマンドを定義する。
+</p>
+
+<h2 id="commands">コマンド</h2>
+<dl class="definition">
+<dt id="d-commands">Commands</dt>
+<dd>Command*</dd>
+<dt id="d-command">Command</dt>
+<dd><a href="#d-reset-command">ResetCommand</a></dd>
+<dd><a href="#d-exit-command">ExitCommand</a></dd>
+<!--dd><a href="#d-help-command">HelpCommand</a></dd-->
+<!--dd><a href="#d-protect-command">ProtectCommand</a></dd-->
+<!--dd><a href="#d-release-command">ReleaseCommand</a></dd-->
+<!--dd><a href="#d-list-command">ListCommand</a></dd-->
+<!--dd><a href="#d-info-command">InfoCommand</a></dd-->
+<!--dd><a href="#d-format-command">FormatCommand</a></dd-->
+<dd><a href="statements.html#d-statement">Statement</a></dd>
+</dl>
+<p>Commands: Command* の実行は次のように行われる:</p>
+<ol>
+<li>Commands に Command が一つも含まれない場合は、[[初期の <a
+href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li>Commands に含まれる Command の数を <var>n</var> とする。</li>
+<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順に以下の処理を行う:
+	<ol>
+	<li><var>i</var> 番目の Command
+	を実行する。その結果が正常終了でなければ、直ちにそれを返す。</li>
+	</ol>
+</li>
+<li>最後に実行した Command (<var>n</var> 番目の Command) の結果を返す。</li>
+</ol>
+<p>各 Command
+の実行は、その内容である文またはコマンドを実行し、その結果を返す。</p>
+
+<h2 id="reset-command">リセットコマンド</h2>
+<dl class="definition">
+<dt id="d-reset-command">ResetCommand</dt>
+<dd>ResetKeyword <a href="statements.html#d-eos">EOS</a></dd>
+<dt id="d-reset-keyword">ResetKeyword</dt>
+<dd><code>@reset</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>ResetCommand を実行すると、次の処理を行う:</p>
+<ol>
+<li><a href="contexts.html#bec">基底実行コンテクスト</a>を初期状態に戻す。
+初期状態とは、実行環境が起動されて、
+基底実行コンテクストが作られた直後の状態である。</li>
+<li>実行環境のソースコードカウントの値を 1 にする。</li>
+<li>[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]]
+を返す。</li>
+</ol>
+
+<h2 id="exit-command">終了コマンド</h2>
+<dl class="definition">
+<dt id="d-exit-command">ExitCommand</dt>
+<dd>ExitKeyword <a href="statements.html#d-eos">EOS</a></dd>
+<dd>QuitKeyword EOS</dd>
+<dt id="d-exit-keyword">ExitKeyword</dt>
+<dd><code>@exit</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-quit-keyword">QuitKeyword</dt>
+<dd><code>@quit</code> KD</dd>
+</dl>
+<p>ExitCommand を実行すると、このスクリプトプログラムの実行を中止し、
+実行環境を直ちに終了する。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

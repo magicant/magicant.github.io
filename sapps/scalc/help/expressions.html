@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="#Calc で使用できる数式の説明です">
+<meta name="date" content="2007-05-30T20:11:33+09:00">
+<title>#Calc の数式</title>
+<link rel="start" href="index.html">
+<link rel="contents" href="index.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">数式について</h1>
+
+<h2 id="numbers">数値</h2>
+<p>数値は、<code>12</code> や <code>34.567</code> のように入力します。
+浮動小数点表記 (例: <code>1.23e-4</code> (= 1.23×10<sup>-4</sup>)) も使用できます。
+いわゆる全角文字は使えません。</p>
+<p>虚数は数値に <code>i</code> を付けて表します。
+(例: <code>3i</code>、<code>9.8e+6i</code>)</p>
+<p>単に <code>i</code> と書いただけでは<a href="#variables">変数</a>の <var>i</var> とみなされます。
+よって、初期状態では <code>i</code> を虚数単位として使うことはできません。
+しかし変数 <var>i</var> に虚数単位の値を代入しておくと、<code>i</code>
+を虚数単位として使えるようになります。</p>
+<pre><code class="sscript">i = 1i</code></pre>
+<p>整数を書くときは、十進法の代わりに二進法・八進法・十六進法が使えます。
+それぞれ数字の頭に <code>0b</code>・<code>0o</code>・<code>0x</code> を付けて表します。
+大文字でも小文字でも構いません。また桁数の制限はありません。</p>
+<dl>
+<dt>二進法表記の例</dt>
+<dd><code>0b11001010</code></dd>
+<dd><code>0B00100100</code></dd>
+<dt>八進法表記の例</dt>
+<dd><code>0o12345670</code></dd>
+<dd><code>0O07654321</code> (大文字の O (オー) は数字の 0 と紛らわしいのでお奨めしません。)</dd>
+<dt>十六進法表記の例</dt>
+<dd><code>0x169A</code></dd>
+<dd><code>0Xcafe</code></dd>
+</dl>
+
+<h3 id="float-precision">小数の精度</h3>
+<p>小数には、精度があります。入力された桁数に見合った精度が自動的に設定されます。
+例えば、小数 <code>123.45</code> は (約) 5 桁の精度、<code>0.1000</code> は
+(約) 4 桁の精度となります。もちろん <code>100.00</code> と <code>100.0000</code>
+とでは同じ 100 でも精度が違います。</p>
+<p>計算結果の精度は、元の値の精度によって自動的に設定されます。例えば、
+<code>1.0+2.0</code> の結果は <samp>3.0</samp> に、<code>1.000+2.000</code> の結果は
+<samp>3.000</samp> になります。</p>
+<p>小数の最後に <code>x</code> を付けると、精度を無限大にすることができます。例えば
+<code>1.234e+5</code> の精度は (約) 4 桁ですが、<code>x</code> を付けて
+<code>1.234e+5x</code> にすると精度は無限大になります。精度が無限大の値の計算では、
+できる限り正確な結果を得ようと試みます。つまり、結果が有限小数になる限り、
+正確な結果が得られます (結果の精度もまた無限大になります)。結果が無限小数になるときは、
+デフォルトの精度に値が丸められます。</p>
+<p>整数に精度はありません。整数は常に正確にその整数の値を表します。</p>
+
+<h3 id="infinity-and-nan">無限大と NaN</h3>
+<p>通常の実数や複素数のほかに、無限大も数値として扱うことができます。
+無限大には、正の無限大・負の無限大・複素無限大の三種類があります。これらを式の中で使うには、
+それぞれ <code>@inf</code>・<code>-@inf</code>・<code>@cinf</code> と入力します。
+正の無限大・負の無限大は、それぞれ正と負の符号を持ちます。複素無限大には符号はありません。</p>
+<p>0 を 0 で割ったり、正の無限大と負の無限大を足したりするような演算では、
+結果の値は数学的には一意に定義されません。このような時、結果は NaN
+という特殊な値になります。NaN の値を式の中で使うには、<code>@nan</code> と入力します。</p>
+<p>注意: 多くのプログラミング言語では、NaN の値同士を比較すると等しくないと判定されますが、
+#Calc (#Script) では NaN 同士は等しいと判定します。</p>
+
+<h2 id="variables">変数</h2>
+<p>変数に値を代入しておき、後でその値を使用することができます。変数に値を代入するには、<a
+href="#operators">代入演算子</a>を使います。</p>
+<p>変数の名前は、比較的自由に付けられます。記号でない文字ならばほとんどの文字が変数の名前に使えます。
+ひらがなや漢字も使えます。ただし、変数の名前の一文字目を数字にすることはできません。
+また記号 "<code>_</code>" も変数の名前に使えます。</p>
+<p>次の変数が最初から定義されています。</p>
+<table>
+<thead><tr><th>変数名</th><th>内容</th></tr></thead>
+<tbody>
+<tr><td><var>e</var></td><td>ネイピア数 (自然対数の底)</td></tr>
+<tr><td><var>pi</var></td><td>円周率</td></tr>
+</tbody>
+</table>
+
+<h2 id="other-values">その他の値</h2>
+<p>#Calc には、void・null・true・false という特殊な値があります。これらの値を入力するには、
+それぞれアット記号を付けて <code>@void</code>・<code>@null</code>・<code>@true</code
+>・<code>@false</code> と書きます。</p>
+
+<h2 id="functions">関数</h2>
+<p>関数は次のようにして定義できます。</p>
+<p>例えば、一次関数 <var>f</var>(<var>x</var>) = 2 <var>x</var> + 3 を定義するには、
+次のように入力します。</p>
+<pre><code>f = @[x] { 2 x + 3 }</code></pre>
+<p>括弧 <code>[</code> <code>]</code> の中に関数の変数を書き、<code>{</code> <code>}</code>
+の中に関数の値を書きます。</p>
+<p>多変数関数 (例: <code>@[x, y] { 2 x + 3 y }</code>) や定数関数 (例: <code>@{ 3 }</code>)
+も定義できます。定数関数では括弧 <code>[</code> <code>]</code> を省略できます。</p>
+<p>実際に関数の値を求めるときも、括弧 <code>[</code> <code>]</code> を使います。例えば
+<code>f[3]</code> と入力すると、<var>f</var>(3) の値つまり 9 が出力されます。
+(結合演算子を使って、単に <code>f 3</code> と書いても構いません。)</p>
+<p>最初から定義されている組込み関数の一部を以下に挙げます。</p>
+<ul>
+<li><var>abs</var> (絶対値)、<var>arg</var> (複素数の偏角)、<var>conj</var>
+(共軛複素数)、<var>re</var> (複素数の実部)、<var>im</var> (複素数の虚部)</li>
+<li><var>exp</var> (指数関数)、<var>log</var> (対数関数)</li>
+<li><var>sin</var>、<var>cos</var>、<var>tan</var> (三角関数)</li>
+<li><var>asin</var>、<var>acos</var>、<var>atan</var> (逆三角関数)</li>
+<li><var>sinh</var>、<var>cosh</var>、<var>tanh</var> (双曲線関数)</li>
+<li><var>asinh</var>、<var>acosh</var>、<var>atanh</var> (逆双曲線関数)</li>
+<li><var>floor</var> (床関数)、<var>ceil</var> (天井関数)</li>
+</ul>
+
+<h2 id="operators">演算子</h2>
+<p>使用できる主な演算子は以下の通りです。</p>
+<dl>
+<dt><code>+</code> <var>x</var></dt>
+<dd>何もしません。</dd>
+<dt><var>x</var> <code>+</code> <var>y</var></dt>
+<dd><var>x</var> と <var>y</var> を足します。</dd>
+<dt><code>-</code> <var>x</var></dt>
+<dd><var>x</var> の符号を反転します。</dd>
+<dt><var>x</var> <code>-</code> <var>y</var></dt>
+<dd><var>x</var> から <var>y</var> を引きます。</dd>
+<dt><var>x</var> <code>*</code> <var>y</var></dt>
+<dd><var>x</var> と <var>y</var> を掛けます。</dd>
+<dt><code>/</code> <var>x</var></dt>
+<dd><var>x</var> の逆数を求めます。</dd>
+<dt><var>x</var> <code>/</code> <var>y</var></dt>
+<dd><var>x</var> を <var>y</var> で割ります。</dd>
+<dt><var>x</var> <code>\</code> <var>y</var></dt>
+<dd><var>x</var> を <var>y</var> で割り、整数の商を求めます。</dd>
+<dt><var>x</var> <code>%</code> <var>y</var></dt>
+<dd><var>x</var> を <var>y</var> で割り、余りを求めます。</dd>
+<dt><var>x</var> <code>^</code> <var>y</var></dt>
+<dt><var>x</var> <code>**</code> <var>y</var></dt>
+<dd><var>x</var> の <var>y</var> 乗を求めます。</dd>
+<dt><code>(</code> <var>x</var> <code>)</code></dt>
+<dd>演算順位を変更します。<code>(2 * 3) + 4</code> のように他の演算子と組合わせて使います。</dd>
+<dt><var>x</var> <code>=</code> <var>y</var></dt>
+<dd><var>x</var> に <var>y</var> を代入します。<var>x</var> は変数でなければなりません。</dd>
+</dl>
+<!--p>ビット演算では桁数の制限はありません。例えば -1 は、0xFFFF (16 ビット) でも
+0xFFFFFFFF (32 ビット) でもなく 0x……FFFFFFFFFF (無限ビット) として扱われます。</p>
+<dl>
+<dt><code>~</code> <var>x</var></dt>
+<dd><var>x</var> の論理否定</dd>
+<dt><var>x</var> <code>&</code> <var>y</var></dt>
+<dd><var>x</var> と <var>y</var> の論理積</dd>
+<dt><var>x</var> <code>|</code> <var>y</var></dt>
+<dd><var>x</var> と <var>y</var> の論理和</dd>
+<dt><var>x</var> <code>^</code> <var>y</var></dt>
+<dd><var>x</var> と <var>y</var> の排他的論理和</dd>
+<dt><var>x</var> <code>&lt;&lt;</code> <var>y</var></dt>
+<dd><var>x</var> を左に <var>y</var> ビット シフト</dd>
+<dt><var>x</var> <code>>></code> <var>y</var></dt>
+<dd><var>x</var> を右に <var>y</var> ビット シフト</dd>
+</dl-->
+<p>比較演算子もあります。二つの値を比較し、条件が満たされているかどうかを調べる演算子です。
+演算の結果は、条件が満たされているなら true、満たされていなければ false という値になります。</p>
+<p>複素数の比較は、等しいか等しくないかのみ調べることができます。
+複素数の大小を比較すると (虚部が 0 でも) 常に false になります。</p>
+<dl>
+<dt><var>x</var> <code>==</code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> と等しい</dd>
+<dt><var>x</var> <code>!=</code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> と等しくない</dd>
+<dt><var>x</var> <code>&lt;</code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> より小さい</dd>
+<dt><var>x</var> <code>></code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> より大きい</dd>
+<dt><var>x</var> <code>&lt;=</code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> より小さいか等しい</dd>
+<dt><var>x</var> <code>>=</code> <var>y</var></dt>
+<dd><var>x</var> は <var>y</var> より大きいか等しい</dd>
+</dl>
+<p>このほか、次の演算子があります。</p>
+<dl>
+<dt><code>!!</code> <var>x</var></dt>
+<dd><var>x</var> が void・null・false のどれかなら false、そうでなければ true が結果になります。</dd>
+<dt><code>!</code> <var>x</var></dt>
+<dd><var>x</var> が void・null・false のどれかなら true、そうでなければ false が結果になります。</dd>
+<dt><var>x</var> <code>&amp;&amp;</code> <var>y</var></dt>
+<dd><var>x</var> が void・null・false のどれかなら <var>x</var>、そうでなければ
+<var>y</var> が結果になります。</dd>
+<dt><var>x</var> <code>||</code> <var>y</var></dt>
+<dd><var>x</var> が void・null・false のどれかなら <var>y</var>、そうでなければ
+<var>x</var> が結果になります。</dd>
+<dt><var>x</var> <code>?</code> <var>y</var> <code>:</code> <var>z</var></dt>
+<dd><var>x</var> が void・null・false のどれかなら <var>z</var>、そうでなければ
+<var>y</var> が結果になります。</dd>
+<dt><code>++</code> <var>x</var></dt>
+<dt><code>--</code> <var>x</var></dt>
+<dt><var>x</var> <code>++</code></dt>
+<dt><var>x</var> <code>--</code></dt>
+<dd>C 言語などでおなじみのインクリメント・デクリメント演算子です。
+<var>x</var> の値に 1 を加算・減算し、その結果を <var>x</var> に代入します。
+<var>x</var> は変数でなければなりません。</dd>
+<dt><code>@exists</code> <var>x</var></dt>
+<dd>変数 <var>x</var> が存在するかどうかを判定します。結果は true または false になります。</dd>
+<dt><code>@delete</code> <var>x</var></dt>
+<dd>変数 <var>x</var> を削除します。結果は変数が削除される前に代入されていた値になります。</dd>
+<dt>複合代入演算子</dt>
+<dd>C 言語などでおなじみの <code>+=</code> などの演算子です。演算と代入を同時に行います。
+例えば、<code>x += 3</code> は <code>x = x + 3</code> を表します。<code>-=</code> や
+<code>*=</code> のほかに、<code>&amp;&amp;=</code> や <code>^=</code> など、
+比較演算子以外の全ての二項演算子に対して複合代入演算子が使えます。</dd>
+<dt>結合演算子</dt>
+<dd>見えない演算子です。例えば <code>3 x</code> のように値を続けて書いた場合、3 と <var>x</var>
+を掛け算します。左側が数値ではなく関数のときは、掛け算ではなく関数の適用になります。
+(結合演算子を使うときは、二つの値を空白で区切ってください。<code>3x</code>
+のようにくっつけて書くことはできません。)</dd>
+<dt><var>x</var> <code>===</code> <var>y</var></dt>
+<dt><var>x</var> <code>!==</code> <var>y</var></dt>
+<dd>同一性比較演算子です。詳しくは <a href="../ss-spec/index.html">#Script 仕様</a>をご覧下さい。</dd>
+<dt><code>@bind</code> <var>x</var></dt>
+<dd>関数をバインドします。詳しくは <a href="../ss-spec/index.html">#Script 仕様</a>をご覧下さい。</dd>
+</dl>
+<p>演算子の優先順位は、次のようになっています。(括弧が最初に計算され、代入が最後に行われる。)</p>
+<ol>
+<li>括弧</li>
+<li>関数呼出し・メンバ参照</li>
+<li>後置単項演算子 (<code>++</code>・<code>--</code>)</li>
+<li>冪乗 (<code>**</code>・<code>^</code>)</li>
+<li>前置単項演算子 (<code>+</code>・<code>-</code>・<code>/</code>・<code>!!</code
+>・<code>!</code>・<code>++</code>・<code>--</code>)</li>
+<li>結合演算子</li>
+<li>乗除算 (<code>*</code>・<code>/</code>・<code>\</code>・<code>%</code>)</li>
+<li>加減算 (<code>+</code>・<code>-</code>)</li>
+<li>比較 (<code>==</code>・<code>!=</code>・<code>&lt;</code>・<code>></code
+>・<code>&lt;=</code>・<code>>=</code>)</li>
+<li>同一性比較 (<code>===</code>・<code>!==</code>)</li>
+<li>条件演算子 (<code>&amp;&amp;</code>)</li>
+<li>条件演算子 (<code>||</code>)</li>
+<li>条件演算子 (<code>? :</code>)</li>
+<li>代入</li>
+</ol>
+<p>ただし、冪乗演算子の右辺には前置単項演算子を使用できます。例えば、<code>-a^-b^-c</code>
+は <code>-(a^(-(b^(-c))))</code> と同じです。</p>
+<p>優先順位が同じ演算子同士では、基本的に左から順番に演算が行われます。
+ただし、前置単項演算子・冪乗・代入は右側が先になります。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 magicant / version 1.2.10</address>
+</body>
+</html>

@@ -1,0 +1,1088 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq の fix, cofix, elim, induction, case, destruct, intros, decompose, inversion タクティクのクィックリファレンス">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq タクティクリファレンス: 帰納法と場合分け</title>
+</head>
+
+<body>
+<h1 id="title">タクティクリファレンス: 帰納法と場合分け</h1>
+
+<h2 id="fix"><code>fix</code> タクティク</h2>
+<p><code>fix</code> タクティクは低レベルの帰納法を行うタクティクである。一般的には、後述の <a href="#induction"><code>induction</code></a> や <a href="#elim"><code>elim</code></a> タクティクを用いて帰納法を実行する方が分かりやすいが、これらのタクティクでは扱えない複雑な命題を証明する際には <code>fix</code> タクティクが役に立つかもしれない。</p>
+<dl>
+<dt><code>fix <var>ident</var> <var>num</var></code></dt>
+<dd>
+<p>現在のゴールにおける <var>num</var> 番目の仮定に対して帰納法を行う。帰納法の仮定が <var>ident</var> という名前で追加される。<code>fix</code> タクティクを使った後は必ず <var>num</var> で指定した仮定を <code>intro</code> しなければならない。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n : nat, 0 <= n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, 0 <= n
+
+Unnamed_thm < </samp><kbd>fix IH 1; intro n.
+</kbd><samp>1 subgoal
+
+  IH : forall n : nat, 0 <= n
+  n : nat
+  ============================
+   0 <= n
+
+Unnamed_thm < </samp><kbd><a href="#destruct">destruct</a> n as [ | n' ].
+</kbd><samp>2 subgoals
+
+  IH : forall n : nat, 0 <= n
+  ============================
+   0 <= 0
+
+subgoal 2 is:
+ 0 <= S n'
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_n.
+</kbd><samp>1 subgoal
+
+  IH : forall n : nat, 0 <= n
+  n' : nat
+  ============================
+   0 <= S n'
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_S, IH.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>上の例では、<code>fix IH 1; intro n</code> は実質的に <code><a href="t-apply.html#refine">refine</a> (fix IH (n : nat) {struct n} := _)</code> に等しい。
+<p>帰納法の仮定は無条件に使えるわけではなく、構文的により小さな値に対してしか使えない。上の例では、自然数 <code>n</code> に対して帰納法を用いているので、<code>n</code> に対する場合分けで得られた <code>n'</code> に対して帰納法の仮定を使うことができる。もし <code>n</code> そのものに対して帰納法の仮定を使うと、証明を検証する際にエラーとなる。</p>
+<pre><code><samp>Unnamed_thm < </samp><kbd>fix IH 1; intro n.
+</kbd><samp>1 subgoal
+
+  IH : forall n : nat, 0 <= n
+  n : nat
+  ============================
+   0 <= n
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> (IH n).
+</kbd><samp>Proof completed.
+
+Unnamed_thm < </samp><kbd>Qed.
+</kbd><samp>fix IH 1; intro n.
+apply (IH n).
+
+Error:
+Recursive definition of IH is ill-formed.
+In environment
+IH : forall n : nat, 0 <= n
+n : nat
+Recursive call to IH has principal argument equal to
+"n"
+instead of a subterm of n.</samp></code></pre>
+<p>このエラーは証明の最後に <code>Qed</code> (または <code>Defined</code> などの) コマンドによって証明を検証するときに初めて検査されるので、これに気付かずに複雑で時間のかかる証明を進めてしまうと悲惨である。<code>Guarded</code> コマンドを使って、帰納法の仮定の使い方があっているかどうかを証明の途中で適宜確かめるとよい。</p>
+<pre><code><samp>Unnamed_thm < </samp><kbd>fix IH 1; intro n.
+</kbd><samp>1 subgoal
+
+  IH : forall n : nat, 0 <= n
+  n : nat
+  ============================
+   0 <= n
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> IH.
+</kbd><samp>Proof completed.
+
+Unnamed_thm < </samp><kbd>Guarded.
+</kbd><samp>Error:
+Recursive definition of IH is ill-formed.
+In environment
+IH : forall n : nat, 0 <= n
+n : nat
+Recursive call to IH has principal argument equal to
+"n"
+instead of a subterm of n.</samp></code></pre>
+</dd>
+<dt><code>fix <var>num</var></code></dt>
+<dd>
+<p><code>fix <var>ident</var> <var>num</var></code> に同じだが、帰納法の仮定の名前 <var>ident</var> を処理系が自動的に選ぶ。選ばれる名前は常に同じとは限らないので、名前に依存した証明を書く場合には使わないこと。</p>
+</dd>
+<dt><code>fix <var>ident</var><sub>1</sub> <var>num</var><sub>1</sub> with (<var>ident</var><sub>2</sub> <var>params</var><sub>2</sub> {struct <var>param</var><sub>2</sub>} : <var>type</var><sub>2</sub>) … (<var>ident</var><sub><var>n</var></sub> <var>params</var><sub><var>n</var></sub> {struct <var>param</var><sub><var>n</var></sub>} : <var>type</var><sub><var>n</var></sub>)</code></dt>
+<dd>
+<p>相互再帰的な帰納法による証明を行う。</p>
+</dd>
+</dl>
+
+<h2 id="cofix"><code>cofix</code> タクティク</h2>
+<p><code>cofix</code> タクティクは <code><a href="#fix">fix</a></code> タクティクに似ているが、帰納法ではなく余帰納法による証明を行う。</p>
+<dl>
+<dt><code>cofix <var>ident</var></code></dt>
+<dt><code>cofix <var>ident</var> with (<var>ident</var><sub>2</sub> <var>params</var><sub>2</sub> : <var>type</var><sub>2</sub>) … (<var>ident</var><sub><var>n</var></sub> <var>params</var><sub><var>n</var></sub> : <var>type</var><sub><var>n</var></sub>)</code></dt>
+<dd>
+<p>余帰納法の仮定として <var>ident</var> を導入する。余帰納法の仮定は無条件に使えるのではなく、余帰納的に定義されたデータ型のコンストラクタの引数としてしか使えない。<code><a href="#fix">fix</a></code> タクティクを使う場合と同様に、<code>Guarded</code> コマンドで余帰納法の仮定の使い方があっているかどうかを証明の途中で確かめるとよい。</p>
+</dd>
+<dt><code>cofix</code></dt>
+<dd>
+<p><code>cofix <var>ident</var></code> に同じだが、余帰納法の仮定の名前 <var>ident</var> を処理系が自動的に選ぶ。選ばれる名前は常に同じとは限らないので、名前に依存した証明を書く場合には使わないこと。</p>
+</dd>
+</dl>
+
+<h2 id="elim"><code>elim</code> タクティク</h2>
+<p><code>elim</code> は帰納法による証明を行うための基本的なタクティクである。ただし、帰納法の対象となる型が再帰的に定義されたものではない場合、<code>elim</code> は <code><a href="#case">case</a></code> と実質的に等しくなる。</p>
+<dl>
+<dt><code>elim <var>term</var></code></dt>
+<dd>
+<p>帰納的に定義された型を持つ項 <var>term</var> に対応する、帰納法を行うための関数を適用する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n : nat, 0 <= n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, 0 <= n
+
+Unnamed_thm < </samp><kbd>intro n; elim n.
+</kbd><samp>2 subgoals
+
+  n : nat
+  ============================
+   0 <= 0
+
+subgoal 2 is:
+ forall n0 : nat, 0 <= n0 -> 0 <= S n0
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_n.
+</kbd><samp>1 subgoal
+
+  n : nat
+  ============================
+   forall n0 : nat, 0 <= n0 -> 0 <= S n0
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_S.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>この例で <code>elim n</code> がやっていることは、<code><a href="t-apply.html#refine">refine</a> (nat_ind (fun n => 0 <= n) _ _ n)</code> に等しい。すなわち、項 <code>n</code> の型 <code>nat</code> に対応する帰納法の関数 <code>nat_ind</code> を、現在のゴールと項 <code>n</code> に適用しているのである。これにより、「<code>n</code> が 0 の場合にゴールが成り立つこと」と「<code>n</code> が <code>n0</code> の場合にゴールが成り立つならば <code>n</code> が <code>S n0</code> の場合にも成り立つこと」の二つがサブゴールとして残る。</p>
+<p><code>elim</code> に与える項は前提を表す識別子に限られず、対応する帰納法の関数を持つ任意の項を与えることができる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n : nat, 0 <= S n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, 0 <= S n
+
+Unnamed_thm < </samp><kbd>intro n; elim (S n).
+</kbd><samp>2 subgoals
+
+  n : nat
+  ============================
+   0 <= 0
+
+subgoal 2 is:
+ forall n0 : nat, 0 <= n0 -> 0 <= S n0</samp></code></pre>
+<p>この例で生成されているサブゴールは、「<code>S n</code> が 0 の場合にゴールが成り立つこと」と「<code>S n</code> が <code>n0</code> の場合にゴールが成り立つならば <code>S n</code> が <code>S n0</code> の場合にも成り立つこと」である。</p>
+<p><code>elim</code> はゴールに現れる <var>term</var> を置換するが、前提に現れる <var>term</var> は置換しない。よって、<code>elim</code> の前に <a href="#intros"><code>intros</code></a> しすぎる (あるいはし足りない) とうまくいかないことがある。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n p : nat, p + m <= n -> m <= n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m n p : nat, p + m <= n -> m <= n
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> m n p H; elim p.
+</kbd><samp>2 subgoals
+
+  m : nat
+  n : nat
+  p : nat
+  H : p + m <= n
+  ============================
+   m <= n
+
+subgoal 2 is:
+ nat -> m <= n -> m <= n
+
+Unnamed_thm < </samp><kbd>Restart.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m n p : nat, p + m <= n -> m <= n
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> m n p; elim p.
+</kbd><samp>2 subgoals
+
+  m : nat
+  n : nat
+  p : nat
+  ============================
+   0 + m <= n -> m <= n
+
+subgoal 2 is:
+ forall n0 : nat, (n0 + m <= n -> m <= n) -> S n0 + m <= n -> m <= n
+
+Unnamed_thm < </samp><kbd>simpl plus; trivial.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  p : nat
+  ============================
+   forall n0 : nat, (n0 + m <= n -> m <= n) -> S n0 + m <= n -> m <= n
+</samp></code></pre>
+<!-- TODO: term の型が関数型の場合 -->
+<dd>
+<dt><code>elim <var>term</var> with …</code></dt>
+<dd>
+<p><var>term</var> が関数であって、帰納法を適用可能なデータ型を得るために引数が必要な場合に、その引数を指定する。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>elim <var>term</var> using <var>term</var><sub>2</sub></code></dt>
+<dd>
+<p>デフォルトの帰納法の関数の代わりに <var>term</var><sub>2</sub> を適用する。</p>
+</dd>
+<dt><code>elim <var>term</var> using <var>term</var><sub>2</sub> with …</code></dt>
+<dd>
+<p><var>term</var><sub>2</sub> を適用するにあたって推論できない引数があるとき、それを <code>with</code> で明示的に与える。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>elim … with … using … with …</code></dt>
+<dd>
+<p><code>elim</code> タクティクの最も一般的な形。</p>
+</dd>
+<dt><code>elim … as …</code> (Coq 8.3 以降)</dt>
+<dt><code>elim … in …</code> (Coq 8.3 以降)</dt>
+<dt><code>elim … as … in …</code> (Coq 8.3 以降)</dt>
+<dt><code>elim … with … as … using … in …</code> (Coq 8.3 以降)</dt>
+<dd>
+<p><code><a href="#induction">induction</a> … with … as … using … in …</code> に同じ。</p>
+</dd>
+</dl>
+
+<h2 id="induction"><code>induction</code> タクティク</h2>
+<p><code>induction</code> タクティクは帰納法による証明を行うタクティクである。ただし、帰納法の対象となる型が再帰的に定義されたものではない場合、<code>induction</code> は <code><a href="#destruct">destruct</a></code> と実質的に等しくなる。</p>
+<dl>
+<dt><code>induction <var>term</var></code></dt>
+<dd>
+<p>帰納的に定義された型を持つ項 <var>term</var> に対応する、帰納法を行うための関数を適用する。<code><a href="#elim">elim</a> <var>term</var></code> との違いは、</p>
+<ul>
+<li>ゴールだけでなく前提の中に現れる <var>term</var> もデフォルトで置換する。</li>
+<li>帰納法を適用する前に必要ならば自動的に <a href="#intros"><code>intros</code></a> する。</li>
+<li>帰納法の仮定は自動的に <code><a href="#intros">intros</a></code> される。</li>
+<li><var>term</var> が前提名ならば自動的に <code>clear</code> される。</li>
+</ul>
+<p><code>as</code> によって前提名を指定しないで <code>induction</code> を使うと、処理系によって自動的に前提名が生成される。生成される前提名は常に同じとは限らないので、前提名に依存した証明を書く場合は以下の <code>as</code> を用いる構文を使うこと。</p>
+</dd>
+<dt><code>induction <var>term</var> as <var>intropattern</var></code></dt>
+<dd>
+<p>自動的に <a href="#intros"><code>intros</code></a> される前提名を指定して <code>induction</code> する。前提名の指定の仕方は <code><a href="#intros">intros</a></code> に準ずる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n : nat, 0 <= n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, 0 <= n
+
+Unnamed_thm < </samp><kbd>induction n as [ | n' IH ].
+</kbd><samp>2 subgoals
+
+  ============================
+   0 <= 0
+
+subgoal 2 is:
+ 0 <= S n'
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_n.
+</kbd><samp>1 subgoal
+
+  n' : nat
+  IH : 0 <= n'
+  ============================
+   0 <= S n'
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> le_S, IH.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>induction <var>term</var> with …</code></dt>
+<dd>
+<p><var>term</var> が関数であって、帰納法を適用可能なデータ型を得るために引数が必要な場合に、その引数を指定する。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>induction <var>term</var> using <var>term</var><sub>2</sub></code></dt>
+<dd>
+<p>デフォルトの帰納法の関数の代わりに <var>term</var><sub>2</sub> を適用する。</p>
+</dd>
+<dt><code>induction <var>term</var> using <var>term</var><sub>2</sub> with …</code></dt>
+<dd>
+<p><var>term</var><sub>2</sub> を適用するにあたって推論できない引数があるとき、それを <code>with</code> で明示的に与える。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>induction <var>term</var> in <var>occurence</var></code></dt>
+<dd>
+<p>前提やゴールに含まれる <var>term</var> の内どれを置換するかを <var>occurence</var> で指定する。<var>occurence</var> の指定の仕方は <code>pattern</code> タクティクを参照。</p>
+</dd>
+<dt><code>induction … with … as … using … with … in …</code></dt>
+<dd>
+<p><code>induction</code> タクティクの最も一般的な形。</p>
+</dd>
+<dt><code>simple induction <var>ident</var></code></dt>
+<dd>
+<p><code><a href="#intros">intros</a> until <var>ident</var>; <a href="#elim">elim</a> <var>ident</var></code> に同じ。</p>
+</dd>
+</dl>
+
+<h2 id="case"><code>case</code> タクティク</h2>
+<p><code>case</code> は代数的データ型に対して場合分けを行うための基本的なタクティクである。</p>
+<dl>
+<dt><code>case <var>term</var></code></dt>
+<dd>
+<p>代数的データ型を持つ項 <var>term</var> に対する場合分けを行う。動作は <code><a href="#elim">elim</a> <var>term</var></code> に似ているが、帰納法の仮定は生成されず、<var>term</var> の型のコンストラクタの引数だけが生成される。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall b : bool, b = true \/ b = false.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall b : bool, b = true \/ b = false
+
+Unnamed_thm < </samp><kbd>intro b; case b.
+</kbd><samp>2 subgoals
+
+  b : bool
+  ============================
+   true = true \/ true = false
+
+subgoal 2 is:
+ false = true \/ false = false
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#left">left</a>; reflexivity.
+</kbd><samp>1 subgoal
+
+  b : bool
+  ============================
+   false = true \/ false = false
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#right">right</a>; reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>上の例では、<code>case b</code> は実質的に <code><a href="t-apply.html#refine">refine</a> (match b with true => _ | false => _ end)</code> に等しい。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q : Prop, P /\ Q -> P.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P Q : Prop, P /\ Q -> P
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> P Q H; case H.
+</kbd><samp>1 subgoal
+
+  P : Prop
+  Q : Prop
+  H : P /\ Q
+  ============================
+   P -> Q -> P
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> H' H''; <a href="t-apply.html#apply">apply</a> H'.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>この例では、<code>case H</code> は実質的に <code><a href="t-apply.html#refine">refine</a> (match H with conj A B => _ A B end)</code> に等しい。</p>
+</dd>
+<dt><code>case <var>term</var> with …</code></dt>
+<dd>
+<p><var>term</var> が関数であって、代数的データ型を得るために引数が必要な場合に、その引数を指定する。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>case … as …</code> (Coq 8.3 以降)</dt>
+<dt><code>case … in …</code> (Coq 8.3 以降)</dt>
+<dt><code>case … as … in …</code> (Coq 8.3 以降)</dt>
+<dt><code>case … with … as … in …</code> (Coq 8.3 以降)</dt>
+<dd>
+<p><code><a href="#destruct">destruct</a> … with … as … in …</code> に同じ。</p>
+</dd>
+</dl>
+
+<h3 id="case_eq"><code>case_eq</code> タクティク</h3>
+<p>Coq 8.1β 以降で使える。</p>
+<dl>
+<dt><code>case_eq <var>term</var></code></dt>
+<dd>
+<p><code><a href="#case">case</a> <var>term</var></code> に似ているが、場合分けする値に関する等式を仮定に追加する。これにより、ゴールの中で置き換えられる <var>term</var> の値を場合分けの後まで覚えておくことができる。</p>
+<p>以下の例では定理 <code>xorb_move_l_r_1</code> をその仮定に適用している。</p>
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
+</kbd><samp>
+Coq < </samp><kbd>Check xorb_move_l_r_1.
+</kbd><samp>xorb_move_l_r_1
+     : forall b b' b'' : bool, xorb b b' = b'' -> b' = xorb b b''
+
+Coq < </samp><kbd>Goal forall a b : bool,
+</kbd><samp>Coq < </samp><kbd> if (xorb a b) then (b = xorb a (xorb a b)) else (b = xorb a (xorb a b)).
+</kbd><samp>1 subgoal
+
+  ============================
+   forall a b : bool,
+   if xorb a b then b = xorb a (xorb a b) else b = xorb a (xorb a b)
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> a b.
+</kbd><samp>1 subgoal
+
+  a : bool
+  b : bool
+  ============================
+   if xorb a b then b = xorb a (xorb a b) else b = xorb a (xorb a b)
+
+Unnamed_thm < </samp><kbd><a href="#case">case</a> (xorb a b).
+</kbd><samp>2 subgoals
+
+  a : bool
+  b : bool
+  ============================
+   b = xorb a true
+
+subgoal 2 is:
+ b = xorb a false
+
+Unnamed_thm < </samp><kbd>Undo.  (* <a href="#case">case</a> ではうまくいかない! *)
+</kbd><samp>1 subgoal
+
+  a : bool
+  b : bool
+  ============================
+   if xorb a b then b = xorb a (xorb a b) else b = xorb a (xorb a b)
+
+Unnamed_thm < </samp><kbd>case_eq (xorb a b).
+</kbd><samp>2 subgoals
+
+  a : bool
+  b : bool
+  ============================
+   xorb a b = true -> b = xorb a true
+
+subgoal 2 is:
+ xorb a b = false -> b = xorb a false
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> xorb_move_l_r_1.
+</kbd><samp>1 subgoal
+
+  a : bool
+  b : bool
+  ============================
+   xorb a b = false -> b = xorb a false
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> xorb_move_l_r_1.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>この例で <code>case_eq (xorb a b)</code> がしていることは、<code>generalize (refl_equal (xorb a b)); pattern (xorb a b) at - 1; <a href="#case">case</a> (xorb a b)</code> に等しい。</p>
+</dd>
+</dl>
+
+<h2 id="destruct"><code>destruct</code> タクティク</h2>
+<p><code>destruct</code> タクティクは場合分けを行うタクティクである。</p>
+<dl>
+<dt><code>destruct <var>term</var></code></dt>
+<dd>
+<p>代数的データ型を持つ項 <var>term</var> に対する場合分けを行う。動作は <code><a href="#induction">induction</a> <var>term</var></code> に似ているが、帰納法の仮定は生成されず、<var>term</var> の型のコンストラクタの引数だけが前提に加えられる。<code><a href="#case">case</a> <var>term</var></code> との違いは、</p>
+<ul>
+<li>ゴールだけでなく前提の中に現れる <var>term</var> もデフォルトで置換する。</li>
+<li>場合分けをする前に必要ならば自動的に <a href="#intros"><code>intros</code></a> する。</li>
+<li>場合分けで得られるコンストラクタの引数は自動的に <code><a href="#intros">intros</a></code> される。</li>
+<li><var>term</var> が前提名ならば自動的に <code>clear</code> される。</li>
+</ul>
+<pre><code><samp>Coq < </samp><kbd>Goal forall b : bool, b = true \/ b = false.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall b : bool, b = true \/ b = false
+
+Unnamed_thm < </samp><kbd>destruct b.
+</kbd><samp>2 subgoals
+
+  ============================
+   true = true \/ true = false
+
+subgoal 2 is:
+ false = true \/ false = false
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#left">left</a>; reflexivity.
+</kbd><samp>1 subgoal
+
+  ============================
+   false = true \/ false = false
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#right">right</a>; reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>as</code> によって前提名を指定しないで <code>destruct</code> を使うと、処理系によって自動的に前提名が生成される。生成される前提名は常に同じとは限らないので、前提名に依存した証明を書く場合は以下の <code>as</code> を用いる構文を使うこと。</p>
+</dd>
+<dt><code>destruct <var>term</var> as <var>intropattern</var></code></dt>
+<dd>
+<p>自動的に <a href="#intros"><code>intros</code></a> される前提名を指定して <code>destruct</code> する。前提名の指定の仕方は <code><a href="#intros">intros</a></code> に準ずる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q : Prop, P \/ Q -> Q \/ P.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P Q : Prop, P \/ Q -> Q \/ P
+
+Unnamed_thm < </samp><kbd>destruct 1 as [ H | H ].
+</kbd><samp>2 subgoals
+
+  P : Prop
+  Q : Prop
+  H : P
+  ============================
+   Q \/ P
+
+subgoal 2 is:
+ Q \/ P
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#right">right</a>; <a href="t-apply.html#apply">apply</a> H.
+</kbd><samp>1 subgoal
+
+  P : Prop
+  Q : Prop
+  H : Q
+  ============================
+   Q \/ P
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#left">left</a>; <a href="t-apply.html#apply">apply</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>上の例では、<code>destruct 1 as [ H | H ]</code> は実質的に <code><a href="#intros">intros</a> P Q X; <a href="#case">case</a> X; clear X; [ intro H | intro H ]</code> に等しい。なお、ここでの <code>1</code> は、関数型のゴールにおける一つ目の非依存的引数すなわち <code>P \/ Q</code> を指している (詳しくは <code><a href="#intros">intros</a> until …</code> を参照)。</p>
+</dd>
+<dt><code>destruct <var>term</var> as <var>intropattern</var> _eqn</code></dt>
+<dt><code>destruct <var>term</var> as <var>intropattern</var> _eqn:<var>ident</var></code></dt>
+<dd>
+<p><code><a href="#case_eq">case_eq</a></code> と同様に、場合分けする値に関する等式を前提に追加する。<var>ident</var> でその名前を指定する。</p>
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
+</kbd><samp>
+Coq < </samp><kbd>Check xorb_move_l_r_1.
+</kbd><samp>xorb_move_l_r_1
+     : forall b b' b'' : bool, xorb b b' = b'' -> b' = xorb b b''
+
+Coq < </samp><kbd>Goal forall a b : bool,
+Coq <  if (xorb a b) then (b = xorb a (xorb a b)) else (b = xorb a (xorb a b)).
+</kbd><samp>1 subgoal
+
+  ============================
+   forall a b : bool,
+   if xorb a b then b = xorb a (xorb a b) else b = xorb a (xorb a b)
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> a b; destruct (xorb a b) as [] _eqn: Heq.
+</kbd><samp>2 subgoals
+
+  a : bool
+  b : bool
+  Heq : xorb a b = true
+  ============================
+   b = xorb a true
+
+subgoal 2 is:
+ b = xorb a false
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> xorb_move_l_r_1; <a href="t-apply.html#apply">apply</a> Heq.
+</kbd><samp>1 subgoal
+
+  a : bool
+  b : bool
+  Heq : xorb a b = false
+  ============================
+   b = xorb a false
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> xorb_move_l_r_1; <a href="t-apply.html#apply">apply</a> Heq.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>destruct <var>term</var> with …</code> (Coq 8.2 以降)</dt>
+<dd>
+<p><var>term</var> が関数であって、帰納法を適用可能なデータ型を得るために引数が必要な場合に、その引数を指定する。<code><a href="t-apply.html#apply">apply</a> … with …</code> の例を参照。</p>
+</dd>
+<dt><code>destruct <var>term</var> using …</code></dt>
+<dt><code>destruct <var>term</var> using … with …</code> (Coq 8.2 以降)</dt>
+<dd>
+<p><code><a href="#induction">induction</a> <var>term</var> using … (with …)</code> に同じ。すなわち、この場合 <code>destruct</code> は帰納法を実行することができる。</p>
+</dd>
+<dt><code>destruct <var>term</var> in <var>occurence</var></code> (Coq 8.2 以降)</dt>
+<dd>
+<p>前提やゴールに含まれる <var>term</var> の内どれを置換するかを <var>occurence</var> で指定する。<var>occurence</var> の指定の仕方は <code>pattern</code> タクティクを参照。</p>
+</dd>
+<dt><code>destruct … with … as … _eqn: … using … with … in …</code></dt>
+<dd>
+<p><code>destruct</code> タクティクの各キーワードを使う最も一般的な形。</p>
+</dd>
+<dt><code>destruct …, …, …</code> (Coq 8.3 以降)</dt>
+<dd>
+<p>カンマで区切った複数の <code>destruct</code> を順に行う。</p>
+</dd>
+<dt><code>simple destruct <var>ident</var></code></dt>
+<dd>
+<p><code><a href="#intros">intros</a> until <var>ident</var>; <a href="#case">case</a> <var>ident</var></code> に同じ。</p>
+</dd>
+</dl>
+
+<h2 id="intros"><code>intros</code> タクティク</h2>
+<p><code>intros</code> タクティクは、依存積の型 (<code>forall …, …</code> または <code><var>A</var> -> <var>B</var></code> の形) を持つゴールに対して、引数部を前提に移動する。また、let 束縛の形 (<code>let … := … in …</code>) のゴールに対して、束縛を前提に移動する。</p>
+<dl>
+<dt><code>intros</code></dt>
+<dd>
+<p><code>repeat intros ?</code> に同じ。追加される前提の名前は処理系によって自動的に選ばれることに注意。</p>
+</dd>
+<dt><code>intros <var>ident</var></code></dt>
+<dd>
+<p>ゴールが依存積の型を持つ場合、その最初の引数の部分を <var>ident</var> という名前で前提に移動する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n : nat, m <= m + n.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall m n : nat, m <= m + n
+
+Unnamed_thm < </samp><kbd>intros k.
+</kbd><samp>1 subgoal
+  
+  k : nat
+  ============================
+   forall n : nat, k <= k + n</samp></code></pre>
+<p>ゴールが let 束縛の形の場合、束縛を定義とともに前提に移動する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal let a := 1 + 2 in a = 3.
+</kbd><samp>1 subgoal
+  
+  ============================
+   let a := 1 + 2 in a = 3
+
+Unnamed_thm < </samp><kbd>intros n.
+</kbd><samp>1 subgoal
+  
+  n := 1 + 2 : nat
+  ============================
+   n = 3</samp></code></pre>
+</dd>
+<dt><code>intros ?<var>ident</var></code> (Coq 8.2 以降)</dt>
+<dt><code>intros ?</code> (Coq 8.1β 以降)</dt>
+<dd>
+<p><code>intros <var>ident</var></code> に同じ。ただし、名前が重複する場合は処理系が別な近い名前を自動的に選ぶ。<var>ident</var> を省略した場合も処理系が名前を選ぶ。処理系が選ぶ名前は常に同じとは限らないので、名前に依存した証明を書く場合には使わないこと。</p>
+</dd>
+<dt><code>intros _</code></dt>
+<dd>
+<p>ゴールの仮定を前提に追加する代わりに、消去する。</p>
+<p>形式的には <code>let H := fresh in intros H; clear H</code> に等しい。</p>
+</dd>
+<dt><code>intros -></code> (Coq 8.1β 以降)</dt>
+<dt><code>intros &lt;-</code> (Coq 8.1β 以降)</dt>
+<dd>
+<p>ゴールの仮定を前提として追加する代わりに、等式による書き換えを行う。仮定が等式の場合のみ使える。矢印は書き換えを行う方向を表す。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n : nat, m = n -> n = m.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall m n : nat, m = n -> n = m
+
+Unnamed_thm < </samp><kbd>intros m; intros n.
+</kbd><samp>1 subgoal
+  
+  m : nat
+  n : nat
+  ============================
+   m = n -> n = m
+
+Unnamed_thm < </samp><kbd>intros ->.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  ============================
+   n = n
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>この形の <code>intros</code> は、上記のより単純な形の <code>intros</code> や <code>rewrite</code>、<code>clear</code> との組み合わせにより実現される。上の例では、<code>intros -></code> は実質的に <code>intro H; rewrite -> H in * |- *; clear H m</code> に等しい。</p>
+</dd>
+<dt><code>intros [ … | … | … ]</code></dt>
+<dd>
+<p>ゴールの仮定を前提に移動する代わりに場合分けを行い、その結果得られる新たな仮定に対して <code>intros</code> を適用する。仮定が代数的データ型の場合 (または代数的データ型を返す関数の型の場合) のみ使える。場合分けの数に応じて <code>[ ]</code> 内を <code>|</code> で区切り、それぞれに新たな仮定に対して行う <code>intros</code> の引数を指定する。</p>
+<p>形式的には <code>intros [ <var>p</var><sub>11</sub> <var>p</var><sub>12</sub>… | <var>p</var><sub>21</sub> <var>p</var><sub>22</sub>… | … ]</code> は <code>let H := fresh in intros H; <a href="#case">case</a> H; clear H; [ intros <var>p</var><sub>11</sub> <var>p</var><sub>12</sub>… | intros <var>p</var><sub>21</sub> <var>p</var><sub>22</sub>… | … ]</code> に等しい。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q : Prop, P \/ Q -> Q \/ P.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q : Prop, P \/ Q -> Q \/ P
+
+Unnamed_thm < </samp><kbd>intros P; intros Q.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  ============================
+   P \/ Q -> Q \/ P
+
+Unnamed_thm < </samp><kbd>intros [ H | H ].
+</kbd><samp>2 subgoals
+  
+  P : Prop
+  Q : Prop
+  H : P
+  ============================
+   Q \/ P
+
+subgoal 2 is:
+ Q \/ P
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#right">right</a>; <a href="t-apply.html#exact">exact</a> H.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  H : Q
+  ============================
+   Q \/ P
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#left">left</a>; <a href="t-apply.html#exact">exact</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>場合分けの対象が代数的データ型を返す関数の場合は、関数の引数がサブゴールに追加される。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q1 Q2 R : Prop,
+</kbd><samp>Coq < </samp><kbd>     P -> (Q1 -> R) -> (Q2 -> R) -> (P -> Q1 \/ Q2) -> R.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q1 Q2 R : Prop,
+   P -> (Q1 -> R) -> (Q2 -> R) -> (P -> Q1 \/ Q2) -> R
+
+Unnamed_thm < </samp><kbd>intros P Q1 Q2 R H1 H2 H3.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q1 : Prop
+  Q2 : Prop
+  R : Prop
+  H1 : P
+  H2 : Q1 -> R
+  H3 : Q2 -> R
+  ============================
+   (P -> Q1 \/ Q2) -> R
+
+Unnamed_thm < </samp><kbd>intros [ H4 | H4 ].
+</kbd><samp>3 subgoals
+  
+  P : Prop
+  Q1 : Prop
+  Q2 : Prop
+  R : Prop
+  H1 : P
+  H2 : Q1 -> R
+  H3 : Q2 -> R
+  ============================
+   P
+
+subgoal 2 is:
+ R
+subgoal 3 is:
+ R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> H1.
+</kbd><samp>2 subgoals
+  
+  P : Prop
+  Q1 : Prop
+  Q2 : Prop
+  R : Prop
+  H1 : P
+  H2 : Q1 -> R
+  H3 : Q2 -> R
+  H4 : Q1
+  ============================
+   R
+
+subgoal 2 is:
+ R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> (H2 H4).
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q1 : Prop
+  Q2 : Prop
+  R : Prop
+  H1 : P
+  H2 : Q1 -> R
+  H3 : Q2 -> R
+  H4 : Q2
+  ============================
+   R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> (H3 H4).
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>intros (<var>p</var><sub>1</sub>, <var>p</var><sub>2</sub>, …)</code></dt>
+<dd>
+<p><code>intros [<var>p</var><sub>1</sub> <var>p</var><sub>2</sub> …]</code> に同じ。</p>
+</dd>
+<dt><code>intros (<var>p</var><sub>1</sub> &amp; <var>p</var><sub>2</sub> &amp; …)</code> (Coq 8.2 以降)</dt>
+<dd>
+<p><code>intros (<var>p</var><sub>1</sub>, (<var>p</var><sub>2</sub>, (…)))</code> に同じ。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P
+
+Unnamed_thm < </samp><kbd>intros P; intros Q; intros R.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  R : Prop
+  ============================
+   P /\ Q /\ R -> R /\ Q /\ P
+
+Unnamed_thm < </samp><kbd>intros (H1 &amp; H2 &amp; H3).
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  R : Prop
+  H1 : P
+  H2 : Q
+  H3 : R
+  ============================
+   R /\ Q /\ P
+
+Unnamed_thm < </samp><kbd>repeat <a href="t-constr.html#split">split</a>; assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>intros <var>p</var><sub>1</sub> <var>p</var><sub>2</sub>…</code></dt>
+<dd>
+<p>複数の <code>intros</code> を一度に行う。おおよそ <code>intros <var>p</var><sub>1</sub>; intros <var>p</var><sub>2</sub>; …</code> に等しいが、複数の場合分けを一度に行った場合などの動作が異なる。</p>
+</dd>
+<dt><code>intros until <var>ident</var></code></dt>
+<dt><code>intros until <var>num</var></code></dt>
+<dd>
+<p>名前 <var>ident</var> を持つゴールの仮定または <var>num</var> 番目の名前の無いゴールの仮定まで <code>intros</code> する。追加される前提名は処理系が自動的に選ぶので、前提名に依存した証明を書く際には使わないこと。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P
+
+Unnamed_thm < </samp><kbd>intros until R.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  R : Prop
+  ============================
+   P /\ Q /\ R -> R /\ Q /\ P</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q R : Prop, P /\ Q /\ R -> R /\ Q /\ P
+
+Unnamed_thm < </samp><kbd>intros until 1.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  R : Prop
+  H : P /\ Q /\ R
+  ============================
+   R /\ Q /\ P</samp></code></pre>
+</dd>
+</dl>
+
+<h2 id="decompose"><code>decompose</code> タクティク</h2>
+<p><code>decompose</code> タクティクは代数的データ型を持つ項を分解して、結果を前提に追加する。前提名は処理系が自動的に選ぶので、前提名に依存した証明を書く場合は使わないこと。</p>
+<dl>
+<dt><code>decompose [<var>ident</var><sub>1</sub> <var>ident</var><sub>2</sub> …] <var>term</var></code></dt>
+<dd>
+<p>項 <var>term</var> を分解して、前提に追加する。分解は型 <var>ident</var><sub>1</sub>, <var>ident</var><sub>2</sub>, … に対して行われる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m : nat, (exists n : nat, m <= n) -> exists n : nat, S m <= n.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall m : nat, (exists n : nat, m <= n) -> exists n : nat, S m <= n
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> m H.
+</kbd><samp>1 subgoal
+  
+  m : nat
+  H : exists n : nat, m <= n
+  ============================
+   exists n : nat, S m <= n
+
+Unnamed_thm < </samp><kbd>decompose [ex] H.
+</kbd><samp>1 subgoal
+  
+  m : nat
+  H : exists n : nat, m <= n
+  x : nat
+  H0 : m <= x
+  ============================
+   exists n : nat, S m <= n</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P Q R : Prop, P /\ Q \/ Q /\ R -> Q.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall P Q R : Prop, P /\ Q \/ Q /\ R -> Q
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> P Q R H.
+</kbd><samp>1 subgoal
+  
+  P : Prop
+  Q : Prop
+  R : Prop
+  H : P /\ Q \/ Q /\ R
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>decompose [and or] H; assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>decompose sum <var>term</var></code></dt>
+<dd>
+<p>項 <var>term</var> を<em>和型</em> (<code>or</code> など) について分解して、前提に追加する。</p>
+</dd>
+<dt><code>decompose record <var>term</var></code></dt>
+<dd>
+<p>項 <var>term</var> を<em>レコード型</em> (<code>and</code> や <code>exists</code> など、コンストラクタが一つしかない型) について分解して、前提に追加する。</p>
+</dd>
+</dl>
+
+<h2 id="inversion"><code>inversion</code> タクティク</h2>
+<p><code>inversion</code> タクティクは、<a href="#case"><code>case</code> タクティク</a>や <a href="#destruct"><code>destruct</code> タクティク</a>のように代数的データ型に対する場合分けを行うが、コンストラクタの引数に関する条件を保存する。</p>
+<p>特定の値に関する条件を表す述語が代数的データ型として定義してあり、そのような述語が実際に前提として得られている場合に、その述語から具体的な値に関する条件を取り出すのに使う。</p>
+<pre><code><samp>Coq < </samp><kbd>Print le.
+</kbd><samp>Inductive le (n : nat) : nat -> Prop :=
+    le_n : n <= n | le_S : forall m : nat, n <= m -> n <= S m
+
+Coq < </samp><kbd>Goal forall n : nat, n <= 0 -> n = 0.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall n : nat, n <= 0 -> n = 0
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> n H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   n = 0
+
+Unnamed_thm < </samp><kbd>inversion H as [ H' | ].
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  H' : n = 0
+  ============================
+   0 = 0
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>上の例では、前提 <code>H : n <= 0</code> から条件 <code>n = 0</code> を取り出すために <code>inversion</code> を用いている。述語 <code>le</code> には二つのコンストラクタがあるが、<code>le_S</code> から作ることのできる条件の型 <code>n <= S m</code> は前提 <code>H</code> の型 <code>n <= 0</code> に適合しないため、この場合は自動的に除外される。<code>le_n</code> の型 <code>n <= n</code> と <code>H</code> の型 <code>n <= 0</code> とを照らし合わせた結果として条件 <code>n = 0</code> が前提に追加され、この等式を利用して自動的にゴールの <code>n</code> が <code>0</code> に書き換えられる。</p>
+
+<dl>
+<dt><code>inversion <var>ident</var></code></dt>
+<dd>
+<p>前提 <var>ident</var> に対して <code>inversion</code> を適用し、得られる条件を前提に追加する。指定した前提が存在しない場合は、先に <code><a href="#intros">intros</a> until <var>ident</var></code> を試みる。</p>
+<p><code>as</code> によって前提名を指定しないで <code>inversion</code> を使うと、処理系によって自動的に前提名が生成される。生成される前提名は常に同じとは限らないので、前提名に依存した証明を書く場合は以下の <code>as</code> を用いる構文を使うこと。</p>
+</dd>
+<dt><code>inversion <var>num</var></code></dt>
+<dd>
+<p><code><a href="#intros">intros</a> until <var>num</var></code> を行い、最後に追加された前提に対して <code>inversion</code> を適用する。</p>
+</dd>
+<dt><code>inversion … as <var>intropattern</var></code></dt>
+<dd>
+<p>追加される前提の名前を指定して <code>inversion</code> する。名前の指定のしかたは <code>destruct … as …</code> と似ているが、<code>inversion</code> が取り出した条件 (等式) の名前も追加で指定する必要がある。条件の名前の指定は <code>injection … as …</code> に準ずる。名前が足りない場合は処理系が自動的に名前を選ぶので注意。</p>
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Lists.List.html">Coq.Lists.List</a>.
+</kbd><samp>
+Coq < </samp><kbd>Inductive list_in {A : Type} : A -> list A -> Prop :=
+</kbd><samp>Coq < </samp><kbd>| in_hd : forall a l, list_in a (a :: l)
+</kbd><samp>Coq < </samp><kbd>| in_tl : forall a b l, list_in a l -> list_in a (b :: l).
+</kbd><samp>list_in is defined
+list_in_ind is defined
+
+Coq < </samp><kbd>Goal forall l, list_in 0 (1 :: l) -> list_in 0 l.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall l : list nat, list_in 0 (1 :: l) -> list_in 0 l
+
+Unnamed_thm < </samp><kbd>inversion 1 as [ | a b l' H' H1 [H2 H3] ].
+</kbd><samp>1 subgoal
+  
+  l : list nat
+  H : list_in 0 (1 :: l)
+  a : nat
+  b : nat
+  l' : list nat
+  H' : list_in 0 l
+  H1 : a = 0
+  H2 : b = 1
+  H3 : l' = l
+  ============================
+   list_in 0 l
+
+Unnamed_thm < </samp><kbd>exact H'.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>上の例では、述語 <code>list_in</code> の二つのコンストラクタのうち <code>in_hd</code> の場合については条件が合わずに自動的に除外されるので名前を指定していない。<code>in_tl</code> の場合の名前の指定は、まず <code>a</code>, <code>b</code>, <code>l'</code>, <code>H'</code> の四つがそれぞれ <code>in_tl</code> の四つの引数に対応しており (ここまでは <code>destruct</code> と同じ)、その後の <code>H1</code> と <code>[H2 H3]</code> はそれぞれ <code>list_in</code> の二つの引数 (<code>A</code> 型と <code>list A</code> 型) に対応して得られる二つの条件 <code>a = 0</code> と <code>b :: l' = 1 :: l</code> に対応している。後者は自動的に適用される <code>injection</code> により <code>b = 1</code> と <code>l' = l</code> とに分解されるため、それに合わせて <code>H2</code> と <code>H3</code> の二つの名前を指定している。</p>
+</dd>
+<dt><code>inversion … in <var>ident</var><sub>1</sub> … <var>ident</var><sub><var>n</var></sub></code></dt>
+<dd>
+<p>ゴールだけでなく前提 <var>ident</var><sub>1</sub> … <var>ident</var><sub><var>n</var></sub> においても、得られた条件に基づいた書き換えを行う。</p>
+</dd>
+<dt><code>inversion … as … in …</code></dt>
+<dd>
+<p><code>inversion</code> タクティクの最も一般的な形。</p>
+</dd>
+<dt><code>inversion_clear <var>ident</var></code></dt>
+<dt><code>inversion_clear <var>ident</var> as …</code></dt>
+<dt><code>inversion_clear <var>ident</var> in …</code></dt>
+<dt><code>inversion_clear <var>ident</var> as … in …</code></dt>
+<dd>
+<p><code>inversion</code> した後に、<var>ident</var> および不要な条件等を自動的に前提から消去する。</p>
+</dd>
+<dt><code>inversion <var>ident</var><sub>1</sub> using <var>ident</var><sub>2</sub></code></dt>
+<dt><code>inversion <var>ident</var><sub>1</sub> using <var>ident</var><sub>2</sub> in …</code></dt>
+<dd>
+<p><code>Derive Inversion</code> コマンドで作成した補題 <var>ident</var><sub>2</sub> を使用して <code>inversion <var>ident</var><sub>1</sub></code> を行う。</p>
+<pre><code><samp>Coq < </samp><kbd>Derive Inversion le_0_inv with (forall n, n <= 0) Sort Prop.
+</kbd><samp>
+Coq < </samp><kbd>Check le_0_inv.
+</kbd><samp>le_0_inv
+     : forall (n : nat) (P : nat -> Prop),
+       (n <= 0 -> n = 0 -> P 0) -> n <= 0 -> P n
+
+Coq < </samp><kbd>Goal forall n, n <= 0 -> n = 0.
+</kbd><samp>1 subgoal
+  
+  ============================
+   forall n : nat, n <= 0 -> n = 0
+
+Unnamed_thm < </samp><kbd><a href="#intros">intros</a> n H.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   n = 0
+
+Unnamed_thm < </samp><kbd>inversion H using le_0_inv.
+</kbd><samp>1 subgoal
+  
+  n : nat
+  H : n <= 0
+  ============================
+   n <= 0 -> n = 0 -> 0 = 0
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>この例で <code>inversion H using le_0_inv</code> がしていることは、<code>pattern n; apply le_0_inv, H</code> に等しい。</p>
+<p><code>Derive Inversion</code> コマンドの亜種として、<code>Derive Inversion_clear</code>, <code>Derive Dependent Inversion</code>, <code>Derive Dependent Inversion_clear</code> コマンドがある。</p>
+</dd>
+<dt><code>dependent inversion <var>ident</var></code></dt>
+<dt><code>dependent inversion <var>ident</var> as …</code></dt>
+<dt><code>dependent inversion <var>ident</var> with …</code></dt>
+<dt><code>dependent inversion <var>ident</var> as … with …</code></dt>
+<dt><code>dependent inversion_clear <var>ident</var></code></dt>
+<dt><code>dependent inversion_clear <var>ident</var> as …</code></dt>
+<dt><code>dependent inversion_clear <var>ident</var> with …</code></dt>
+<dt><code>dependent inversion_clear <var>ident</var> as … with …</code></dt>
+<dd>
+<p><var>ident</var> 自体がゴールの型に含まれる場合に使う。通常の <code>inversion</code>/<code>inversion_clear</code> の処理をする他に、ゴールの型に含まれる <var>ident</var> を実際に場合分けされた値に置換する。</p>
+</dd>
+<dt><code>simple inversion <var>ident</var></code></dt>
+<dt><code>simple inversion <var>num</var></code></dt>
+<dd>
+<p>より単純な <code>inversion</code> を行う。すなわち、場合分けの際に条件が噛み合わない場合を除外したり、得られた条件を元にゴールを書き換えたりしない。追加される前提名は処理系が自動的に選ぶので、前提名に依存した証明を書く際には使わないこと。</p>
+</dd>
+</dl>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / 更新 2010-11-30 / 初出 2010-07-20
+</address>
+
+</body>
+</html>

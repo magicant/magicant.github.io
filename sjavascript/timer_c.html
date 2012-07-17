@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で作ったアラームです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] アラーム</title>
+<style type="text/css">
+h1 {
+	font-size: 1em;
+	margin: 0;
+}
+th {
+	font-weight: normal;
+}
+td {
+	font-weight: bold;
+}
+#button0, #button1 {
+	height: 1.8em;
+	width: 10em;
+}
+</style>
+<script type="text/javascript" src="uai.js" charset="UTF-8"></script>
+<script type="text/javascript" src="titlechange.js" charset="UTF-8"></script>
+<script type="text/javascript">
+// 定数宣言
+var msPerSecond = 1000;
+var msPerMinute = msPerSecond * 60;
+var msPerHour   = msPerMinute * 60;
+var msPerDay    = msPerHour   * 24;
+
+// グローバル変数
+var setTime = 0;   // 設定時刻。未設定時は0。
+var intervalID;
+
+// グローバルオブジェクト
+var elih, elim, elis;
+var eln, els, elt;
+
+// 初期化
+function init() {
+	elih = document.getElementById("input1");
+	elim = document.getElementById("input2");
+	elis = document.getElementById("input3");
+	eln = document.getElementById("nowtime");
+	els = document.getElementById("settime");
+	elt = document.getElementById("timetogo");
+	
+	intervalID = window.setInterval("interval();", 100);
+	
+	elih.focus();
+}
+
+// スタート
+function start() {
+	var nowDate = new Date();
+	nowDate.setMilliseconds(0);
+	var nowTime = nowDate.getTime();
+	var setDate = new Date(nowTime);
+	
+	var hours   = elih.value;
+	var minutes = elim.value;
+	var seconds = elis.value;
+	
+	elih.value = "";
+	elim.value = "";
+	elis.value = "";
+	hours   = parseInt(hours);
+	minutes = parseInt(minutes);
+	seconds = parseInt(seconds);
+	if (hours   < 0 || hours   >= 24 || isNaN(hours  )) hours   = -1;
+	if (minutes < 0 || minutes >= 60 || isNaN(minutes)) minutes = -1;
+	if (seconds < 0 || seconds >= 60 || isNaN(seconds)) seconds = -1;
+	
+	if (seconds >= 0) {
+		setDate.setSeconds(seconds);
+	}
+	if (setDate.getTime() < nowTime) {
+		setDate = new Date(setDate.getTime() + msPerMinute);
+	}
+	if (minutes >= 0) {
+		setDate.setMinutes(minutes);
+		if (seconds < 0) {
+			setDate.setSeconds(0);
+		}
+	}
+	if (setDate.getTime() < nowTime) {
+		setDate = new Date(setDate.getTime() + msPerHour);
+	}
+	if (hours >= 0) {
+		setDate.setHours(hours);
+		if (minutes < 0) {
+			setDate.setMinutes(0);
+			if (seconds < 0) {
+				setDate.setSeconds(0);
+			}
+		}
+	}
+	if (setDate.getTime() < nowTime) {
+		setDate = new Date(setDate.getTime() + msPerDay);
+	}
+	
+	if (setDate.getTime() > nowTime) {
+		setTime = setDate.getTime();
+		els.innerHTML = normalize(setDate.getHours(),
+		                          setDate.getMinutes(),
+		                          setDate.getSeconds());
+	}
+}
+
+// キャンセル
+function cancel() {
+	setTime = 0;
+	els.innerHTML = "off";
+	elt.innerHTML = "";
+	setDocumentTitle("[#JavaScript] アラーム");
+	elih.focus();
+}
+
+function normalize(h, m, s) {
+	return (h < 10 ? "0" + h : h) + ":" +
+	       (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+}
+
+function interval() {
+	if (displayTime()) {
+		cancel();
+		window.alert("Alarm - 指定した時刻になりました!!");
+	}
+}
+
+function displayTime() {
+	var nowDate = new Date();
+	
+	eln.innerHTML = normalize(nowDate.getHours(),
+	                          nowDate.getMinutes(),
+	                          nowDate.getSeconds());
+	
+	if (setTime) {
+		var time = setTime - nowDate.getTime();
+		
+		if (time <= 0) return true;
+		
+		var ms = time % msPerSecond;
+		time -= ms;
+		var s = time % msPerMinute;
+		time -= s;
+		s /= msPerSecond;
+		var m = time % msPerHour;
+		time -= m;
+		m /= msPerMinute;
+		var h = time / msPerHour;
+		
+		time = normalize(h, m, s);
+		elt.innerHTML = time;
+		setDocumentTitle(time + " - アラーム");
+	}
+	return false;
+}
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+アラーム
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 1.2.4 (2005-11-19)
+</address>
+<noscript>
+<div><strong>
+このアラームは JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<form id="mainform" action=""
+ onsubmit="start(); return false;"
+ onreset="cancel(); return true;">
+<div>
+<input type="text" id="input1" size="2" value="" accesskey="h">:
+<input type="text" id="input2" size="2" value="" accesskey="m">:
+<input type="text" id="input3" size="2" value="" accesskey="s">
+</div>
+<div>
+<input type="submit" id="button0" value="SET"
+ title="タイマを設定します。">
+<br>
+<input type="reset" id="button1" value="CANCEL"
+ title="タイマをキャンセルします。">
+</div>
+</form>
+<table>
+<tbody>
+<tr>
+<th>現在時刻</th>
+<td id="nowtime"></td>
+</tr>
+<tr>
+<th>設定時刻</th>
+<td id="settime">off</td>
+</tr>
+<tr>
+<th>残り時間</th>
+<td id="timetogo"></td>
+</tr>
+</tbody>
+</table>
+</body>
+
+</html><!--
+programed by Magicant
+2004-10-09 v1.0
+2004-10-14 v1.1
+2004-11-27 v1.2
+2005-04-03 v1.2.1
+2005-10-16 v1.2.3
+2005-11-19 v1.2.4
+-->

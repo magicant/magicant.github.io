@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>Null 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-void.html" title="Void 組込みオブジェクト">
+<link rel="next" href="b-boolean.html" title="Boolean 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Null</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Null</code> 組込みオブジェクトを定義する。</p>
+<p><code>Null</code> は特殊な値 <code>null</code> に対応する <a
+href="b-type.html"><code>Type</code></a> のインスタンスである。</p>
+
+<h2 id="members"><code>Null</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd>別途定めるプロパティを持つオブジェクト
+(→<a href="#prototype-members"><code>Null.prototype</code> のプロパティ</a>)。
+このオブジェクトは <a href="b-object.html#m-prototype"><code
+>Object.prototype</code></a> を準プロトタイプとして持たなければならない。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Null"</code></dd>
+<dt id="m-null"><code>null</code></dt>
+<dd>別途定める内部メンバを持つオブジェクト
+(→<a href="#null-internal-members"><code>Null.null</code> の内部メンバ</a>)。
+このオブジェクトはメンバを一切持たない。
+このオブジェクトのメンバ・内部メンバは不変である。
+このオブジェクトは関数として呼出し可能でない。</dd>
+</dl>
+
+<h2 id="internal-members"><code>Null</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Null</code> の関数としての呼出し</h2>
+<p><code>Null</code> は関数として呼出し可能であり、関数として呼出されると
+新しい <a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。</p>
+
+<h2 id="prototype-members"><code>Null.prototype</code> のプロパティ</h2>
+<dl class="member-def">
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{"null"}</code></dd>
+</dl>
+
+<h2 id="null-internal-members"><code>Null.null</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im-null.-prototype"><code>$prototype</code></dt>
+<dd><code>Null.prototype</code></dd>
+<dt id="im-null.-isimmutable"><code>$isImmutable</code></dt>
+<dd><a href="b-boolean.html#m-true"><code>Boolean.true</code></a></dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

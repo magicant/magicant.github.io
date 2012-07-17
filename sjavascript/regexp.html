@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript がサポートする正規表現のテスト用ページです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 正規表現</title>
+<script type="text/javascript">
+var elements;
+
+// 初期化
+function init() {
+	elements = {
+		target:    document.getElementById("rtarget"),
+		pattern:   document.getElementById("rpattern"),
+		global:    document.getElementById("rglobal"),
+		casei:     document.getElementById("rci"),
+		multiline: document.getElementById("rml"),
+		replacemt: document.getElementById("rreplacement"),
+		slimit:    document.getElementById("rslimit"),
+		result:    document.getElementById("result")
+	};
+}
+
+// 検索エントリポイント
+function startMatch() {
+	var target = elements.target.value;
+	var regexp = createRegExp();
+	if (!regexp) return;
+	
+	var result = target.match(regexp);
+	var out = "<dl><dt>検索結果:<\/dt><dd>";
+	
+	if (!result) {
+		out += "マッチ無し";
+	} else if (regexp.global) {
+		out += "<ol class='array-values'>";
+		for (var i = 0; i < result.length; i++)
+			out += "<li>" + escapeHTML(result[i]) + "<\/li>";
+		out += "<\/ol>";
+	} else {
+		out += "<dl>";
+		out += "<dt>result.index<\/dt><dd>" + result.index + "<\/dd>";
+		out += "<dt>result.length<\/dt><dd>" + result.length + "<\/dd>";
+		out += "<dt>マッチ全体 (result[0])<\/dt><dd>" + escapeHTML(result[0]) + "<\/dd>";
+		for (var i = 1; i < result.length; i++)
+			out += "<dt>捕捉括弧 " + i + " (result[" + i + "])<\/dt><dd>"
+					+ escapeHTML(result[i]) + "<\/dd>";
+		out += "<\/dl>";
+	}
+	out += "<\/dd><\/dl>";
+	
+	elements.result.innerHTML = out;
+}
+
+// 置換エントリポイント
+function startReplace() {
+	var target = elements.target.value;
+	var regexp = createRegExp();
+	if (!regexp) return;
+	
+	var replacement = elements.replacemt.value;
+	var result = target.replace(regexp, replacement);
+	var out = "<dl><dt>置換結果:<\/dt><dd>" + escapeHTML(result) + "<\/dd><\/dl>";
+	
+	elements.result.innerHTML = out;
+}
+
+// 分割エントリポイント
+function startSplit() {
+	var target = elements.target.value;
+	var regexp = createRegExp();
+	if (!regexp) return;
+	
+	var limit = elements.slimit.value || undefined;
+	var result = target.split(regexp, limit);
+	var out = "<dl><dt>分割結果:<\/dt><dd><ol class='array-values'>";
+	
+	for (var i = 0; i < result.length; i++)
+		out += "<li>" + escapeHTML(result[i]) + "<\/li>";
+	out += "<\/ol><\/dd><\/dl>";
+	elements.result.innerHTML = out;
+}
+
+// rpattern, rglobal, rci, rml から RegExp オブジェクトを作る
+function createRegExp() {
+	try {
+		var flags = (elements.global.checked ? "g" : "")
+		          + (elements.casei.checked ? "i" : "")
+		          + (elements.multiline.checked ? "m" : "");
+		return new RegExp(elements.pattern.value, flags);
+	} catch (err) {
+		elements.result.innerHTML = "正規表現エラー: " + escapeHTML(err.message);
+		return null;
+	}
+}
+
+function escapeHTML(str) {
+	return str.replace(/&/g, "&amp;")
+	          .replace(/<(?:)/g, "&lt;")
+	          .replace(/]]\>/g, "]]&gt;");
+}
+</script>
+<style type="text/css">
+#rtarget, #rpattern {
+	width: 95%;
+	_width: auto;  /* IEで入力時に幅がおかしくなるバグに対するハック */
+}
+.array-values {
+	
+}
+</style>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+正規表現
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 0.1.1 (2005-12-08)
+</address>
+<noscript>
+<div><strong>
+エンコーディングには JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+
+<fieldset>
+<legend>検索対象とパターン</legend>
+<dl>
+<dt>検索対象文字列</dt>
+<dd>
+<textarea id="rtarget" rows="5" cols="60"></textarea>
+</dd>
+<dt>検索する<a href="regexp-syntax.html">正規表現パターン</a></dt>
+<dd>
+<input id="rpattern" type="text" value="" size="60">
+</dd>
+</dl>
+</fieldset>
+<fieldset>
+<legend>検索オプション</legend>
+<ul class="checkbox-list">
+<li>
+<label for="rglobal">
+<input id="rglobal" type="checkbox">
+<span lang="en">Global</span>: 一度マッチしても検索を続ける
+</label>
+</li>
+<li>
+<label for="rci">
+<input id="rci" type="checkbox">
+<span lang="en">Case-insensitive</span>: 大文字と小文字を区別しない
+</label>
+</li>
+<li>
+<label for="rml">
+<input id="rml" type="checkbox">
+<span lang="en">Multiline</span>: 改行文字を考慮する
+</label>
+</li>
+</ul>
+</fieldset>
+<fieldset>
+<legend>検索実行</legend>
+<ul>
+<li>
+<input id="rmatch" type="button" onclick="startMatch();" value="検索">
+</li>
+<li>
+<input id="rreplacement" title="置換文字列" type="text" value="" size="60">
+に
+<input id="rreplace" type="button" onclick="startReplace();" value="置換">
+</li>
+<li>
+<input id="rslimit" title="分割の限界個数" type="text" value="" size="5">
+個までに
+<input id="rsplit" type="button" onclick="startSplit();" value="分割">
+</li>
+</ul>
+</fieldset>
+<fieldset>
+<legend>結果</legend>
+<div id="result">
+<p>
+結果がここに表示されます。
+</p>
+</div>
+</fieldset>
+
+</body>
+</html>
+<!--
+programed by magicant
+2005年12月08日 v0.1.1
+-->

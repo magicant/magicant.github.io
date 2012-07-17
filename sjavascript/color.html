@@ -1,0 +1,953 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="JavaScript で色見本を表示します">
+<meta name="date" content="2006-01-02T13:14:12+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<!--[if ! lte ie 7]><!-->
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<!--<![endif]-->
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 色見本</title>
+<style type="text/css">
+h2 {
+	font-size: 1.2em;
+}
+blockquote h1 {
+	font-size: 1.5em;
+}
+
+#result * {
+	border: none;
+	color: inherit;
+	background: transparent;
+}
+
+.red {
+	color: red;
+}
+.green {
+	color: green;
+}
+.blue {
+	color: blue;
+}
+.color-value {
+	font-size: 0.8em;
+}
+.settings *[onclick] {
+	cursor: pointer;
+}
+.char-scale {
+	font-family: monospace;
+}
+.red0 { color: #000; }
+.red1 { color: #100; }
+.red2 { color: #200; }
+.red3 { color: #300; }
+.red4 { color: #400; }
+.red5 { color: #500; }
+.red6 { color: #600; }
+.red7 { color: #700; }
+.red8 { color: #800; }
+.red9 { color: #900; }
+.reda { color: #a00; }
+.redb { color: #b00; }
+.redc { color: #c00; }
+.redd { color: #d00; }
+.rede { color: #e00; }
+.redf { color: #f00; }
+.green0 { color: #000; }
+.green1 { color: #010; }
+.green2 { color: #020; }
+.green3 { color: #030; }
+.green4 { color: #040; }
+.green5 { color: #050; }
+.green6 { color: #060; }
+.green7 { color: #070; }
+.green8 { color: #080; }
+.green9 { color: #090; }
+.greena { color: #0a0; }
+.greenb { color: #0b0; }
+.greenc { color: #0c0; }
+.greend { color: #0d0; }
+.greene { color: #0e0; }
+.greenf { color: #0f0; }
+.blue0 { color: #000; }
+.blue1 { color: #001; }
+.blue2 { color: #002; }
+.blue3 { color: #003; }
+.blue4 { color: #004; }
+.blue5 { color: #005; }
+.blue6 { color: #006; }
+.blue7 { color: #007; }
+.blue8 { color: #008; }
+.blue9 { color: #009; }
+.bluea { color: #00a; }
+.blueb { color: #00b; }
+.bluec { color: #00c; }
+.blued { color: #00d; }
+.bluee { color: #00e; }
+.bluef { color: #00f; }
+.huerg1 { color: #ff4000; }
+.huerg2 { color: #ff8000; }
+.huerg3 { color: #ffc000; }
+.huerg4 { color: #ffff00; }
+.huerg5 { color: #c0ff00; }
+.huerg6 { color: #80ff00; }
+.huerg7 { color: #40ff00; }
+.huegb1 { color: #00ff40; }
+.huegb2 { color: #00ff80; }
+.huegb3 { color: #00ffc0; }
+.huegb4 { color: #00ffff; }
+.huegb5 { color: #00c0ff; }
+.huegb6 { color: #0080ff; }
+.huegb7 { color: #0040ff; }
+.huebr1 { color: #4000ff; }
+.huebr2 { color: #8000ff; }
+.huebr3 { color: #c000ff; }
+.huebr4 { color: #ff00ff; }
+.huebr5 { color: #ff00c0; }
+.huebr6 { color: #ff0080; }
+.huebr7 { color: #ff0040; }
+.bright0 { background: #000; }
+.bright1 { background: #111; }
+.bright2 { background: #222; }
+.bright3 { background: #333; }
+.bright4 { background: #444; }
+.bright5 { background: #555; }
+.bright6 { background: #666; }
+.bright7 { background: #777; }
+.bright8 { background: #888; }
+.bright9 { background: #999; }
+.brighta { background: #aaa; }
+.brightb { background: #bbb; }
+.brightc { background: #ccc; }
+.brightd { background: #ddd; }
+.brighte { background: #eee; }
+.brightf { background: #fff; }
+.mkwhite { color: white; }
+.mkblack { color: black; }
+</style>
+<script type="text/javascript" src="util.js" charset="us-ascii"></script>
+<script type="text/javascript">
+// 定数
+var MAX = 255, HUE_MAX = 240;
+var DELTA = 0.0005;
+
+// グローバルオブジェクト
+var elfrf, elfgf, elfbf, elfhf, elfsf, elftf;
+var elfrv, elfgv, elfbv, elfhv, elfsv, elftv;
+var elbrf, elbgf, elbbf, elbhf, elbsf, elbtf;
+var elbrv, elbgv, elbbv, elbhv, elbsv, elbtv;
+var elr, elfv, elbv;
+var gvfgc, gvbgc;
+
+// 初期化
+function init() {
+	elfrf = document.getElementById("fgredf");
+	elfgf = document.getElementById("fggreenf");
+	elfbf = document.getElementById("fgbluef");
+	elfhf = document.getElementById("fghuef");
+	elfsf = document.getElementById("fgsatf");
+	elftf = document.getElementById("fgbrightf");
+	elfrv = document.getElementById("fgredvalue");
+	elfgv = document.getElementById("fggreenvalue");
+	elfbv = document.getElementById("fgbluevalue");
+	elfhv = document.getElementById("fghuevalue");
+	elfsv = document.getElementById("fgsatvalue");
+	elftv = document.getElementById("fgbrightvalue");
+	elbrf = document.getElementById("bgredf");
+	elbgf = document.getElementById("bggreenf");
+	elbbf = document.getElementById("bgbluef");
+	elbhf = document.getElementById("bghuef");
+	elbsf = document.getElementById("bgsatf");
+	elbtf = document.getElementById("bgbrightf");
+	elbrv = document.getElementById("bgredvalue");
+	elbgv = document.getElementById("bggreenvalue");
+	elbbv = document.getElementById("bgbluevalue");
+	elbhv = document.getElementById("bghuevalue");
+	elbsv = document.getElementById("bgsatvalue");
+	elbtv = document.getElementById("bgbrightvalue");
+	elr   = document.getElementById("result");
+	elfv  = document.getElementById("fgcv");
+	elbv  = document.getElementById("bgcv");
+	
+	gvfgc = new Color(0, 0, 0);
+	gvbgc = new Color(MAX, MAX, MAX);
+	setColor();
+}
+
+// gvfgc, gvbgc を表示内容に適用する。
+function setColor() {
+	var fghsb = gvfgc.toHSB(), bghsb = gvbgc.toHSB();
+	
+	if (elr.style.setProperty) {
+		elr.style.setProperty("color", gvfgc.toString(), "");
+		elr.style.setProperty("background-color", gvbgc.toString(), "");
+	} else {
+		elr.style.color = gvfgc.toString();
+		elr.style.backgroundColor = gvbgc.toString();
+	}
+	elfv.innerHTML = "(" + gvfgc.toHexString() + ")";
+	elfrv.innerHTML = gvfgc.red;
+	elfgv.innerHTML = gvfgc.green;
+	elfbv.innerHTML = gvfgc.blue;
+	elfhv.innerHTML = formatNumber(fghsb.hue * 3);
+	elfsv.innerHTML = formatNumber(fghsb.saturation);
+	elftv.innerHTML = formatNumber(fghsb.brightness);
+	elbv.innerHTML = "(" + gvbgc.toHexString() + ")";
+	elbrv.innerHTML = gvbgc.red;
+	elbgv.innerHTML = gvbgc.green;
+	elbbv.innerHTML = gvbgc.blue;
+	elbhv.innerHTML = formatNumber(bghsb.hue * 3);
+	elbsv.innerHTML = formatNumber(bghsb.saturation);
+	elbtv.innerHTML = formatNumber(bghsb.brightness);
+}
+function formatNumber(n) {
+	return Util.formatNumber(n, "0.?####");
+	return n.toString().substring(0, 6);
+}
+
+function fgred(newred) {
+	if (newred < 0) {
+		gvfgc.red = Math.max(0, gvfgc.red - 1);
+	} else if (newred > MAX) {
+		gvfgc.red = Math.min(MAX, gvfgc.red + 1);
+	} else {
+		gvfgc.red = newred;
+	}
+	setColor();
+	return false;
+}
+function fggreen(newgreen) {
+	if (newgreen < 0) {
+		gvfgc.green = Math.max(0, gvfgc.green - 1);
+	} else if (newgreen > MAX) {
+		gvfgc.green = Math.min(MAX, gvfgc.green + 1);
+	} else {
+		gvfgc.green = newgreen;
+	}
+	setColor();
+	return false;
+}
+function fgblue(newblue) {
+	if (newblue < 0) {
+		gvfgc.blue = Math.max(0, gvfgc.blue - 1);
+	} else if (newblue > MAX) {
+		gvfgc.blue = Math.min(MAX, gvfgc.blue + 1);
+	} else {
+		gvfgc.blue = newblue;
+	}
+	setColor();
+	return false;
+}
+function fghue(newhue) {
+	var hsb = gvfgc.toHSB(), newColor, c = 256;
+	
+	if (newhue < 0) {
+		do {
+			hsb.hue -= DELTA;
+			if (hsb.hue < 0) hsb.hue += 1;
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && --c > 0);
+	} else if (newhue > HUE_MAX) {
+		do {
+			hsb.hue += DELTA;
+			if (hsb.hue >= 1) hsb.hue -= 1;
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && --c > 0);
+	} else {
+		hsb.hue = newhue / HUE_MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvfgc = newColor;
+	setColor();
+	return false;
+}
+function fgsat(newsat) {
+	var hsb = gvfgc.toHSB(), newColor;
+	
+	if (newsat < 0) {
+		do {
+			hsb.saturation = Math.max(0, hsb.saturation - DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && hsb.saturation > 0);
+	} else if (newsat > MAX) {
+		do {
+			hsb.saturation = Math.min(1, hsb.saturation + DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && hsb.saturation < 1);
+	} else {
+		hsb.saturation = newsat / MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvfgc = newColor;
+	setColor();
+	return false;
+}
+function fgbright(newbright) {
+	var hsb = gvfgc.toHSB(), newColor;
+	
+	if (newbright < 0) {
+		do {
+			hsb.brightness = Math.max(0, hsb.brightness - DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && hsb.brightness > 0);
+	} else if (newbright > MAX) {
+		do {
+			hsb.brightness = Math.min(1, hsb.brightness + DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvfgc) && hsb.brightness < 1);
+	} else {
+		hsb.brightness = newbright / MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvfgc = newColor;
+	setColor();
+	return false;
+}
+function bgred(newred) {
+	if (newred < 0) {
+		gvbgc.red = Math.max(0, gvbgc.red - 1);
+	} else if (newred > MAX) {
+		gvbgc.red = Math.min(MAX, gvbgc.red + 1);
+	} else {
+		gvbgc.red = newred;
+	}
+	setColor();
+	return false;
+}
+function bggreen(newgreen) {
+	if (newgreen < 0) {
+		gvbgc.green = Math.max(0, gvbgc.green - 1);
+	} else if (newgreen > MAX) {
+		gvbgc.green = Math.min(MAX, gvbgc.green + 1);
+	} else {
+		gvbgc.green = newgreen;
+	}
+	setColor();
+	return false;
+}
+function bgblue(newblue) {
+	if (newblue < 0) {
+		gvbgc.blue = Math.max(0, gvbgc.blue - 1);
+	} else if (newblue > MAX) {
+		gvbgc.blue = Math.min(MAX, gvbgc.blue + 1);
+	} else {
+		gvbgc.blue = newblue;
+	}
+	setColor();
+	return false;
+}
+function bghue(newhue) {
+	var hsb = gvbgc.toHSB(), newColor, c = 256;
+	
+	if (newhue < 0) {
+		do {
+			hsb.hue -= DELTA;
+			if (hsb.hue < 0) hsb.hue += 1;
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && --c > 0);
+	} else if (newhue > HUE_MAX) {
+		do {
+			hsb.hue += DELTA;
+			if (hsb.hue >= 1) hsb.hue -= 1;
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && --c > 0);
+	} else {
+		hsb.hue = newhue / HUE_MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvbgc = newColor;
+	setColor();
+	return false;
+}
+function bgsat(newsat) {
+	var hsb = gvbgc.toHSB(), newColor;
+	
+	if (newsat < 0) {
+		do {
+			hsb.saturation = Math.max(0, hsb.saturation - DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && hsb.saturation > 0);
+	} else if (newsat > MAX) {
+		do {
+			hsb.saturation = Math.min(1, hsb.saturation + DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && hsb.saturation < 1);
+	} else {
+		hsb.saturation = newsat / MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvbgc = newColor;
+	setColor();
+	return false;
+}
+function bgbright(newbright) {
+	var hsb = gvbgc.toHSB(), newColor;
+	
+	if (newbright < 0) {
+		do {
+			hsb.brightness = Math.max(0, hsb.brightness - DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && hsb.brightness > 0);
+	} else if (newbright > MAX) {
+		do {
+			hsb.brightness = Math.min(1, hsb.brightness + DELTA);
+			newColor = Color.fromHSB(hsb);
+		} while (newColor.equals(gvbgc) && hsb.brightness < 1);
+	} else {
+		hsb.brightness = newbright / MAX;
+		newColor = Color.fromHSB(hsb);
+	}
+	gvbgc = newColor;
+	setColor();
+	return false;
+}
+
+// 引数はそれぞれ 0 以上 256 未満の値。
+function Color(red, green, blue) {
+	this.red   = Math.floor(red);
+	this.green = Math.floor(green);
+	this.blue  = Math.floor(blue);
+}
+
+// 色相、彩度、明度から Color のインスタンスを作成します。彩度、明度は 0 以上 1 以下。
+Color.fromHSB = function(hue, saturation, brightness) {
+	var r, g, b;
+	
+	if (arguments.length == 1) {
+		saturation = arguments[0].saturation;
+		brightness = arguments[0].brightness;
+		hue = arguments[0].hue;
+	}
+	if (saturation == 0) {
+		r = g = b = brightness * MAX;
+		return new Color(r, g, b);
+	}
+	
+	hue = hue % 1;
+	if (hue < 0) hue += 1;
+	hue *= 6;
+	var range = Math.floor(hue);
+	var phase = hue - range;
+	
+	switch (range) {
+	case 0:
+		r = 1;
+		g = 1 - saturation * (1 - phase);
+		b = 1 - saturation;
+		break;
+	case 1:
+		r = 1 - saturation * phase;
+		g = 1;
+		b = 1 - saturation;
+		break;
+	case 2:
+		g = 1;
+		b = 1 - saturation * (1 - phase);
+		r = 1 - saturation;
+		break;
+	case 3:
+		g = 1 - saturation * phase;
+		b = 1;
+		r = 1 - saturation;
+		break;
+	case 4:
+		b = 1;
+		r = 1 - saturation * (1 - phase);
+		g = 1 - saturation;
+		break;
+	case 5:
+		b = 1 - saturation * phase;
+		r = 1;
+		g = 1 - saturation;
+		break;
+	}
+	
+	brightness *= MAX;
+	r *= brightness;
+	g *= brightness;
+	b *= brightness;
+	return new Color(r, g, b);
+};
+
+Color.prototype.toHSB = function() {
+	var result = new Object();
+	
+	var max = Math.max(this.red, this.green, this.blue);
+	var min = Math.min(this.red, this.green, this.blue);
+	
+	result.brightness = max / MAX;
+	result.saturation = (max == 0) ? 0 : (max - min) / max;
+	if (result.saturation == 0) {
+		result.hue = 0;
+		return result;
+	}
+	
+	if (this.red == max)
+		result.hue = (this.green - this.blue) / (max - min);
+	else if (this.green == max)
+		result.hue = 2 + (this.blue - this.red) / (max - min);
+	else
+		result.hue = 4 + (this.red - this.green) / (max - min);
+	result.hue /= 6;
+	if (result.hue < 0) result.hue += 1;
+	result.hue %= 1;
+	return result;
+};
+
+Color.prototype.equals = function(obj) {
+	return obj.constructor == Color
+		&& this.red == obj.red && this.green == obj.green && this.blue == obj.blue;
+};
+
+Color.prototype.toString = function() {
+	return "rgb(" + this.red + ", " + this.green + ", " + this.blue + ")";
+};
+
+Color.prototype.toHexString = function() {
+	function toHex(v) {
+		function toHex2(v) {
+			return "0123456789ABCDEF".charAt(v & 0xf);
+		}
+		
+		return toHex2(v >>> 4) + toHex2(v);
+	}
+	
+	return "#" + toHex(this.red) + toHex(this.green) + toHex(this.blue);
+}
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+色見本
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 1.1.3 (2006-01-02)
+</address>
+<noscript>
+<div><strong>
+色見本表示には JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<p>
+色設定用文字列をクリックして、色を選んでください。
+</p>
+
+<div class="settings">
+<h2>文字色 <span id="fgcv" class="color-value"></span></h2>
+<table>
+<tr class="red">
+<th>赤</th>
+<td class="char-scale">
+<span class="red0" onclick="return fgred(0x00);">0&nbsp;</span
+><span class="red1" onclick="return fgred(0x11);">1&nbsp;</span
+><span class="red2" onclick="return fgred(0x22);">2&nbsp;</span
+><span class="red3" onclick="return fgred(0x33);">3&nbsp;</span
+><span class="red4" onclick="return fgred(0x44);">4&nbsp;</span
+><span class="red5" onclick="return fgred(0x55);">5&nbsp;</span
+><span class="red6" onclick="return fgred(0x66);">6&nbsp;</span
+><span class="red7" onclick="return fgred(0x77);">7&nbsp;</span
+><span class="red8" onclick="return fgred(0x88);">8&nbsp;</span
+><span class="red9" onclick="return fgred(0x99);">9&nbsp;</span
+><span class="reda" onclick="return fgred(0xaa);">a&nbsp;</span
+><span class="redb" onclick="return fgred(0xbb);">b&nbsp;</span
+><span class="redc" onclick="return fgred(0xcc);">c&nbsp;</span
+><span class="redd" onclick="return fgred(0xdd);">d&nbsp;</span
+><span class="rede" onclick="return fgred(0xee);">e&nbsp;</span
+><span class="redf" onclick="return fgred(0xff);">f&nbsp;</span>
+</td>
+<td id="fgredf">
+<span onclick="return fgred(-1);">&lt;&lt;</span>
+<span onclick="return fgred(0x100);">&gt;&gt;</span>
+<span id="fgredvalue"></span>
+</td>
+</tr>
+<tr class="green">
+<th>緑</th>
+<td class="char-scale">
+<span class="green0" onclick="return fggreen(0x00);">0&nbsp;</span
+><span class="green1" onclick="return fggreen(0x11);">1&nbsp;</span
+><span class="green2" onclick="return fggreen(0x22);">2&nbsp;</span
+><span class="green3" onclick="return fggreen(0x33);">3&nbsp;</span
+><span class="green4" onclick="return fggreen(0x44);">4&nbsp;</span
+><span class="green5" onclick="return fggreen(0x55);">5&nbsp;</span
+><span class="green6" onclick="return fggreen(0x66);">6&nbsp;</span
+><span class="green7" onclick="return fggreen(0x77);">7&nbsp;</span
+><span class="green8" onclick="return fggreen(0x88);">8&nbsp;</span
+><span class="green9" onclick="return fggreen(0x99);">9&nbsp;</span
+><span class="greena" onclick="return fggreen(0xaa);">a&nbsp;</span
+><span class="greenb" onclick="return fggreen(0xbb);">b&nbsp;</span
+><span class="greenc" onclick="return fggreen(0xcc);">c&nbsp;</span
+><span class="greend" onclick="return fggreen(0xdd);">d&nbsp;</span
+><span class="greene" onclick="return fggreen(0xee);">e&nbsp;</span
+><span class="greenf" onclick="return fggreen(0xff);">f&nbsp;</span>
+</td>
+<td id="fggreenf">
+<span onclick="return fggreen(-1);">&lt;&lt;</span>
+<span onclick="return fggreen(0x100);">&gt;&gt;</span>
+<span id="fggreenvalue"></span>
+</td>
+</tr>
+<tr class="blue">
+<th>青</th>
+<td class="char-scale">
+<span class="blue0" onclick="return fgblue(0x00);">0&nbsp;</span
+><span class="blue1" onclick="return fgblue(0x11);">1&nbsp;</span
+><span class="blue2" onclick="return fgblue(0x22);">2&nbsp;</span
+><span class="blue3" onclick="return fgblue(0x33);">3&nbsp;</span
+><span class="blue4" onclick="return fgblue(0x44);">4&nbsp;</span
+><span class="blue5" onclick="return fgblue(0x55);">5&nbsp;</span
+><span class="blue6" onclick="return fgblue(0x66);">6&nbsp;</span
+><span class="blue7" onclick="return fgblue(0x77);">7&nbsp;</span
+><span class="blue8" onclick="return fgblue(0x88);">8&nbsp;</span
+><span class="blue9" onclick="return fgblue(0x99);">9&nbsp;</span
+><span class="bluea" onclick="return fgblue(0xaa);">a&nbsp;</span
+><span class="blueb" onclick="return fgblue(0xbb);">b&nbsp;</span
+><span class="bluec" onclick="return fgblue(0xcc);">c&nbsp;</span
+><span class="blued" onclick="return fgblue(0xdd);">d&nbsp;</span
+><span class="bluee" onclick="return fgblue(0xee);">e&nbsp;</span
+><span class="bluef" onclick="return fgblue(0xff);">f&nbsp;</span>
+</td>
+<td id="fgbluef">
+<span onclick="return fgblue(-1);">&lt;&lt;</span>
+<span onclick="return fgblue(0x100);">&gt;&gt;</span>
+<span id="fgbluevalue"></span>
+</td>
+</tr>
+<tr>
+<th>色相</th>
+<td class="char-scale">
+<span class="red"    onclick="return fghue(0);"  >R</span
+><span class="huerg1" onclick="return fghue(10);" >*</span
+><span class="huerg2" onclick="return fghue(20);" >*</span
+><span class="huerg3" onclick="return fghue(30);" >*</span
+><span class="huerg4" onclick="return fghue(40);" >*</span
+><span class="huerg5" onclick="return fghue(50);" >*</span
+><span class="huerg6" onclick="return fghue(60);" >*</span
+><span class="huerg7" onclick="return fghue(70);" >*</span
+><span class="green"  onclick="return fghue(80);" >G</span
+><span class="huegb1" onclick="return fghue(90);" >*</span
+><span class="huegb2" onclick="return fghue(100);">*</span
+><span class="huegb3" onclick="return fghue(110);">*</span
+><span class="huegb4" onclick="return fghue(120);">*</span
+><span class="huegb5" onclick="return fghue(130);">*</span
+><span class="huegb6" onclick="return fghue(140);">*</span
+><span class="huegb7" onclick="return fghue(150);">*</span
+><span class="blue"   onclick="return fghue(160);">B</span
+><span class="huebr1" onclick="return fghue(170);">*</span
+><span class="huebr2" onclick="return fghue(180);">*</span
+><span class="huebr3" onclick="return fghue(190);">*</span
+><span class="huebr4" onclick="return fghue(200);">*</span
+><span class="huebr5" onclick="return fghue(210);">*</span
+><span class="huebr6" onclick="return fghue(220);">*</span
+><span class="huebr7" onclick="return fghue(230);">*</span>
+</td>
+<td id="fghuef">
+<span onclick="return fghue(-1);">&lt;&lt;</span>
+<span onclick="return fghue(0x100);">&gt;&gt;</span>
+<span id="fghuevalue"></span>
+</td>
+</tr>
+<tr>
+<th>彩度</th>
+<td class="char-scale">
+<span onclick="return fgsat(0x00);">0&nbsp;</span
+><span onclick="return fgsat(0x11);">1&nbsp;</span
+><span onclick="return fgsat(0x22);">2&nbsp;</span
+><span onclick="return fgsat(0x33);">3&nbsp;</span
+><span onclick="return fgsat(0x44);">4&nbsp;</span
+><span onclick="return fgsat(0x55);">5&nbsp;</span
+><span onclick="return fgsat(0x66);">6&nbsp;</span
+><span onclick="return fgsat(0x77);">7&nbsp;</span
+><span onclick="return fgsat(0x88);">8&nbsp;</span
+><span onclick="return fgsat(0x99);">9&nbsp;</span
+><span onclick="return fgsat(0xaa);">a&nbsp;</span
+><span onclick="return fgsat(0xbb);">b&nbsp;</span
+><span onclick="return fgsat(0xcc);">c&nbsp;</span
+><span onclick="return fgsat(0xdd);">d&nbsp;</span
+><span onclick="return fgsat(0xee);">e&nbsp;</span
+><span onclick="return fgsat(0xff);">f&nbsp;</span>
+</td>
+<td id="fgsatf">
+<span onclick="return fgsat(-1);">&lt;&lt;</span>
+<span onclick="return fgsat(0x100);">&gt;&gt;</span>
+<span id="fgsatvalue"></span>
+</td>
+</tr>
+<tr>
+<th>明度</th>
+<td class="char-scale">
+<span class="bright0" onclick="return fgbright(0x00);"
+><span class="mkwhite">0</span><span class="mkblack">0</span></span
+><span class="bright1" onclick="return fgbright(0x11);"
+><span class="mkwhite">1</span><span class="mkblack">1</span></span
+><span class="bright2" onclick="return fgbright(0x22);"
+><span class="mkwhite">2</span><span class="mkblack">2</span></span
+><span class="bright3" onclick="return fgbright(0x33);"
+><span class="mkwhite">3</span><span class="mkblack">3</span></span
+><span class="bright4" onclick="return fgbright(0x44);"
+><span class="mkwhite">4</span><span class="mkblack">4</span></span
+><span class="bright5" onclick="return fgbright(0x55);"
+><span class="mkwhite">5</span><span class="mkblack">5</span></span
+><span class="bright6" onclick="return fgbright(0x66);"
+><span class="mkwhite">6</span><span class="mkblack">6</span></span
+><span class="bright7" onclick="return fgbright(0x77);"
+><span class="mkwhite">7</span><span class="mkblack">7</span></span
+><span class="bright8" onclick="return fgbright(0x88);"
+><span class="mkwhite">8</span><span class="mkblack">8</span></span
+><span class="bright9" onclick="return fgbright(0x99);"
+><span class="mkwhite">9</span><span class="mkblack">9</span></span
+><span class="brighta" onclick="return fgbright(0xaa);"
+><span class="mkwhite">a</span><span class="mkblack">a</span></span
+><span class="brightb" onclick="return fgbright(0xbb);"
+><span class="mkwhite">b</span><span class="mkblack">b</span></span
+><span class="brightc" onclick="return fgbright(0xcc);"
+><span class="mkwhite">c</span><span class="mkblack">c</span></span
+><span class="brightd" onclick="return fgbright(0xdd);"
+><span class="mkwhite">d</span><span class="mkblack">d</span></span
+><span class="brighte" onclick="return fgbright(0xee);"
+><span class="mkwhite">e</span><span class="mkblack">e</span></span
+><span class="brightf" onclick="return fgbright(0xff);"
+><span class="mkwhite">f</span><span class="mkblack">f</span></span>
+</td>
+<td id="fgbrightf">
+<span onclick="return fgbright(-1);">&lt;&lt;</span>
+<span onclick="return fgbright(0x100);">&gt;&gt;</span>
+<span id="fgbrightvalue"></span>
+</td>
+</tr>
+</table>
+<h2>背景色 <span id="bgcv" class="color-value"></span></h2>
+<table>
+<tr class="red">
+<th>赤</th>
+<td class="char-scale">
+<span class="red0" onclick="return bgred(0x00);">0&nbsp;</span
+><span class="red1" onclick="return bgred(0x11);">1&nbsp;</span
+><span class="red2" onclick="return bgred(0x22);">2&nbsp;</span
+><span class="red3" onclick="return bgred(0x33);">3&nbsp;</span
+><span class="red4" onclick="return bgred(0x44);">4&nbsp;</span
+><span class="red5" onclick="return bgred(0x55);">5&nbsp;</span
+><span class="red6" onclick="return bgred(0x66);">6&nbsp;</span
+><span class="red7" onclick="return bgred(0x77);">7&nbsp;</span
+><span class="red8" onclick="return bgred(0x88);">8&nbsp;</span
+><span class="red9" onclick="return bgred(0x99);">9&nbsp;</span
+><span class="reda" onclick="return bgred(0xaa);">a&nbsp;</span
+><span class="redb" onclick="return bgred(0xbb);">b&nbsp;</span
+><span class="redc" onclick="return bgred(0xcc);">c&nbsp;</span
+><span class="redd" onclick="return bgred(0xdd);">d&nbsp;</span
+><span class="rede" onclick="return bgred(0xee);">e&nbsp;</span
+><span class="redf" onclick="return bgred(0xff);">f&nbsp;</span>
+</td>
+<td id="bgredf">
+<span onclick="return bgred(-1);">&lt;&lt;</span>
+<span onclick="return bgred(0x100);">&gt;&gt;</span>
+<span id="bgredvalue"></span>
+</td>
+</tr>
+<tr class="green">
+<th>緑</th>
+<td class="char-scale">
+<span class="green0" onclick="return bggreen(0x00);">0&nbsp;</span
+><span class="green1" onclick="return bggreen(0x11);">1&nbsp;</span
+><span class="green2" onclick="return bggreen(0x22);">2&nbsp;</span
+><span class="green3" onclick="return bggreen(0x33);">3&nbsp;</span
+><span class="green4" onclick="return bggreen(0x44);">4&nbsp;</span
+><span class="green5" onclick="return bggreen(0x55);">5&nbsp;</span
+><span class="green6" onclick="return bggreen(0x66);">6&nbsp;</span
+><span class="green7" onclick="return bggreen(0x77);">7&nbsp;</span
+><span class="green8" onclick="return bggreen(0x88);">8&nbsp;</span
+><span class="green9" onclick="return bggreen(0x99);">9&nbsp;</span
+><span class="greena" onclick="return bggreen(0xaa);">a&nbsp;</span
+><span class="greenb" onclick="return bggreen(0xbb);">b&nbsp;</span
+><span class="greenc" onclick="return bggreen(0xcc);">c&nbsp;</span
+><span class="greend" onclick="return bggreen(0xdd);">d&nbsp;</span
+><span class="greene" onclick="return bggreen(0xee);">e&nbsp;</span
+><span class="greenf" onclick="return bggreen(0xff);">f&nbsp;</span>
+</td>
+<td id="bggreenf">
+<span onclick="return bggreen(-1);">&lt;&lt;</span>
+<span onclick="return bggreen(0x100);">&gt;&gt;</span>
+<span id="bggreenvalue"></span>
+</td>
+</tr>
+<tr class="blue">
+<th>青</th>
+<td class="char-scale">
+<span class="blue0" onclick="return bgblue(0x00);">0&nbsp;</span
+><span class="blue1" onclick="return bgblue(0x11);">1&nbsp;</span
+><span class="blue2" onclick="return bgblue(0x22);">2&nbsp;</span
+><span class="blue3" onclick="return bgblue(0x33);">3&nbsp;</span
+><span class="blue4" onclick="return bgblue(0x44);">4&nbsp;</span
+><span class="blue5" onclick="return bgblue(0x55);">5&nbsp;</span
+><span class="blue6" onclick="return bgblue(0x66);">6&nbsp;</span
+><span class="blue7" onclick="return bgblue(0x77);">7&nbsp;</span
+><span class="blue8" onclick="return bgblue(0x88);">8&nbsp;</span
+><span class="blue9" onclick="return bgblue(0x99);">9&nbsp;</span
+><span class="bluea" onclick="return bgblue(0xaa);">a&nbsp;</span
+><span class="blueb" onclick="return bgblue(0xbb);">b&nbsp;</span
+><span class="bluec" onclick="return bgblue(0xcc);">c&nbsp;</span
+><span class="blued" onclick="return bgblue(0xdd);">d&nbsp;</span
+><span class="bluee" onclick="return bgblue(0xee);">e&nbsp;</span
+><span class="bluef" onclick="return bgblue(0xff);">f&nbsp;</span>
+</td>
+<td id="bgbluef">
+<span onclick="return bgblue(-1);">&lt;&lt;</span>
+<span onclick="return bgblue(0x100);">&gt;&gt;</span>
+<span id="bgbluevalue"></span>
+</td>
+</tr>
+<tr>
+<th>色相</th>
+<td class="char-scale">
+<span class="red"    onclick="return bghue(0);"  >R</span
+><span class="huerg1" onclick="return bghue(10);" >*</span
+><span class="huerg2" onclick="return bghue(20);" >*</span
+><span class="huerg3" onclick="return bghue(30);" >*</span
+><span class="huerg4" onclick="return bghue(40);" >*</span
+><span class="huerg5" onclick="return bghue(50);" >*</span
+><span class="huerg6" onclick="return bghue(60);" >*</span
+><span class="huerg7" onclick="return bghue(70);" >*</span
+><span class="green"  onclick="return bghue(80);" >G</span
+><span class="huegb1" onclick="return bghue(90);" >*</span
+><span class="huegb2" onclick="return bghue(100);">*</span
+><span class="huegb3" onclick="return bghue(110);">*</span
+><span class="huegb4" onclick="return bghue(120);">*</span
+><span class="huegb5" onclick="return bghue(130);">*</span
+><span class="huegb6" onclick="return bghue(140);">*</span
+><span class="huegb7" onclick="return bghue(150);">*</span
+><span class="blue"   onclick="return bghue(160);">B</span
+><span class="huebr1" onclick="return bghue(170);">*</span
+><span class="huebr2" onclick="return bghue(180);">*</span
+><span class="huebr3" onclick="return bghue(190);">*</span
+><span class="huebr4" onclick="return bghue(200);">*</span
+><span class="huebr5" onclick="return bghue(210);">*</span
+><span class="huebr6" onclick="return bghue(220);">*</span
+><span class="huebr7" onclick="return bghue(230);">*</span>
+</td>
+<td id="bghuef">
+<span onclick="return bghue(-1);">&lt;&lt;</span>
+<span onclick="return bghue(0x100);">&gt;&gt;</span>
+<span id="bghuevalue"></span>
+</td>
+</tr>
+<tr>
+<th>彩度</th>
+<td class="char-scale">
+<span onclick="return bgsat(0x00);">0&nbsp;</span
+><span onclick="return bgsat(0x11);">1&nbsp;</span
+><span onclick="return bgsat(0x22);">2&nbsp;</span
+><span onclick="return bgsat(0x33);">3&nbsp;</span
+><span onclick="return bgsat(0x44);">4&nbsp;</span
+><span onclick="return bgsat(0x55);">5&nbsp;</span
+><span onclick="return bgsat(0x66);">6&nbsp;</span
+><span onclick="return bgsat(0x77);">7&nbsp;</span
+><span onclick="return bgsat(0x88);">8&nbsp;</span
+><span onclick="return bgsat(0x99);">9&nbsp;</span
+><span onclick="return bgsat(0xaa);">a&nbsp;</span
+><span onclick="return bgsat(0xbb);">b&nbsp;</span
+><span onclick="return bgsat(0xcc);">c&nbsp;</span
+><span onclick="return bgsat(0xdd);">d&nbsp;</span
+><span onclick="return bgsat(0xee);">e&nbsp;</span
+><span onclick="return bgsat(0xff);">f&nbsp;</span>
+</td>
+<td id="bgsatf">
+<span onclick="return bgsat(-1);">&lt;&lt;</span>
+<span onclick="return bgsat(0x100);">&gt;&gt;</span>
+<span id="bgsatvalue"></span>
+</td>
+</tr>
+<tr>
+<th>明度</th>
+<td class="char-scale">
+<span class="bright0" onclick="return bgbright(0x00);"
+><span class="mkwhite">0</span><span class="mkblack">0</span></span
+><span class="bright1" onclick="return bgbright(0x11);"
+><span class="mkwhite">1</span><span class="mkblack">1</span></span
+><span class="bright2" onclick="return bgbright(0x22);"
+><span class="mkwhite">2</span><span class="mkblack">2</span></span
+><span class="bright3" onclick="return bgbright(0x33);"
+><span class="mkwhite">3</span><span class="mkblack">3</span></span
+><span class="bright4" onclick="return bgbright(0x44);"
+><span class="mkwhite">4</span><span class="mkblack">4</span></span
+><span class="bright5" onclick="return bgbright(0x55);"
+><span class="mkwhite">5</span><span class="mkblack">5</span></span
+><span class="bright6" onclick="return bgbright(0x66);"
+><span class="mkwhite">6</span><span class="mkblack">6</span></span
+><span class="bright7" onclick="return bgbright(0x77);"
+><span class="mkwhite">7</span><span class="mkblack">7</span></span
+><span class="bright8" onclick="return bgbright(0x88);"
+><span class="mkwhite">8</span><span class="mkblack">8</span></span
+><span class="bright9" onclick="return bgbright(0x99);"
+><span class="mkwhite">9</span><span class="mkblack">9</span></span
+><span class="brighta" onclick="return bgbright(0xaa);"
+><span class="mkwhite">a</span><span class="mkblack">a</span></span
+><span class="brightb" onclick="return bgbright(0xbb);"
+><span class="mkwhite">b</span><span class="mkblack">b</span></span
+><span class="brightc" onclick="return bgbright(0xcc);"
+><span class="mkwhite">c</span><span class="mkblack">c</span></span
+><span class="brightd" onclick="return bgbright(0xdd);"
+><span class="mkwhite">d</span><span class="mkblack">d</span></span
+><span class="brighte" onclick="return bgbright(0xee);"
+><span class="mkwhite">e</span><span class="mkblack">e</span></span
+><span class="brightf" onclick="return bgbright(0xff);"
+><span class="mkwhite">f</span><span class="mkblack">f</span></span>
+</td>
+<td id="bgbrightf">
+<span onclick="return bgbright(-1);">&lt;&lt;</span>
+<span onclick="return bgbright(0x100);">&gt;&gt;</span>
+<span id="bgbrightvalue"></span>
+</td>
+</tr>
+</table>
+</div>
+
+<div id="result">
+<blockquote cite="http://www.aozora.gr.jp/cards/000148/files/789_14547.html">
+<h1>吾輩は猫である</h1>
+<p>
+吾輩は猫である。名前はまだ無い。
+</p>
+<p>
+どこで生れたかとんと見当がつかぬ。
+何でも薄暗いじめじめした所でニャーニャー泣いていた事だけは記憶している。
+吾輩はここで始めて人間というものを見た。
+しかもあとで聞くとそれは書生という人間中で一番獰悪な種族であったそうだ。
+</p>
+</blockquote>
+<blockquote cite="http://mld.ursinus.edu/Maerchen/grimmred.html">
+<h1>Little Red Riding Hood</h1>
+<p>
+Once upon a time there was a sweet little maiden. Whoever laid eyes upon her 
+could not help but love her. But it was her grandmother who loved her most. She 
+could never give the child enough. One time she made her a present, a small, red 
+velvet cap, and since it was so becoming and the maiden insisted on always 
+wearing it, she was called Little Red Cap.
+</p>
+</blockquote>
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2005-10-19 v1.1
+2005-10-27 v1.1.1
+2006-01-02 v1.1.3
+-->

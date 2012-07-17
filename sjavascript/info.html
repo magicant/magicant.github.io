@@ -1,0 +1,242 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript でユーザエージェントなどに関する情報を表示します">
+<meta name="date" content="2006-05-14T23:25:22+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 各種情報</title>
+<style type="text/css">
+th {
+	font-weight: normal;
+	text-align: left;
+}
+td {
+	font-weight: normal;
+}
+.defined {
+	font-size: 0.6em;
+}
+.undefined {
+	color: gray;
+}
+</style>
+<script type="text/javascript">
+var UNDEFINED = "<span class='undefined'>(undefined)<\/span>";
+
+// 出力用
+function writeif(obj) {
+	document.write(typeof(obj) != "undefined" ? obj : UNDEFINED);
+}
+</script>
+</head>
+
+<body>
+<h1 id="title">
+Info
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 0.1.1 (2006-05-14)
+</address>
+<noscript>
+<div><strong>
+情報の取得には JavaScript が必要です。
+</strong></div>
+</noscript>
+<table>
+<tbody>
+<tr>
+<th>document.title <span class="defined">[DOM1]</span></th>
+<td><script type="text/javascript">
+writeif(document.title);
+</script></td>
+</tr>
+<tr>
+<th>document.referrer <span class="defined">[DOM1]</span></th>
+<td><script type="text/javascript">
+writeif(document.referrer);
+</script></td>
+</tr>
+<tr>
+<th>document.domain <span class="defined">[DOM1]</span></th>
+<td><script type="text/javascript">
+writeif(document.domain);
+</script></td>
+</tr>
+<tr>
+<th>document.URL <span class="defined">[DOM1]</span></th>
+<td><script type="text/javascript">
+writeif(document.URL);
+</script></td>
+</tr>
+<tr>
+<th>document.width</th>
+<td><script type="text/javascript">
+writeif(document.width);
+</script></td>
+</tr>
+<tr>
+<th>document.height</th>
+<td><script type="text/javascript">
+writeif(document.height);
+</script></td>
+</tr>
+<tr>
+<th>document.lastModified</th>
+<td><script type="text/javascript">
+writeif(document.lastModified);
+</script></td>
+</tr>
+<tr>
+<th>new Date(lastModified)</th>
+<td><script type="text/javascript">
+writeif(new Date(document.lastModified));
+</script></td>
+</tr>
+<tr>
+<th>document.fileModifiedDate</th>
+<td><script type="text/javascript">
+writeif(document.fileModifiedDate);
+</script></td>
+</tr>
+<tr>
+<th>location.href</th>
+<td><script type="text/javascript">
+writeif(location.href);
+</script></td>
+</tr>
+<tr>
+<th>location.protocol</th>
+<td><script type="text/javascript">
+writeif(location.protocol);
+</script></td>
+</tr>
+<tr>
+<th>location.port</th>
+<td><script type="text/javascript">
+writeif(location.port);
+</script></td>
+</tr>
+<tr>
+<th>location.hostname</th>
+<td><script type="text/javascript">
+writeif(location.hostname);
+</script></td>
+</tr>
+<tr>
+<th>location.pathname</th>
+<td><script type="text/javascript">
+writeif(location.pathname);
+</script></td>
+</tr>
+<tr>
+<th>location.search</th>
+<td><script type="text/javascript">
+writeif(location.search);
+</script></td>
+</tr>
+<tr>
+<th>location.hash</th>
+<td><script type="text/javascript">
+writeif(location.hash);
+</script></td>
+</tr>
+<tr>
+<th>navigator.appName</th>
+<td><script type="text/javascript">
+writeif(navigator.appName);
+</script></td>
+</tr>
+<tr>
+<th>navigator.appCodeName</th>
+<td><script type="text/javascript">
+writeif(navigator.appCodeName);
+</script></td>
+</tr>
+<tr>
+<th>navigator.appVersion</th>
+<td><script type="text/javascript">
+writeif(navigator.appVersion);
+</script></td>
+</tr>
+<tr>
+<th>navigator.appMinorVersion</th>
+<td><script type="text/javascript">
+writeif(navigator.appMinorVersion);
+</script></td>
+</tr>
+<tr>
+<th>navigator.userAgent</th>
+<td><script type="text/javascript">
+writeif(navigator.userAgent);
+</script></td>
+</tr>
+<tr>
+<th>navigator.userProfile</th>
+<td><script type="text/javascript">
+try {
+	writeif(navigator.userProfile);
+} catch (e) {
+	document.write("エラー: " + e.message);
+}
+</script></td>
+</tr>
+<tr>
+<th>navigator.userLanguage</th>
+<td><script type="text/javascript">
+writeif(navigator.userLanguage);
+</script></td>
+</tr>
+<tr>
+<th>navigator.systemLanguage</th>
+<td><script type="text/javascript">
+writeif(navigator.systemLanguage);
+</script></td>
+</tr>
+<tr>
+<th>navigator.platform</th>
+<td><script type="text/javascript">
+writeif(navigator.platform);
+</script></td>
+</tr>
+<tr>
+<th>screen.colorDepth</th>
+<td><script type="text/javascript">
+writeif(screen.colorDepth);
+</script></td>
+</tr>
+<tr>
+<th>screen.width</th>
+<td><script type="text/javascript">
+writeif(screen.width);
+</script></td>
+</tr>
+<tr>
+<th>screen.height</th>
+<td><script type="text/javascript">
+writeif(screen.height);
+</script></td>
+</tr>
+</tbody>
+</table>
+</body>
+
+</html><!--
+programed by Magicant
+2005年10月16日 v0.0
+2005年11月30日 v0.1
+2006年05月14日 v0.1.1
+-->

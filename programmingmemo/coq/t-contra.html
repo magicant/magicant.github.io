@@ -1,0 +1,140 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq の absurd, contradict, contradiction タクティクのクィックリファレンス">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq タクティクリファレンス: 否定と矛盾</title>
+</head>
+
+<body>
+<h1 id="title">タクティクリファレンス: 否定と矛盾</h1>
+
+<h2 id="absurd"><code>absurd</code> タクティク</h2>
+<dl>
+<dt><code>absurd <var>term</var></code></dt>
+<dd>
+<p>現在のゴールが何であるかにかかわらず、ゴールを二つのサブゴール <code><var>term</var></code> と <code>~ <var>term</var></code> に変換する。<code>elimtype False; <a href="t-apply.html#refine">refine</a> ((_ : ~ <var>term</var>) (_ : <var>term</var>))</code> に等しい。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal (P -> Q) -> (P -> ~ Q) -> ~ P.
+</kbd><samp>1 subgoal
+  
+  ============================
+   Prop, (P -> Q) -> (P -> ~ Q) -> ~ P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2 H3.
+</kbd><samp>1 subgoal
+  
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd>absurd Q.
+</kbd><samp>2 subgoals
+  
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   ~ Q
+
+subgoal 2 is:
+ Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> (H2 H3).
+</kbd><samp>1 subgoal
+  
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#exact">exact</a> (H1 H3).
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+</dl>
+
+<h2 id="contradict"><code>contradict</code> タクティク</h2>
+<p>Coq 8.2 以降で使える。</p>
+<dl>
+<dt><code>contradict <var>ident</var></code></dt>
+<dd>
+<p>指定した前提 <var>ident</var>とゴールを入れ替える。</p>
+<table>
+<thead><tr><th>前</th><th>後</th></tr></thead>
+<tbody>
+<tr>
+<td><var>ident</var> : <var>P</var> ⊢ <var>Q</var></td>
+<td>⊢ ~ <var>P</var></td>
+</tr>
+<tr>
+<td><var>ident</var> : ~ <var>P</var> ⊢ <var>Q</var></td>
+<td>⊢ <var>P</var></td>
+</tr>
+<tr>
+<td><var>ident</var> : <var>P</var> ⊢ ~ <var>Q</var></td>
+<td><var>ident</var> : <var>Q</var> ⊢ ~ <var>P</var></td>
+</tr>
+<tr>
+<td><var>ident</var> : ~ <var>P</var> ⊢ ~ <var>Q</var></td>
+<td><var>ident</var> : <var>Q</var> ⊢ <var>P</var></td>
+</tr>
+</tbody>
+</table>
+<p>ゴールが <code>~ <var>P</var></code> の形をしていない場合は、前提 <var>ident</var> は削除されるので注意。</p>
+</dd>
+</dl>
+
+<h2 id="contradiction"><code>contradiction</code> タクティク</h2>
+<dl>
+<dt><code>contradiction</code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> の後、前提にある <code>False</code> を使って任意のゴールの証明を完成させる。<code><a href="t-induct.html#intros">intros</a>; elimtype False; assumption</code> に同じ。また前提に <code>False</code> そのものがなくて <code>assumption</code> が利かなくても、<code><var>P</var></code> と <code>~ <var>P</var></code> がある場合は自動的に証明を完成させる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+  
+  ============================
+   P -> ~ P -> 0 = 1
+
+Unnamed_thm < </samp><kbd>contradiction.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>contradiction <var>ident</var></code></dt>
+<dd>
+<p><code>False</code> を導くために前提 <var>ident</var> を使う。</p>
+</dd>
+</dl>
+
+<h2 id="exfalso"><code>exfalso</code> タクティク</h2>
+<p>Coq 8.3 以降で使える。</p>
+<dl>
+<dt><code>exfalso</code></dt>
+<dd>
+<p>現在のゴールが何であるかにかかわらず、ゴールを <code>False</code> にする。<code>elimtype False</code> に同じ。</p>
+</dd>
+</dl>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant <!--/ 更新 2010-07-20--> / 初出 2010-11-27
+</address>
+
+</body>
+</html>

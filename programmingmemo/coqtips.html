@@ -1,0 +1,737 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq で証明を行う際の基本的な事例集">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq Tips</title>
+</head>
+
+<h1>Coq Tips</h1>
+
+<p><strong>このページの内容は古くなっています。<a href="coq/index.html">Coq クィックリファレンス</a>を見てください。</strong></p>
+
+<p>以下、<kbd class="coq">Parameters A B C P Q R : Prop.</kbd> を仮定。</p>
+
+<h2>目次</h2>
+<ol>
+<li><a href="#h">前件 (仮定) が……の場合</a>
+<ol>
+<li><a href="#h-false">仮定が <code class="coq">False</code> の場合・仮定に矛盾がある場合</a></li>
+<li><a href="#h-negation">仮定が否定の場合 (<code class="coq">~A</code> の形)</a></li>
+<li><a href="#h-implication">仮定が含意の場合 (<code class="coq">A -> B</code> の形)</a></li>
+<li><a href="#h-conjunction">仮定が連言の場合 (<code class="coq">A /\ B</code> の形)</a></li>
+<li><a href="#h-disjunction">仮定が選言の場合 (<code class="coq">A \/ B</code> の形)</a></li>
+<li><a href="#h-forall">仮定が全称量化子 (<code class="coq">forall</code>) の場合</a></li>
+<li><a href="#h-exists">仮定が存在量化子 (<code class="coq">exists</code>) の場合</a></li>
+<!--
+<li><a href="#h-"></a></li>
+-->
+</ol></li>
+<li><a href="#g">後件 (ゴール) が……の場合</a>
+<ol>
+<li><a href="#g-true">ゴールが <code class="coq">True</code> の場合</a></li>
+<li><a href="#g-negation">ゴールが <code class="coq">False</code>・否定の場合</a></li>
+<li><a href="#g-implication">ゴールが含意の場合 (<code class="coq">A -> B</code> の形)</a></li>
+<li><a href="#g-conjunction">ゴールが連言の場合 (<code class="coq">A /\ B</code> の形)</a></li>
+<li><a href="#g-disjunction">ゴールが選言の場合 (<code class="coq">A \/ B</code> の形)</a></li>
+<li><a href="#g-forall">ゴールが全称量化子 (<code class="coq">forall</code>) の場合</a></li>
+<li><a href="#g-exists">ゴールが存在量化子 (<code class="coq">exists</code>) の場合</a></li>
+<li><a href="#g-tautology">ゴールが恒真命題 (トートロジー) の場合</a></li>
+<li><a href="#g-equality">ゴールが等式の場合 (<code class="coq">A = B</code> の形)</a></li>
+<li><a href="#g-inequality">ゴールが不等式の場合 (<code class="coq">A &lt;> B</code> の形)</a></li>
+<!--
+<li><a href="#g-"></a></li>
+-->
+</ol></li>
+<li><a href="#o-lemma">証明の中で補題を宣言・証明する</a></li>
+<li><a href="#o-contradiction">矛盾の証明</a></li>
+<!--
+<li><a href="#o-"></a></li>
+<li><a href="#o-"></a></li>
+-->
+</ol>
+
+<h2 id="h">前件 (仮定) が……の場合</h2>
+
+<h3 id="h-false">仮定が <code class="coq">False</code> の場合・仮定に矛盾がある場合</h3>
+<p><a href="#o-contradiction">矛盾の証明</a>を参照</p>
+
+<h3 id="#h-negation">仮定が否定の場合 (<code class="coq">~A</code> の形)</h3>
+<p><code class="coq">~A</code> の正体は <code class="coq">A -> False</code>
+であることに注意。ゴールが <code class="coq">False</code> の場合にこの仮定を
+<code class="coq">apply</code> することはできるが、それ以外の場面では扱いづらい。
+<a href="#o-contradiction">矛盾の証明</a>も参照。</p>
+
+<h3 id="h-implication">仮定が含意の場合 (<code class="coq">A -> B</code> の形)</h3>
+<p><code class="coq">apply</code> で適用する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l1 : A -> (A -> B) -> B.
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> (A -> B) -> B
+
+l1 < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A
+  H0 : A -> B
+  ============================
+   B
+
+l1 < </samp><kbd>apply H0.
+</kbd><samp>1 subgoal
+
+  H : A
+  H0 : A -> B
+  ============================
+   A
+
+l1 < </samp><kbd>exact H.
+</kbd><samp>Proof completed.
+
+l1 < </samp><kbd>Qed.
+</kbd><samp>intros.
+apply H0.
+exact H.
+l1 is defined
+
+Coq < </samp><kbd>Lemma l2 : A -> (A -> B) -> B.
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> (A -> B) -> B
+
+l2 < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A
+  H0 : A -> B
+  ============================
+   B
+
+l2 < </samp><kbd>apply H0 in H.
+</kbd><samp>1 subgoal
+
+  H : B
+  H0 : A -> B
+  ============================
+   B
+
+l2 < </samp><kbd>exact H.
+</kbd><samp>Proof completed.</samp></pre>
+
+<h3 id="h-conjunction">仮定が連言の場合 (<code class="coq">A /\ B</code> の形)</h3>
+<p><code class="coq">decompose [and]</code> や <code class="coq">elim</code>
+で複数の仮定に分ける。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A /\ B -> A.
+</kbd><samp>1 subgoal
+
+  ============================
+   A /\ B -> A
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A /\ B
+  ============================
+   A
+
+l < </samp><kbd>decompose [and] H.
+</kbd><samp>1 subgoal
+
+  H : A /\ B
+  H0 : A
+  H1 : B
+  ============================
+   A
+
+l < </samp><kbd>Restart.
+</kbd><samp>1 subgoal
+
+  ============================
+   A /\ B -> A
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A /\ B
+  ============================
+   A
+
+l < </samp><kbd>elim H.
+</kbd><samp>1 subgoal
+
+  H : A /\ B
+  ============================
+   A -> B -> A
+
+l < </samp><kbd>intros; assumption.
+</kbd><samp>Proof completed.</samp></pre>
+
+<h3 id="h-disjunction">仮定が選言の場合 (<code class="coq">A \/ B</code> の形)</h3>
+<p><code class="coq">inversion</code> や <code class="coq">decompose [or]</code>
+で場合分けする。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A \/ B -> ~B -> A.
+</kbd><samp>1 subgoal
+
+  ============================
+   A \/ B -> ~ B -> A
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A \/ B
+  H0 : ~ B
+  ============================
+   A
+
+l < </samp><kbd>inversion H.
+</kbd><samp>2 subgoals
+
+  H : A \/ B
+  H0 : ~ B
+  H1 : A
+  ============================
+   A
+
+subgoal 2 is:
+ A
+
+l < </samp><kbd>assumption.
+</kbd><samp>1 subgoal
+
+  H : A \/ B
+  H0 : ~ B
+  H1 : B
+  ============================
+   A
+
+l < </samp><kbd>contradiction.
+</kbd><samp>Proof completed.
+
+l < </samp><kbd>Restart.
+</kbd><samp>1 subgoal
+
+  ============================
+   A \/ B -> ~ B -> A
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A \/ B
+  H0 : ~ B
+  ============================
+   A
+
+l < </samp><kbd>decompose [or] H.
+</kbd><samp>2 subgoals
+
+  H : A \/ B
+  H0 : ~ B
+  H1 : A
+  ============================
+   A
+
+subgoal 2 is:
+ A
+
+l < </samp><kbd>assumption.
+</kbd><samp>1 subgoal
+
+  H : A \/ B
+  H0 : ~ B
+  H1 : B
+  ============================
+   A
+
+l < </samp><kbd>contradiction.
+</kbd><samp>Proof completed.</samp></pre>
+
+<h3 id="h-forall">仮定が全称量化子 (<code class="coq">forall</code>) の場合</h3>
+<p><code class="coq">apply</code> で適用する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Parameter P : nat -> Prop.
+</kbd><samp>P is assumed
+
+Coq < </samp><kbd>Lemma l : (forall x : nat, P x) -> (exists y : nat, P y).
+</kbd><samp>1 subgoal
+
+  ============================
+   (forall x : nat, P x) -> exists y : nat, P y
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : forall x : nat, P x
+  ============================
+   exists y : nat, P y
+
+l < </samp><kbd>exists 0.
+</kbd><samp>1 subgoal
+
+  H : forall x : nat, P x
+  ============================
+   P 0
+
+l < </samp><kbd>apply H.
+</kbd><samp>Proof completed.</samp></pre>
+
+<h3 id="h-exists">仮定が存在量化子 (<code class="coq">exists</code>) の場合</h3>
+<p><code class="coq">decompose [ex]</code> や <code class="coq">elim</code>
+で量化される存在を具体化する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Parameter P : nat -> Prop.
+</kbd><samp>P is assumed
+
+Coq < </samp><kbd>Lemma l : (exists x : nat, ~ P x) -> ~ (forall y : nat, P y).
+</kbd><samp>1 subgoal
+
+  ============================
+   (exists x : nat, ~ P x) -> ~ (forall y : nat, P y)
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : exists x : nat, ~ P x
+  ============================
+   ~ (forall y : nat, P y)
+
+l < </samp><kbd>decompose [ex] H.
+</kbd><samp>1 subgoal
+
+  H : exists x : nat, ~ P x
+  x : nat
+  H0 : ~ P x
+  ============================
+   ~ (forall y : nat, P y)
+
+l < </samp><kbd>unfold not; intros.
+</kbd><samp>1 subgoal
+
+  H : exists x : nat, ~ P x
+  x : nat
+  H0 : ~ P x
+  H1 : forall y : nat, P y
+  ============================
+   False
+
+l < </samp><kbd>apply H0; apply H1.
+</kbd><samp>Proof completed.</samp></pre>
+
+<!--TODO:仮定が等式の場合。discriminate, rewrite-->
+
+<h2 id="g">後件 (ゴール) が……の場合</h2>
+
+<h3 id="g-true">ゴールが <code class="coq">True</code> の場合</h3>
+<p><code class="coq">exact I</code> を使う。<code class="coq">tauto</code> や
+<code class="coq">auto</code> でもよい。</p>
+
+<h3 id="g-negation">ゴールが <code class="coq">False</code>・否定の場合</h3>
+<p><code class="coq">~A</code> の正体は <code class="coq">A -> False</code>
+であることに注意。ゴール <code class="coq">~A</code> を直接導くことが難しい場合は、
+<code class="coq">unfold not</code> で <code class="coq">A -> False</code>
+に展開し、<a href="#o-contradiction">矛盾を導く</a>。</p>
+
+<h3 id="g-implication">ゴールが含意の場合 (<code class="coq">A -> B</code> の形)</h3>
+<p><code class="coq">intro</code> または <code class="coq">intros</code>
+で含意の仮定を証明の仮定に移動する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A -> A.
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> A
+
+l < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : A
+  ============================
+   A</samp></pre>
+
+<h3 id="g-conjunction">ゴールが連言の場合 (<code class="coq">A /\ B</code> の形)</h3>
+<p><code class="coq">split</code> でゴールを分けてそれぞれを証明する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A -> B -> A /\ B.
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> B -> A /\ B
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A
+  H0 : B
+  ============================
+   A /\ B
+
+l < </samp><kbd>split.
+</kbd><samp>2 subgoals
+
+  H : A
+  H0 : B
+  ============================
+   A
+
+subgoal 2 is:
+ B</samp></pre>
+<p>仮定 <code class="coq">A /\ B /\ C</code> からゴール
+<code class="coq">(A /\ B) /\ C</code> を証明するのは <code class="coq">tauto</code>
+一発で済む。(→<a href="#g-tautology">トートロジー</a>)</p>
+
+<h3 id="g-disjunction">ゴールが選言の場合 (<code class="coq">A \/ B</code> の形)</h3>
+<p><code class="coq">left</code> または <code class="coq">right</code>
+でどちらか一方を選び、選んだほうを証明する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A -> (A \/ B).
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> A \/ B
+
+l < </samp><kbd>intro.
+</kbd><samp>1 subgoal
+
+  H : A
+  ============================
+   A \/ B
+
+l < </samp><kbd>left.
+</kbd><samp>1 subgoal
+
+  H : A
+  ============================
+   A
+
+l < </samp><kbd>assumption.
+</kbd><samp>Proof completed.</samp></pre>
+<p><code class="coq">A \/ B \/ C</code> は <code class="coq">A \/ (B \/ C)</code>
+であることに注意。(例えば <code class="coq">B</code> を選ぶには <code class="coq">right</code>
+して <code class="coq">left</code> する)</p>
+
+<h3 id="g-forall">ゴールが全称量化子 (<code class="coq">forall</code>) の場合</h3>
+<p><code class="coq">intro</code> または <code class="coq">intros</code>
+で量化される値を仮定に移動する。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : forall A : Prop, A -> A.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall A : Prop, A -> A
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  A : Prop
+  H : A
+  ============================
+   A</samp></pre>
+
+<h3 id="g-exists">ゴールが存在量化子 (<code class="coq">exists</code>) の場合</h3>
+<p><code class="coq">exists</code> で実例を与える。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, n = 0
+
+l < </samp><kbd>exists 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 0</samp></pre>
+<p>または、<code class="coq">evar</code> で実例の存在を仮定し、後で
+<code class="coq">instantiate</code> で実例を具体化する。</p>
+<pre code="coq"><samp>Coq < </samp><kbd>Lemma l : exists n : nat, forall m : nat, m = n -> m = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, forall m : nat, m = n -> m = 0
+
+l < </samp><kbd>evar (n' : nat).
+</kbd><samp>1 subgoal
+
+  n' := ?8 : nat
+  ============================
+   exists n : nat, forall m : nat, m = n -> m = 0
+
+l < </samp><kbd>exists n'; intros.
+</kbd><samp>1 subgoal
+
+  n' := ?8 : nat
+  m : nat
+  H : m = n'
+  ============================
+   m = 0
+
+l < </samp><kbd>instantiate (1 := 0) in (Value of n').
+</kbd><samp>1 subgoal
+
+  n' := 0 : nat
+  m : nat
+  H : m = n'
+  ============================
+   m = 0
+
+l < </samp><kbd>exact H.
+</kbd><samp>Proof completed.</samp></pre>
+<p><code class="coq">eapply</code> で直接メタ変数を導入したり
+メタ変数を実例と単一化したりすることもできる。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : exists n : nat, forall m : nat, m = n -> m = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, forall m : nat, m = n -> m = 0
+
+l < </samp><kbd>eapply ex_intro.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m : nat, m = ?4 -> m = 0
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  m : nat
+  H : m = ?4
+  ============================
+   m = 0
+
+l < </samp><kbd>eapply H.  (* ここでは eapply の代わりに eexact でも可 *)
+</kbd><samp>Proof completed.</samp></pre>
+
+<h3 id="g-tautology">ゴールが恒真命題 (トートロジー) の場合</h3>
+<p>直観主義論理の恒真命題に対しては <code class="coq">tauto</code>
+が使える。より複雑な命題に対しては <code class="coq">intuition</code> や
+<code class="coq">firstorder</code> を試すとよい。</p>
+
+<h3 id="g-equality">ゴールが等式の場合 (<code class="coq">A = B</code> の形)</h3>
+<p>自明な等式については <code class="coq">reflexivity</code>
+(<code class="coq">apply refl_equal</code>) や <code class="coq">auto</code>
+が使える。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : 3 = 3.
+</kbd><samp>1 subgoal
+
+  ============================
+   3 = 3
+
+l < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></pre>
+<p>等式の両辺を入れ替えるには <code class="coq">symmetry</code> を使う。</p>
+<p>ゴール <code class="coq">A = B</code> を <code class="coq">A = C</code> と
+<code class="coq">C = B</code> に分けるには <code class="coq">transitivity C</code>
+を使う。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A = B -> B = C -> A = C.
+</kbd><samp>1 subgoal
+
+  ============================
+   A = B -> B = C -> A = C
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A = B
+  H0 : B = C
+  ============================
+   A = C
+
+l < </samp><kbd>transitivity B.
+</kbd><samp>2 subgoals
+
+  H : A = B
+  H0 : B = C
+  ============================
+   A = B
+
+subgoal 2 is:
+ B = C
+
+l < </samp><kbd>assumption.
+</kbd><samp>1 subgoal
+
+  H : A = B
+  H0 : B = C
+  ============================
+   B = C</samp></pre>
+<p>もっとも、同値変形の繰り返しは <code class="coq">congruence</code> に任せればよい。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : forall a b c d e, a=b+c -> a=e -> b+c=d -> d=e.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall a b c d e : nat, a = b + c -> a = e -> b + c = d -> d = e
+
+l < </samp><kbd>congruence.
+</kbd><samp>Proof completed.</samp></pre>
+<p><code class="coq">F A = F B</code> の形を <code class="coq">A = B</code>
+の形にするには <code class="coq">f_equal</code> が使える。</p>
+<pre class="coq"><samp>  m : nat
+  n : nat
+  H : m = n
+  ============================
+   S m = S n
+
+l < </samp><kbd>f_equal.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : m = n
+  ============================
+   m = n</samp></pre>
+
+<h3 id="g-inequality">ゴールが不等式の場合 (<code class="coq">A &lt;> B</code> の形)</h3>
+<p><code class="coq">A &lt;> B</code> の正体は <code class="coq">~(A = B)</code>
+すなわち <code class="coq">A = B -> False</code> であることに注意。
+<a href="#g-negation">ゴールが <code class="coq">False</code>・否定の場合</a>を参照。</p>
+<p>構文的に自明な不等式については直接 <code class="coq">discriminate</code> が使える。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : 0 &lt;> 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   0 &lt;> 1
+
+l < </samp><kbd>discriminate.
+</kbd><samp>Proof completed.</samp></pre>
+<p><code class="coq">congruence</code> はゴールが不等式の場合も使える。
+(→<a href="#g-equality">等式の場合</a>)</p>
+<pre class-"coq"><samp>Coq < </samp><kbd>Lemma l : forall a b c d e : nat, a&lt;>b+c -> a=e -> b+c=d -> d&lt;>e.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall a b c d e : nat, a &lt;> b + c -> a = e -> b + c = d -> d &lt;> e
+
+l < </samp><kbd>congruence.
+</kbd><samp>Proof completed.</samp></pre>
+
+<h2 id="o-lemma">証明の中で補題を宣言・証明する</h2>
+<p><code class="coq">assert</code> または <code class="coq">cut</code> を使う。</p>
+<p><code class="coq">assert H</code> を使うと、まずその補題の証明を求められる。すなわち、
+<code class="coq">H</code> が新たなサブゴールとなる。補題の証明が終わると、
+その補題が仮定に加わり、元のゴールの証明に戻る。</p>
+<p><code class="coq">cut H</code> を使うと、現在のゴール <code class="coq">G</code>
+が新しいゴール <code class="coq">H -> G</code>
+に変わる。新しいゴールの証明が終った後に補題の証明を行う。</p>
+
+<h2 id="o-contradiction">矛盾の証明</h2>
+<p>仮定の一つが <code class="coq">False</code> そのものの場合、
+または仮定から簡単に <code class="coq">False</code>
+が導ける場合は、<code class="coq">contradiction</code> でどんなゴールも証明できる。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : A -> ~A -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   A -> ~ A -> 0 = 1
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : A
+  H0 : ~ A
+  ============================
+   0 = 1
+
+l < </samp><kbd>contradiction.
+</kbd><samp>Proof completed.</samp></pre>
+<p>すぐに <code class="coq">False</code> を導くことが難しい場合は、<code class="coq">apply False_ind</code> するとゴールが <code class="coq">False</code> に変わるので、自分で <code class="coq">False</code> を導く。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : P /\ ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   P /\ ~ P -> 0 = 1
+
+l < </samp><kbd>intros.
+</kbd><samp>1 subgoal
+
+  H : P /\ ~ P
+  ============================
+   0 = 1
+
+l < </samp><kbd>apply False_ind.
+</kbd><samp>1 subgoal
+
+  H : P /\ ~ P
+  ============================
+   False
+
+l < </samp><kbd>decompose [and] H.
+</kbd><samp>1 subgoal
+
+  H : P /\ ~ P
+  H0 : P
+  H1 : ~ P
+  ============================
+   False
+
+l < </samp><kbd>apply H1; apply H0.
+</kbd><samp>Proof completed.</samp></pre>
+<p><code class="coq">absurd</code> から二律背反を導くことで矛盾を示すこともできる。</p>
+<pre class="coq"><samp>Coq < </samp><kbd>Lemma l : (A -> B) -> (A -> ~B) -> ~A.
+</kbd><samp>1 subgoal
+
+  ============================
+   (A -> B) -> (A -> ~ B) -> ~ A
+
+l < </samp><kbd>intros H0 H1; unfold not; intros H.
+</kbd><samp>1 subgoal
+
+  H0 : A -> B
+  H1 : A -> ~ B
+  H : A
+  ============================
+   False
+
+l < </samp><kbd>absurd B.
+</kbd><samp>2 subgoals
+
+  H0 : A -> B
+  H1 : A -> ~ B
+  H : A
+  ============================
+   ~ B
+
+subgoal 2 is:
+ B
+
+l < </samp><kbd>apply H1; assumption.
+</kbd><samp>1 subgoal
+
+  H0 : A -> B
+  H1 : A -> ~ B
+  H : A
+  ============================
+   B
+
+l < </samp><kbd>apply H0; assumption.
+</kbd><samp>Proof completed.</samp></pre>
+
+<!--   仮定を使ってゴールを書きかえる。
+<pre class="coq"><samp>  H : A = (P /\ Q)
+  H0 : P /\ Q \/ R
+  ============================
+   A \/ R
+
+l < </samp><kbd>rewrite H.
+</kbd><samp>1 subgoal
+
+  H : A = (P /\ Q)
+  H0 : P /\ Q \/ R
+  ============================
+   P /\ Q \/ R</samp></pre>
+-->
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2008-2010 Magicant / 更新 2010-05-01 / 初出 2008-12-05
+</address>
+
+</body>
+</html>

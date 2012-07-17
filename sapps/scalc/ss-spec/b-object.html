@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-07-25T15:17:55+09:00">
+<title>Object 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="axioms.html" title="公理">
+<link rel="next" href="b-type.html" title="Type 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Object</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Object</code> 組込みオブジェクトを定義する。</p>
+
+<h2 id="members"><code>Object</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd>プロトタイプを持たないオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Object"</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>Object</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Object</code> の関数としての呼出し</h2>
+<p><code>Object</code> は関数として呼出し可能であり、
+関数として呼出されると新たなオブジェクトを一つ作成し
+それを値とする正常終了の結果を返す。このオブジェクトは <code>$prototype</code>
+内部メンバの値として <code>Object.prototype</code>
+を持つほかに内部メンバ・メンバを持たない。</p>
+
+<!--h2 id="prototype-members"><code>Object.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>Object</code> のインスタンスのプロパティ</h2>
+<p><code>Object</code> のインスタンスは以下のプロパティを持つ。ただし、
+<code>Object.prototype</code>
+のプロパティがスクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p--prototype"><code>$prototype</code></dt>
+<dd>このプロパティの値は、このオブジェクトの<a href="objects.html#type"
+>プロトタイプオブジェクト</a>である。ただし、このオブジェクトに
+プロトタイプオブジェクトが存在しなければ、このプロパティの値は初期の
+<a href="b-void.html#m-void"><code>Void.void</code></a> である。</dd>
+<dd>このオブジェクトが <code>$isImmutable</code> 内部メンバを持つならば、
+このプロパティは読み取り専用である。</dd>
+<dd>このプロパティが読み取り専用でなければ、このプロパティにオブジェクト <var
+>P</var> を代入すると、このオブジェクトのプロトタイプを <var>P</var>
+に変更する。代入の結果は、代入を行った直後のこのプロパティの値である。</dd>
+<dd>このプロパティが読み取り専用でなければ、このプロパティを削除すると、
+このオブジェクトの <code>$prototype</code> 内部メンバを削除する。削除の結果は、
+削除を行う直前のこのプロパティの値である。</dd>
+<dt id="p--isimmutable"><code>$isImmutable</code></dt>
+<dd>このプロパティの値は<a href="b-boolean.html">真偽値オブジェクト</a>である。
+このオブジェクトに <code>$isImmutable</code> 内部メンバが存在すれば
+このプロパティの値は初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> であり、さもなくば値は初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> である。</dd>
+<dd>このオブジェクトが <code>$isImmutable</code> 内部メンバを持つならば、
+このプロパティは読み取り専用である。</dd>
+<dd>このプロパティが読み取り専用でなければ、このプロパティにオブジェクト
+<var>V</var> を代入すると、<var>V</var> に応じて次の動作を行う:
+	<dl>
+	<dt><var>V</var> が初期の <code>Boolean.true</code> の場合</dt>
+	<dd>このオブジェクトに <code>$isImmutable</code> 内部メンバを作成し、<var
+	>V</var> その値とする。代入の結果は <var>V</var> である。</dd>
+	<dt><var>V</var> が初期の <code>Boolean.false</code> の場合</dt>
+	<dd><var>V</var> を代入の結果とする以外に何もしない。</dd>
+	<dt><var>V</var> がこれ以外のオブジェクトの場合</dt>
+	<dd>新しい <a href="b-error.html"><code>TypeError</code></a>
+	のインスタンスを投げる。</dd>
+	</dl>
+</dd>
+<dd>このプロパティが読み取り専用でなければ、このプロパティを削除するとただ初期の
+<code>Boolean.false</code> を結果とする。</dd>
+<dd class="informative">このプロパティではオブジェクトの不変性を確認・設定できる。
+(→<a href="objects.html#set-property">set-property</a>)</dd>
+<dt id="p--equal"><code>$equal</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x]{ @this === x }</code></dd>
+<dt id="p--unequal"><code>$unequal</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x]{ !(@this == x) }</code></dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>関数として呼び出されると、渡された @this 値を文字列に変換し、その文字列を
+内容とする<a href="b-string.html#string-object">文字列オブジェクト</a
+>を値とする正常終了の結果を返す。文字列への変換の方法は実行環境に任せる。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

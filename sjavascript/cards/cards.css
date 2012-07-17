@@ -1,0 +1,58 @@
+﻿@charset "utf-8";
+
+/* cards.css 1.0 (2005-02-26) */
+/* Requirement: defaultstyle.css for #JavaScript */
+
+html {
+	margin: 0 !important;
+	padding: 0 !important;
+	background: green;
+}
+body {
+	margin: auto;
+	border: none;
+	padding: 15px;
+	color: white;
+	background: green;
+}
+div{
+	margin: 0 auto;
+	border: none;
+	padding: 0;
+}
+
+#maintitle {
+	margin: 0;
+}
+
+.spades, .clubs {
+	color: black;
+}
+.hearts, .diams {
+	color: red;
+}
+.joker {
+	color: blue;
+}
+
+div.card {
+	width: 38px;
+	height: 18px;
+	border: 1px solid black;
+	padding: 0;
+	font: normal normal normal 16px/18px
+		"Times New Roman", "MS PMincho", serif;
+	text-align: center;
+	background: white;
+	cursor: default;
+	letter-spacing: 0;
+	word-spacing: 0;
+}
+div.card.back {
+	color: yellow;
+	background: navy;
+}
+div.card.null {
+	background: green;
+	background: inherit;
+}

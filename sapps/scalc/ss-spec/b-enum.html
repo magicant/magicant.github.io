@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-18T22:11:28+09:00">
+<title>Enum 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-function.html" title="Function 組込みオブジェクト">
+<link rel="next" href="b-list.html" title="List 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Enum</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Enum</code> 組込みオブジェクトを定義する。</p>
+<p><code>Enum</code> はスクリプトで扱われる列挙オブジェクト
+に対応する <a href="b-type.html"><code>Type</code></a>
+のインスタンスである。</p>
+
+<h2 id="enumeration-object">列挙オブジェクト</h2>
+<p><dfn>列挙オブジェクト</dfn
+>とは、値を順番に取出す操作が行えるオブジェクトである。値を順番に取り出す操作
+(列挙) は <a href="#p-tonext"><code>toNext</code> メソッド</a>と<a
+href="#p-item"><code>item</code> プロパティ</a>によって行う。</p>
+<p>列挙オブジェクトは、0 個以上のオブジェクトを列挙する。列挙の内容は
+列挙オブジェクトによって異なる。一般に、
+列挙オブジェクトが列挙するオブジェクトは有限個とは限らない。</p>
+<p>列挙オブジェクトは、全て <code>Enum</code> のインスタンスである。</p>
+<p><dfn>開始列挙オブジェクト</dfn>とは列挙オブジェクトの一種であり、
+オブジェクトの列挙を開始する始まりの列挙オブジェクトである。</p>
+
+<h2 id="members"><code>Enum</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Enum"</code></dd>
+<dt id="m-map"><code>map</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[func, enum] {
+   @if $args.count == 0:
+      @throw NumberOfArgumentsError[];
+   @var enums = $args;
+   enums.<a href="b-list.html#p-shift">shift</a>[];
+   @var toNext = @{
+      @for i : 1 ~ enums.count:
+         @if !(enums[i] = enums[i].toNext[]):
+            @return enums[i];
+      @this.item = func[[enums.<a href="#p-map">map</a>[&amp; #.item]]];
+      @return @this;
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative"><p>このメソッドは、いくつかの列挙オブジェクトで同時に
+列挙を行い、それぞれの列挙オブジェクトで列挙されたオブジェクトを引数として
+関数を呼出し、その結果を列挙する列挙オブジェクトを返す。</p>
+<p>例えば、以下のコードを実行すると、2, 6, 12, 20, …, 110
+を表す整数オブジェクトを要素とするリストオブジェクトが得られる。</p>
+<pre><code>Enum.map[&amp; #1 * #2, 1 ~ 10, 2 ~ 11].<a href="#p-tolist">toList</a
+>[]</code></pre></dd>
+<dt id="m-zip"><code>zip</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[enum1, enum2] {
+   $args.<a href="b-list.html#p-prepend">prepend</a>[<a
+   	href="b-list.html#m-of">List.of</a>];
+   @return Enum.<a href="#m-map">map</a>[[$args]];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、いくつかの列挙オブジェクトで同時に
+列挙を行い、それぞれの列挙オブジェクトで列挙されたオブジェクトを要素とする
+リストオブジェクトを列挙する列挙オブジェクトを返す。</dd>
+</dl>
+
+<h2 id="internal-members"><code>Enum</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Enum</code> の関数としての呼出し</h2>
+<p><code>Enum</code> は関数として呼出し可能であり、
+関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>呼出しにおける引数が 0 個ならば新しい <a href="b-error.html"><code
+>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+<li>新しいオブジェクトを作成し、それを <var>E</var> とする。この時点では、
+このオブジェクトは一切メンバ・内部メンバを持たない。このオブジェクトは
+関数として呼出し可能でない。</li>
+<li><var>E</var> に <code>$prototype</code> 内部メンバを作成し、その値を
+<code>Enum.prototype</code> とする。</li>
+<li><var>E</var> に <code>toNext</code>
+という名前のメンバを作成し、呼出しにおける一つ目の引数をその値とする。</li>
+<li>呼出しにおける引数が二つ以上ならば、<var>E</var> に <code>#source</code>
+という名前のメンバを作成し、二つ目の引数をその値とする。</li>
+<li>[[<var>E</var>]] を返す。</li>
+</ol>
+<p class="informative"><code>Enum</code> の関数としての呼出しは、
+二つ目の引数を元にして、一つ目の引数として与えられた関数オブジェクトを
+<code>toNext</code>
+メソッドとして使って列挙を行う簡単な開始列挙オブジェクトを作成する。</p>
+
+<h2 id="instance-members">列挙オブジェクトのプロパティ</h2>
+<p>列挙オブジェクトは以下のプロパティを持つものと見なす。</p>
+<dl class="member-def">
+<dt id="p-tonext"><code>toNext</code> メソッド</dt>
+<dd>このメソッドが引数無しで関数として呼出されると、
+次のようなオブジェクトを値とする正常終了の結果を返す:
+	<ul>
+	<li>この列挙オブジェクトが開始列挙オブジェクトならば、結果の値は
+	列挙オブジェクトであり、その <a href="#p-item"><code>item</code>
+	プロパティ</a>の値は最初に列挙されるオブジェクトである。ただし、
+	列挙されるオブジェクトが一つもなければ、結果の値は初期の <a
+	href="b-null.html#m-null"><code>Null.null</code></a> である。</li>
+	<li>この列挙オブジェクトが開始列挙オブジェクトでなければ、結果の値は
+	列挙オブジェクトであり、その <code>item</code> プロパティの値は
+	この列挙オブジェクトの <code>item</code> プロパティの値の次に列挙される
+	オブジェクトである。ただし、この列挙オブジェクトの <code>item</code>
+	プロパティの値の次に列挙されるオブジェクトが存在しなければ、結果の値は初期の
+	<code>Null.null</code> である。</li>
+	</ul>
+このメソッドが引数ありで呼出された時の動作は規定しないが、
+引数無しで呼出されたときと同様に動作するのが望ましい。</dd>
+<dt id="p-item"><code>item</code></dt>
+<dd>開始列挙オブジェクトについては、このプロパティは規定しない。
+すなわち、このプロパティは存在しないか、
+あるいは存在しても値は一般に何であるか決まりはない。</dd>
+<dd>開始列挙オブジェクトでない列挙オブジェクトについては、<a href="#p-tonext"
+><code>toNext</code> メソッド</a>が呼出される前はこのプロパティは必ず存在し、
+その値は列挙されるオブジェクトである。スクリプトによって直接
+代入または削除されない限り、このプロパティの値は変化してはならない。</dd>
+</dl>
+<p>これらのプロパティは読み取り専用でなくても良い。列挙オブジェクトの
+プロパティが <code>toNext</code> メソッド内部以外のところから代入もしくは
+削除されたならば、それ以降その列挙オブジェクトはオブジェクトを
+上述の規定通りに正しく列挙しなくても良い。</p>
+<p>列挙オブジェクトの <code>toNext</code> メソッドが一度でも関数として呼出された
+後は、そのオブジェクトは列挙オブジェクトでなくなってもよい。</p>
+<p class="informative">注意: 列挙オブジェクトの <code>toNext</code>
+メソッドが呼出された後は、<code>toNext</code>/<code>item</code>
+プロパティに関する規定はない。
+これを利用して、列挙オブジェクトを使い回すような動作が一般に認められる。
+すなわち、<code>toNext</code> メソッドが呼出されたときに
+(新しい列挙オブジェクトを作るのではなくて) その列挙オブジェクトの
+<code>item</code> プロパティの値を変更した上で
+同じ列挙オブジェクトをそのまま返すような実装が認められる。</p>
+
+<h2 id="prototype-members"><code>Enum.prototype</code> のプロパティ</h2>
+<dl class="member-def">
+<dt id="p-head"><code>head</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[count] {
+   @var toNext = @{
+      @if --count < 0:
+         @return @null;
+      #source = #source.toNext[];
+      @if #source: {
+         @this.item = #source.item;
+         @return @this;
+      } @else: {
+         @return #source;
+      }
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトが列挙する
+オブジェクトのうち最初のいくつかだけを列挙する列挙オブジェクトを返す。</dd>
+<dt id="p-skip"><code>skip</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[count] {
+   @var toNext = @{
+      @do:
+         #source = #source.toNext[];
+      @while #source &amp;&amp; --count >= 0;
+      @return #source;
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトが列挙する
+オブジェクトのうち最初のいくつかを飛ばして列挙する列挙オブジェクトを返す。</dd>
+<!--dt id="p-every"><code>every</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[count] {
+   @var toNext = @{
+      @var i = 0;
+      @while #source &amp;&amp; ++i <= count:
+         #source = #source.toNext[];
+      @if #source: {
+         @this.item = #source.item;
+         @return @this;
+      } @else: {
+         @return #source;
+      }
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトが列挙する
+オブジェクトのうち、引数で指定したある整数の倍数番目のオブジェクトのみを列挙する
+列挙オブジェクトを返す。</dd-->
+<dt id="p-map"><code>map</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[f] {
+   @var toNext = @{
+      #source = #source.toNext[];
+      @if #source: {
+         @this.item = f[#source.item];
+         @return @this;
+      } @else: {
+         @return #source;
+      }
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトが列挙する
+オブジェクトに引数関数を適用した結果を列挙する新しい開始列挙オブジェクトを返す。
+</dd>
+<dt id="p-filter"><code>filter</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[f] {
+   @var toNext = @{
+      @while (#source = #source.toNext[]) &amp;&amp; !f[#source.item]: ;
+      @if #source: {
+         @this.item = #source.item;
+         @return @this;
+      } @else: {
+         @return #source;
+      }
+   };
+   @return Enum[toNext, @this];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトが列挙する
+オブジェクトのうち、引数で示された述語を満たすオブジェクトのみに限定した列挙を
+行う新しい開始列挙オブジェクトを返す。</dd>
+<dt id="p-forall"><code>forAll</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[predicate] {
+   @if ## == 0:
+      predicate = <a href="b-function.html#m-id">Function.id</a>;
+   @for i: @this:
+      @if !predicate[i]:
+         @return @false;
+   @return @true;
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトで実際に列挙操作を
+行い、引数で示された述語を全てのオブジェクトが満たしているかどうかを調べる。
+</dd>
+<dt id="p-exists"><code>exists</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[predicate] {
+   @if ## == 0:
+      predicate = <a href="b-function.html#m-id">Function.id</a>;
+   @for i: @this:
+      @if predicate[i]:
+         @return @true;
+   @return @false;
+}</code></pre></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトで実際に列挙操作を
+行い、引数で示された述語を満たすオブジェクトが存在するかどうかを調べる。</dd>
+<dt id="p-fold"><code>fold</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[func, init] {
+   @var e = @this;
+   @if !@exists $args[2]: {
+      e = e.toNext[];
+      @if !e:
+         @throw <a href="b-error.html">UnsupportedOperationError</a>[];
+      init = e.item;
+   }
+   @var v = init;
+   @for i: e:
+      v = func[v, i];
+   @return v;
+}</code></pre></dd>
+<dd class="informative">
+<p>このメソッドは、この列挙オブジェクトで実際に列挙操作を行い、
+引数で指定されたに引数関数を用いて各オブジェクトを<em>畳み込む</em>。
+第二引数が指定された場合は、それが初期値となる。第二引数が渡されなければ、
+最初に列挙されるオブジェクトが初期値となる。</p>
+<p>例えば以下のコードは、<code>1 * 2 * 3 * 4</code> の計算を行い、結果として 24
+を返す:</p>
+<pre><code><a href="b-list.html#m-of">List.of</a
+>[1, 2, 3, 4].fold[&amp; #1 * #2]</code></pre>
+<p>また以下のコードは、<code>0 + 1 + 2 + 3 + 4</code> の計算を行い、結果として
+10 を返す:</p>
+<pre><code>List.of[1, 2, 3, 4].fold[&amp; #1 + #2, 0]</code></pre>
+</dd>
+<dt id="p-tolist"><code>toList</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@ { <a href="b-list.html#m-of">List.of</a>[[@this]] }</code></dd>
+<dd class="informative">このメソッドは、この列挙オブジェクトで実際に列挙操作を
+行い、列挙されたオブジェクトを全て含む新しいリストを返す。</dd>
+</dl>
+
+<h2 id="instance-call">列挙オブジェクトの関数としての呼出し</h2>
+<p>列挙オブジェクトが関数として呼出し可能であるかどうか、
+および関数として呼出されたときの動作は、一般には規定しない。</p>
+
+<h2 id="enumerate-all">列挙動作</h2>
+<p>オブジェクト <var>O</var> を開始列挙オブジェクトと見なして列挙動作を行い、
+全ての列挙結果を得る処理 enumerate-all を、以下のように定義する:</p>
+<ol>
+<li><var>l</var> を要素を含まない<a href="primitives.html#type-primitive-list"
+>原始リスト</a>とする。</li>
+<li>[[<var>O</var>]] を <var>e</var> と置く。</li>
+<li>*1: 式 <code><var>E</var>.toNext[]</code> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を改めて
+<var>e</var> と置く。ただし、この評価において部分式 <var>E</var> の評価結果は
+<var>e</var> であるとする。</li>
+<li><var>e</var> が正常終了でなければ、それを返す。</li>
+<li><var>e</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が false ならば [[<var>l</var>]]
+を返す。</li>
+<li><var>e</var> の値の <code>item</code> プロパティを取得する。
+取得の結果が正常終了でなければ、直ちにそれを返す。正常終了ならば、
+その値を <var>V</var> とする。</li>
+<li><var>l</var> の末尾に <var>V</var> を追加して出来る新たな原始リストを改めて
+<var>l</var> とする。</li>
+<li>式 <code><var>E</var>.toNext[]</code> の評価 (*1) に戻る。</li>
+</ol>
+<p>ただし、<var>O</var> が<a href="b-list.html#list-object"
+>リストオブジェクト</a>ならば、上記の代わりに以下の動作を行ってもよい:</p>
+<ol>
+<li>[[<var>O</var> の <code>elements</code> 内部メンバの値]] を返す。</li>
+</ol>
+
+<h2 id="example">列挙オブジェクトの例</h2>
+<p><a href="b-list.html#list-object">リストオブジェクト</a
+>に含まれるオブジェクトを列挙し、各オブジェクトを出力する例:</p>
+<pre><code>@var list = <a href="b-list.html#m-of">List.of</a>[1, 2, 3];
+@var e = list.<a href="b-list.html#p-getenum">getEnum</a>[];
+@while e = e.toNext[]:
+   @printline e.item;</code></pre>
+<p>または:</p>
+<pre><code>@var list = List.of[1, 2, 3];
+@for i : list:
+   @printline i;</code></pre>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

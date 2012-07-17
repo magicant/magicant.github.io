@@ -1,0 +1,1090 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-18T22:11:28+09:00">
+<title>式 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="tokens.html" title="トークン">
+<link rel="next" href="statements.html" title="文">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">式</h1>
+<p>この章では、文の構成要素となる式について定義する。</p>
+
+<h2 id="metadefinition">演算子の定義に関する規則</h2>
+<h3 id="precedence">演算子の優先順位</h3>
+<p>演算子の優先順位は、解析表現の定義に基づいて定める。
+一つの解析表現に複数の演算子が現れる場合、それらの演算子の優先順位は等しい。
+ある解析表現 <var>e</var><sub>1</sub> の中に非終端記号として別の解析表現 <var
+>e</var><sub>2</sub> が含まれる場合、<var>e</var><sub>2</sub>
+で定義する演算子の優先順位は <var>e</var><sub>1</sub>
+で定義する演算子の優先順位よりも高い。</p>
+
+<h3 id="associativity">演算子の結合法則</h3>
+<p>同じ優先順位の中置二項演算子が続けて用いられるとき、それらの演算子を
+どの順番で適用するかという問題が生じる。#Script では、全ての中置二項演算子は
+左結合と右結合のどちらかに分類され、演算子の適用順位は明確に定められる。</p>
+<p>同じ優先順位の中置二項演算子同士において、先に書いてあるものから順に演算子を
+適用するとき、その中置二項演算子は<dfn>左結合 (<span lang="en"
+>left-associative</span>)</dfn>であると言う。例えば、式 <code>1 * 2 * 3</code>
+において、演算子 <code>*</code> は左結合であるため、この式は
+<code>(1 * 2) * 3</code> と同じように評価する。</p>
+<p>同じ優先順位の中置二項演算子同士において、後に書いてあるものから順に演算子を
+適用するとき、その中置二項演算子は<dfn>右結合 (<span lang="en"
+>right-associative</span>)</dfn>であると言う。例えば、式 <code>1 ^ 2 ^ 3</code>
+において、演算子 <code>^</code> は右結合であるため、この式は
+<code>1 ^ (2 ^ 3)</code> と同じように評価する。</p>
+<p>前置演算子および後置演算子では、結合法則に関する問題は起こらない。#Script
+では、前置演算子と後置演算子が同じ優先順位になることは無い。
+同じ優先順位の前置演算子または後置演算子を続けて用いるとき、
+それらは単純に被演算子に最も近い演算子から順に適用する。</p>
+
+<h2 id="primary">基本式</h2>
+<p>基本式は、式の最小構成要素である。</p>
+<dl class="definition">
+<dt id="d-primary">Primary</dt>
+<dd><a href="#d-this">This</a></dd>
+<dd><a href="#d-precision">Precision</a></dd>
+<dd><a href="#d-void-literal">VoidLiteral</a></dd>
+<dd><a href="#d-null-literal">NullLiteral</a></dd>
+<dd><a href="#d-boolean-literal">BooleanLiteral</a></dd>
+<dd><a href="#d-parenthesized">Parenthesized</a></dd>
+<dd><a href="tokens.html#d-string-literal">StringLiteral</a></dd>
+<dd><a href="tokens.html#d-float-literal">FloatLiteral</a></dd>
+<dd><a href="tokens.html#d-integer-literal">IntegerLiteral</a></dd>
+<dd><a href="#d-infinity-literal">InfinityLiteral</a></dd>
+<dd><a href="#d-nan-literal">NaNLiteral</a></dd>
+<dd><code>#</code>? <a href="tokens.html#d-identifier">Identifier</a></dd>
+<dd><code>#</code> (<a href="tokens.html#d-integer-literal">IntegerLiteral</a>
+	/ <code>#</code>? <a href="tokens.html#d-d">D</a>)</dd>
+<dd><a href="#d-function">Function</a></dd>
+<dd><a href="#d-tensor">Tensor</a></dd>
+</dl>
+
+<h3 id="this">@this 値</h3>
+<dl class="definition">
+<dt id="d-this">This</dt>
+<dd><code>@this</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>キーワード <code>@this</code> の評価結果は、[[現在の<a
+href="contexts.html#definition">実行コンテクスト</a>の <a
+href="contexts.html#this-value">@this 値</a>]] である。</p>
+
+<h3 id="precision">精度参照</h3>
+<dl class="definition">
+<dt id="d-precision">Precision</dt>
+<dd><code>@prec</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>キーワード <code>@prec</code> の評価結果は、以下のような<a
+href="primitives.html#type-reference">参照</a
+>を値とする正常終了の結果である。</p>
+<p>この参照に対する <a href="primitives.html#check-reference-value"
+>check-reference-value</a> の処理内容は、以下の通りである:</p>
+<ol>
+<li>[[初期の <a href="b-boolean.html#m-true">Boolean.true</a>]] を返す。</li>
+</ol>
+<p>この参照に対する <a href="primitives.html#get-reference-value"
+>get-reference-value</a> の処理内容は、以下の通りである:</p>
+<ol>
+<li>現在の実行コンテクストの<a href="contexts.html#default-precision"
+>デフォルトの精度</a>を <var>p</var> として、実数 <var>p</var> を表す
+<a href="b-float.html"><code>Float</code> オブジェクト</a>を <var>P</var>
+とする。ここで <var>P</var> の <code>Float</code>
+オブジェクトとしての精度は <var>p</var> の精度 (実行環境が<a
+href="primitives.html#type-primitive-limited-real">原始制限実数型</a
+>の値として <var>p</var> を扱っている精度) とする。</li>
+<li>[[<var>P</var>]] を返す。</li>
+</ol>
+<p>この参照とオブジェクト <var>O</var> に対する
+<a href="primitives.html#set-reference-value">set-reference-value</a>
+の処理内容は、以下の通りである:</p>
+<ol>
+<li><var>O</var> が <a href="b-real.html"><code>Real</code> オブジェクト</a
+>でなければ、新しい <a href="b-error.html"><code>TypeError</code></a>
+のインスタンスを投げる。</li>
+<li><var>O</var> が表している実数が 0 以下ならば、新しい <a
+href="b-error.html"><code>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+<li><var>O</var> が表している実数に出来るだけ近い<a
+href="primitives.html#type-primitive-limited-real">原始制限実数型</a
+>の値を <var>p</var> とする。ただし、<var>O</var> の表す値を有限の
+原始制限実数型の値として表せない場合は、新しい <a
+href="b-error.html"><code>OverflowError</code></a> のインスタンスを投げる。</li>
+<li>現在の実行コンテクストの<a href="contexts.html#default-precision"
+>デフォルトの精度</a>を <var>p</var> に変更する。</li>
+<li>[[<var>O</var>]] を返す。</li>
+</ol>
+<p>この参照に対する <a href="primitives.html#delete-reference-value"
+>delete-reference-value</a> の処理内容は、以下の通りである:</p>
+<ol>
+<li>新しい <a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。</li>
+</ol>
+
+<h3 id="void-literal">Void リテラル</h3>
+<dl class="definition">
+<dt id="d-void-literal">VoidLiteral</dt>
+<dd><code>@void</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>Void リテラルの評価結果は、[[初期の <a href="b-void.html#m-void"
+><code>Void.void</code></a>]] である。</p>
+
+<h3 id="null-literal">Null リテラル</h3>
+<dl class="definition">
+<dt id="d-null-literal">NullLiteral</dt>
+<dd><code>@null</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>Null リテラルの評価結果は、[[初期の <a href="b-null.html#m-null"
+><code>Null.null</code></a>]] である。</p>
+
+<h3 id="boolean-literal">真偽値リテラル</h3>
+<dl class="definition">
+<dt id="d-boolean-literal">BooleanLiteral</dt>
+<dd><code>@true</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dd><code>@false</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>真偽値リテラル <code>@true</code> の評価結果は、[[初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] である。</p>
+<p>真偽値リテラル <code>@false</code> の評価結果は、[[初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a>]]
+である。</p>
+
+<h3 id="parenthesized">括弧式</h3>
+<dl class="definition">
+<dt id="d-parenthesized">Parenthesized</dt>
+<!--dd><code>(</code> <code>)</code></dd-->
+<dd>LeftParen <a href="expressions.html#d-expression">Expression</a>
+	RightParen</dd>
+<dt id="d-left-paren">LeftParen</dt>
+<dd><code>(</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-right-paren">RightParen</dt>
+<dd><code>)</code> <a href="tokens.html#d-d">D</a></dd>
+</dl>
+<p>括弧式を使うと、Expression を Primary として扱うことができる。</p>
+<p>Parenthesized: LeftParen Expression RightParen
+の評価は、Expression を評価し、その結果を返す。</p>
+
+<h3 id="string-literal">文字列リテラル</h3>
+<p>Primary: <a href="tokens.html#d-string-literal">StringLiteral</a>
+の評価結果は、[[その文字列リテラルが表す Unicode 文字列を内容とする<a
+href="b-string.html#string-object">文字列オブジェクト</a>]] である。</p>
+
+<h3 id="integer-literal">整数リテラル</h3>
+<p>Primary: <a href="tokens.html#d-integer-literal">IntegerLiteral</a>
+の評価結果は、以下のような <code>Number</code> オブジェクトを値とする
+正常終了の<a href="primitives.html#type-primitive-result">結果</a>である:</p>
+<dl>
+<dt>整数リテラルに ImaginaryMark が含まれていない場合</dt>
+<dd>このリテラルが表す整数値を表す <a href="b-integer.html"><code>Integer</code
+></a> オブジェクトが結果となる。</dd>
+<dt>整数リテラルに ImaginaryMark が含まれている場合</dt>
+<dd>結果の値は <a href="b-complex.html"><code>Complex</code></a>
+オブジェクトである。このオブジェクトの <a href="b-complex.html#p-re"
+><code>re</code> プロパティ</a>の値は 0 を表す <a href="b-integer.html"
+><code>Integer</code></a> オブジェクトであり、<a href="b-complex.html#p-im"
+><code>im</code> プロパティ</a>の値は、リテラルに ImaginaryMark
+が含まれていない場合の評価結果として得られるものと同等の <code>Integer</code>
+オブジェクトである。</dd>
+</dl>
+<p>ただし、メモリ不足などのためにリテラルの値を <code>Integer</code>
+オブジェクトによって正確に表すことができない場合は、<a
+href="calculations.html#overflow-error">オーバーフローエラー</a>とする。</p>
+
+<h3 id="float-literal">浮動小数点数リテラル</h3>
+<p>Primary: <a href="tokens.html#d-float-literal">FloatLiteral</a>
+の評価結果は、以下のような <code>Number</code> オブジェクトを値とする
+正常終了の<a href="primitives.html#type-primitive-result">結果</a>である:</p>
+<dl>
+<dt>浮動小数点数リテラルに ImaginaryMark が含まれていない場合</dt>
+<dd>結果の値は <a href="b-float.html"><code>Float</code></a>
+オブジェクトである。このオブジェクトの表す実数値は
+浮動小数点リテラルの表す値の絶対値であり、
+その精度は浮動小数点リテラルの精度である。</dd>
+<dt>浮動小数点数リテラルに ImaginaryMark が含まれている場合</dt>
+<dd>結果の値は <a href="b-complex.html"><code>Complex</code></a>
+オブジェクトである。このオブジェクトの <a href="b-complex.html#p-re"
+><code>re</code> プロパティ</a>の値は 0 を表す <a href="b-integer.html"
+><code>Integer</code></a> オブジェクトであり、<a href="b-complex.html#p-im"
+><code>im</code> プロパティ</a>の値は、リテラルに ImaginaryMark
+が含まれていない場合の評価結果として得られるものと同等の <code>Float</code>
+オブジェクトである。</dd>
+</dl>
+<p>ただし、メモリ不足などのためにリテラルの値を <code>Float</code>
+オブジェクトによって正確に表すことができない場合は、<a
+href="calculations.html#overflow-error">オーバーフローエラー</a>とする。</p>
+
+<h3 id="infinity-literal">無限大リテラル</h3>
+<dl class="definition">
+<dt id="d-infinity-literal">InfinityLiteral</dt>
+<dd><code>@inf</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dd><code>@cinf</code> KD</dd>
+</dl>
+<p>無限大リテラル InfinityLiteral: <code>@inf</code> KD
+の評価結果は、[[正の無限大を表す <a href="calculations.html#infinity-objects"
+>Infinity オブジェクト</a>]] である。</p>
+<p>無限大リテラル InfinityLiteral: <code>@cinf</code> KD
+の評価結果は、[[複素無限大を表す Infinity オブジェクト]] である。</p>
+
+<h3 id="nan-literal">NaN リテラル</h3>
+<dl class="definition">
+<dt id="d-nan-literal">NaNLiteral</dt>
+<dd><code>@nan</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>NaN リテラルの評価結果は、[[<a href="calculations.html#infinity-object">NaN
+オブジェクト</a>]] である。</p>
+
+<h3 id="identifier">識別子</h3>
+<p>Primary: <a href="tokens.html#d-identifier">Identifier</a> の評価は、
+次のように行われる:</p>
+<ol>
+<li>現在の<a href="contexts.html">実行コンテクスト</a>を <var>c</var>
+とする。</li>
+<li>Identifier トークンを構成する <a href="grammar.html#unicode-string">Unicode
+文字列</a>を <var>n</var> とする。(ただし Identifier トークン末尾の <a
+href="tokens.html#d-d">D</a> は除く)</li>
+<li>結果が決まるまで次の処理を繰り返し行う:
+	<ol>
+	<li><var>c</var> の<a href="contexts.html#vd">変数領域</a>に <var>n</var>
+	という名前のメンバが存在するならば、[[その変数領域を参照先オブジェクトとし、
+	<var>n</var> を参照先メンバ名とする<a
+	href="primitives.html#type-member-reference">メンバ参照</a>]] を返す。</li>
+	<li><var>c</var> が<a href="contexts.html#bec">基底実行コンテクスト</a
+	>ならば、[[基底変数領域を参照先オブジェクトとし、<var>n</var>
+	を参照先メンバ名とするメンバ参照]] を返す。</li>
+	<li><var>c</var> の親実行コンテクストを改めて <var>c</var> とする。</li>
+	</ol>
+</li>
+</ol>
+<p>Primary: <code>#</code> <a href="tokens.html#d-identifier">Identifier</a>
+の評価は、次のように行われる:</p>
+<ol>
+<li>現在の<a href="contexts.html">実行コンテクスト</a>の <a
+href="contexts.html#this-value">@this 値</a>を <var>O</var> とする。</li>
+<li>Primary: <code>#</code> Identifier を構成する <a
+href="grammar.html#unicode-string">Unicode 文字列</a>を <var>n</var>
+とする。(ただし Identifier トークン末尾の <a
+href="tokens.html#d-d">D</a> は除く)</li>
+<li>[[<var>O</var> を参照先オブジェクトとし、<var>n</var>
+を参照先メンバ名とする<a href="primitives.html#type-member-reference"
+>メンバ参照</a>]] を返す。</li>
+</ol>
+
+<h3 id="argument-reference">引数参照式</h3>
+<p>引数参照式 Primary: <code>#</code> IntegerLiteral の評価は、IntegerLiteral
+を <var>I</var> として、左辺式 <code>$args[<var>I</var>]</code>
+の評価と同様である。</p>
+<p>実行環境は、文法解析において、IntegerLiteral の中に ImaginaryMark
+が含まれるような Primary: <code>#</code> IntegerLiteral に遭遇した場合は、
+文法エラーとしてよい。</p>
+<p>引数参照式 Primary: <code>#</code> <code>#</code> D の評価は、左辺式
+<code>$args.count</code> の評価と同様である。</p>
+<p>引数参照式 Primary: <code>#</code> D の評価は、引数参照式 <code>#1</code>
+の評価と同様である。</p>
+<!--XXX: 効率化のために定義に幅を持たせるべきか-->
+
+<h3 id="function">関数生成式</h3>
+<dl class="definition">
+<dt id="d-function">Function</dt>
+<dd><code>@</code> <a href="tokens.html#d-d">D</a>
+	(LeftSquareBracket IdentifierList? RightSquareBracket)?
+	<a href="statements.html#d-block">Block</a></dd>
+<dt id="d-left-square-bracket">LeftSquareBracket</dt>
+<dd><code>[</code> D</dd>
+<dt id="d-right-square-bracket">RightSquareBracket</dt>
+<dd><code>]</code> D</dd>
+<dt id="d-identifier-list">IdentifierList</dt>
+<dd><a href="tokens.html#d-identifier">Identifier</a> (Comma Identifier)*</dd>
+<dt id="d-comma">Comma</dt>
+<dd><code>,</code> D</dd>
+<!--dt>FunctionBody</dt>
+<dd><a href="statements.html#d-block">Block</a></dd>
+<dd><a href="#d-parenthesized">Parenthesized</a></dd-->
+</dl>
+<p>関数生成式 Function は、新たな関数を生成する。Function を評価するたびに、
+関数生成式の内容に基づいて新たな関数オブジェクトが生成され、
+それを値とする正常終了が評価結果となる。</p>
+<p>生成される関数オブジェクトの詳細については、別途定める。(→<a
+href="functions.html#function-expression-functions"
+>関数生成式によって生成される関数</a>)</p>
+
+<h3 id="tensor">テンソル生成式</h3>
+<dl class="definition">
+<dt id="d-tensor">Tensor</dt>
+<dd>LeftBrace <a href="#d-expressions">Expressions</a>?
+	<a href="#d-comma">Comma</a>? RightBrace</dd>
+<dd>LeftBrace (&amp;MatrixTester Expressions Comma?
+	<a href="statements.html#d-eos">EOS</a>)+ RightBrace</dd>
+<dt id="d-matrix-tester">MatrixTester</dt>
+<dd>MatrixTesterRec Comma? EOS</dd>
+<dd>Expressions Comma? EOS RightBrace</dd>
+<dt id="d-matrix-tester-rec">MatrixTesterRec</dt>
+<dd>Expression Comma MatrixTesterRec Comma Expression</dd>
+<dd>Expression Comma? EOS Expression</dd>
+<dt id="d-left-brace">LeftBrace</dt>
+<dd><code>{</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-right-brace">RightBrace</dt>
+<dd><code>}</code> D</dd>
+</dl>
+<p>テンソル生成式は、新たなテンソルを生成する。Tensor を評価するたびに、
+テンソル生成式の内容に基づいて新たなテンソルオブジェクトが生成される。
+テンソルオブジェクトが問題なく生成されれば、
+それを値とする正常終了が評価結果となる。</p>
+<p>具体的なテンソルオブジェクトの生成の仕方は、別途定める。(→<a
+href="b-tensor.html#tensor-expressions">テンソル生成式の評価</a>)</p>
+<p class="informative">解析表現 MatrixTester は、行列の各行に含まれる要素の
+個数を全て等しくするために存在する。行列の行の要素数が異なっている
+(つまり行列が長方形でない) 場合、文法エラーとなる。</p>
+
+<h2 id="left-hand-side">左辺式</h2>
+<dl class="definition">
+<dt id="d-left-hand-side">LeftHandSide</dt>
+<dd><a href="#d-primary">Primary</a>
+	(Dot <a href="tokens.html#d-identifier">Identifier</a>
+	/ <a href="#d-left-square-bracket">LeftSquareBracket</a> 
+	<a href="#d-expressions">Expressions</a>?
+	<a href="#d-right-square-bracket">RightSquareBracket</a>
+	/ LeftSquareBracket2 (<a href="#d-expression">Expression</a>
+	<a href="#d-comma">Comma</a>)? Expression RightSquareBracket2)*</dd>
+<dt id="d-dot">Dot</dt>
+<dd><code>.</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-left-square-bracket-2">LeftSquareBracket2</dt>
+<dd><code>[[</code> D</dd>
+<dt id="d-right-square-bracket-2">RightSquareBracket2</dt>
+<dd><code>]]</code> D</dd>
+</dl>
+<p>左辺式は、Primary に 0
+個以上のメンバアクセス演算または関数呼出し演算を適用したものである。
+メンバアクセス演算および関数呼出し演算は後置演算子として振舞う。</p>
+<p>被演算子 <var>A</var> に対するメンバアクセス演算:
+<var>A</var> Dot Identifier の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果に対し
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければ、それを返す。</li>
+<li>[[<var>c</var> の値を参照先オブジェクトとし、Identifier
+トークンを構成する <a href="grammar.html#unicode-string">Unicode 文字列</a
+>を参照先メンバ名とする<a href="primitives.html#type-member-reference"
+>メンバ参照</a>]] を評価結果とする。</li>
+</ol>
+<p>被演算子 <var>A</var> に対する関数呼出し演算:
+<var>A</var> LeftSquareBracket Expressions? RightSquareBracket
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを返す。</li>
+<li><var>c</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、その参照先オブジェクトを <var>t</var> とする。
+さもなくば、初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を
+<var>t</var> とする。</li>
+<li><var>c</var> の値に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>o</var> とする。</li>
+<li><var>o</var> が正常終了でなければそれを返す。</li>
+<li>Expressions が存在するならば、それを評価し、その結果を <var>p</var>
+とする。ここで <var>p</var> が正常終了でなければそれを返す。</li>
+<li><var>o</var> の値が関数として呼出し可能でなければ、新しい
+<a href="b-error.html"><code>NotCallableError</code></a>
+のインスタンスを投げる。</li>
+<li>以下の @this 値と引数で <var>o</var>
+の値を関数として呼出し、その結果を返す。
+<dl>
+<dt>@this 値</dt>
+<dd><var>t</var></dd>
+<dt>引数</dt>
+<dd>Expressions が存在するならば、<var>p</var> の値 (これは<a
+href="primitives.html#type-primitive-list">原始リスト</a>である)
+に含まれる全てのオブジェクト
+(原始リストに含まれるオブジェクトの順序は保たれる)。Expressions
+が存在しなければ、引数は無し (0 個のオブジェクト)。</dd>
+</dl>
+</li>
+</ol>
+<p>被演算子 <var>A</var> に対する関数呼出し演算:
+<var>A</var> LeftSquareBracket2 Expression RightSquareBracket2
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを返す。</li>
+<li><var>c</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、その参照先オブジェクトを <var>t</var> とする。
+さもなくば、初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を
+<var>t</var> とする。</li>
+<li><var>c</var> の値に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>o</var> とする。</li>
+<li><var>o</var> が正常終了でなければそれを返す。</li>
+<li>Expression を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>p</var> とする。ここで <var>p</var>
+が正常終了でなければそれを返す。</li>
+<li><var>p</var> の値に対して <a href="b-enum.html#enumerate-all"
+>enumerate-all</a> を行い、その結果を <var>q</var> とする。</li>
+<li><var>q</var> が正常終了でなければそれを返す。</li>
+<li><var>o</var> の値が関数として呼出し可能でなければ、新しい
+<a href="b-error.html"><code>NotCallableError</code></a>
+のインスタンスを投げる。</li>
+<li>以下の @this 値と引数で <var>o</var>
+の値を関数として呼出し、その結果を返す。
+<dl>
+<dt>@this 値</dt>
+<dd><var>t</var></dd>
+<dt>引数</dt>
+<dd><var>q</var> の値に含まれる全てのオブジェクト
+(原始リストに含まれるオブジェクトの順序は保たれる)。</dd>
+</dl>
+</li>
+</ol>
+<p>被演算子 <var>A</var> に対する関数呼出し演算:
+<var>A</var> LeftSquareBracket2 Expression Comma Expression RightSquareBracket2
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>o</var> とする。</li>
+<li><var>o</var> が正常終了でなければそれを返す。</li>
+<li>一つ目の Expression を評価し、その結果に対して get-reference-value
+を実行し、その結果を <var>t</var> とする。ここで <var>t</var>
+が正常終了でなければ直ちにそれを返す。</li>
+<li>二つ目の Expression を評価し、その結果に対して get-reference-value
+を実行し、その結果を <var>p</var> とする。ここで <var>p</var>
+が正常終了でなければ直ちにそれを返す。</li>
+<li><var>p</var> の値に対して <a href="b-enum.html#enumerate-all"
+>enumerate-all</a> を行い、その結果を <var>q</var> とする。</li>
+<li><var>q</var> が正常終了でなければそれを返す。</li>
+<li><var>o</var> の値が関数として呼出し可能でなければ、新しい
+<a href="b-error.html"><code>NotCallableError</code></a>
+のインスタンスを投げる。</li>
+<li>以下の @this 値と引数で <var>o</var>
+の値を関数として呼出し、その結果を返す。
+<dl>
+<dt>@this 値</dt>
+<dd><var>t</var> の値</dd>
+<dt>引数</dt>
+<dd><var>q</var> の値に含まれる全てのオブジェクト
+(原始リストに含まれるオブジェクトの順序は保たれる)。</dd>
+</dl>
+</li>
+</ol>
+
+<h2 id="postfix">後置単項演算子</h2>
+<dl class="definition">
+<dt id="d-postfix">Postfix</dt>
+<dd><a href="#d-left-hand-side">LeftHandSide</a> (PlusPlus / MinusMinus)*</dd>
+<dt id="d-plus-plus">PlusPlus</dt>
+<dd><code>++</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-minus-minus">MinusMinus</dt>
+<dd><code>--</code> D</dd>
+</dl>
+<p>この後置単項演算は、結合式に 0 回以上後置演算子 <code>++</code> (PlusPlus)
+または <code>--</code> (MinusMinus) を適用するものである。</p>
+<p>被演算子 <var>A</var> に対する後置単項演算 <code>++</code>
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>p</var> とする。</li>
+<li><var>p</var> に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければそれを返す。</li>
+<li><var>r</var> を <a href="#d-left-hand-side">LeftHandSide</a> に含まれる
+<a href="#d-primary">Primary</a> の評価結果と見なして、左辺式
+<code><var>r</var>.$increment[]</code> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>s</var> とする。</li>
+<li><var>s</var> が正常終了でなければそれを返す。</li>
+<li><var>p</var> の値が<a href="primitives.html#type-reference"
+>参照型</a>でなければ新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>p</var> の値と <var>s</var> に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果が正常終了でなければそれを返す。</li>
+<li><var>r</var> を評価結果とする。</li>
+</ol>
+<p>後置単項演算 <code>--</code> の評価は後置単項演算 <code>++</code>
+の評価と同様である。ただし、左辺式 <code><var>r</var>.$increment[]</code>
+の代わりに左辺式 <code><var>r</var>.$decrement[]</code> を評価する。</p>
+
+<h2 id="power">冪演算子</h2>
+<dl class="definition">
+<dt id="d-power">Power</dt>
+<dd><a href="#d-postfix">Postfix</a>
+	(PowerOperator <a href="#d-prefix">Prefix</a>)?</dd>
+<dt id="d-power-operator">PowerOperator</dt>
+<dd>((<code>^</code> / <code>**</code>) <a href="tokens.html#d-d">D</a></dd>
+</dl>
+<p>冪演算子は、中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>^</code> または
+<code>**</code> の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$power[<var>B</var>]</code></p>
+<p>二つの冪演算子 <code>^</code> と <code>**</code>
+の効果は全く同じである。#Script では前者の使用を推奨する。</p>
+
+<h2 id="prefix">前置単項演算子</h2>
+<dl class="definition">
+<dt id="d-prefix">Prefix</dt>
+<dd>(<a href="#d-plus-plus">PlusPlus</a> /
+	<a href="#d-minus-minus">MinusMinus</a> /
+	<a href="#d-plus">Plus</a> / <a href="#d-minus">Minus</a> /
+	<a href="#d-slash">Slash</a> / BangBang / Bang
+	/ ExistsKeyword / DeleteKeyword / BindKeyword)*
+	<a href="#d-power">Power</a></dd>
+<dt id="d-bang-bang">BangBang</dt>
+<dd><code>!!</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-bang">Bang</dt>
+<dd><code>!</code> D</dd>
+<dt id="d-exists-keyword">ExistsKeyword</dt>
+<dd><code>@exists</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-delete-keyword">DeleteKeyword</dt>
+<dd><code>@delete</code> KD</dd>
+<dt id="d-bind-keyword">BindKeyword</dt>
+<dd><code>@bind</code> KD</dd>
+</dl>
+<p>この前置単項演算は、後置単項演算式に以下に定める前置演算子を 0
+回以上適用するものである。</p>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>+</code> (Plus)
+の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$plus[]</code></p>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>-</code> (Minus)
+の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$minus[]</code></p>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>/</code> (Slash)
+の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$reciprocal[]</code></p>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>!!</code> (BangBang)
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>p</var> とする。</li>
+<li><var>p</var> が正常終了でなければそれを返す。</li>
+<li><var>p</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が true なら [[初期の <a 
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を、false
+なら [[初期の <a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]]
+を返す。</li>
+</ol>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>!</code> (Bang)
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>p</var> とする。</li>
+<li><var>p</var> が正常終了でなければそれを返す。</li>
+<li><var>p</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が true なら [[初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a>]] を、false
+なら [[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]]
+を返す。</li>
+</ol>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>@delete</code>
+(DeleteKeyword) の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+<li><var>r</var> の値が<a href="primitives.html#type-reference">参照</a
+>でなければ、新しい <a href="b-error.html"><code>NotDeletableError</code></a>
+のインスタンスを投げる。</li>
+<li><var>r</var> の値に対して <a href="primitives.html#delete-reference-value"
+>delete-reference-value</a> を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>@exists</code>
+(ExistsKeyword) の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+<li><var>r</var> の値が<a href="primitives.html#type-reference">参照</a
+>でなければ、新しい <a href="b-error.html"><code>TypeError</code></a>
+のインスタンスを投げる。</li>
+<li><var>r</var> の値に対して <a href="primitives.html#check-reference-value"
+>check-reference-value</a> を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>@bind</code>
+(BindKeyword) の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+<li><var>r</var> の値が<a href="primitives.html#member-reference">メンバ参照</a
+>でなければ、直ちに <var>r</var> を返す。</li>
+<li><var>r</var> の値の参照先オブジェクトを <var>t</var> とする。</li>
+<li><var>r</var> に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>s</var> とする。
+これが正常終了で無ければ、直ちにそれを返す。</li>
+<li><var>s</var> の値を <var>f</var> とする。<var>f</var>
+が関数として呼出し可能でなければ、<var>s</var> を返す。</li>
+<li>以下のような新しいオブジェクトを値とする正常終了の結果を返す:
+	<ul>
+	<li>メンバを持たない。</li>
+	<li>唯一の内部メンバは <code>$prototype</code> であり、その値は <var>f</var>
+	である。</li>
+	<li>関数として呼出し可能であり、呼出されると次の動作を行う:
+		<ol><li><var>t</var> を @this 値とし、この呼出しと全く同じ引数で
+		<var>f</var> を関数として呼出し、その結果を返す。</li></ol>
+	</li>
+	</ul>
+</li>
+</ol>
+<p>被演算子 <var>A</var> に対する前置単項演算 <code>++</code> (PlusPlus)
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>p</var> とする。</li>
+<li><var>p</var> に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければそれを返す。</li>
+<li><var>r</var> を <a href="#d-left-hand-side">LeftHandSide</a> に含まれる
+<a href="#d-primary">Primary</a> の評価結果と見なして、左辺式
+<code><var>r</var>.$increment[]</code> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>s</var> とする。</li>
+<li><var>s</var> が正常終了でなければそれを返す。</li>
+<li><var>p</var> の値が<a href="primitives.html#type-reference"
+>参照型</a>でなければ新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>p</var> の値と <var>s</var> に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>前置単項演算 <code>--</code> (MinusMinus) の評価は前置単項演算
+<code>++</code> の評価と同様である。ただし、左辺式 <code><var>r</var
+>.$increment[]</code> の代わりに左辺式 <code><var>r</var>.$decrement[]</code>
+を評価する。</p>
+
+<h2 id="juxtaposition">結合式</h2>
+<dl class="definition">
+<dt id="d-juxtaposition">Juxtaposition</dt>
+<dd><a href="#d-prefix">Prefix</a> (&amp;JuxtapositionDeterminant Prefix)*</dd>
+<dt id="d-juxtaposition-determinant">JuxtapositionDeterminant</dt>
+<dd><code>(</code> / <code>"</code> / <code>'</code> / <code>.</code> /
+	<code>@</code> / <code>#</code> / <code>{</code></dd>
+<dd><code>!</code> !<code>=</code></dd>
+<!--dd><code>@</code> !<code>is</code></dd-->
+<dd><a href="tokens.html#d-identifier-char">IdentifierChar</a></dd>
+</dl>
+<p>結合式は、連続する一つ以上の Prefix である。連続する Prefix には、
+中置二項演算子 [空] による結合演算を適用する。この演算は、左結合である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する結合演算の評価は
+次の式の評価と同様である:
+<code>(<var>A</var>).$juxtapose[<var>B</var>]</code></p>
+<p class="informative">JuxtapositionDeterminant は、構文解析において Prefix
+の後に別の Prefix があるかどうかを判別するための条件を簡略化する。一つ目の
+Prefix の直後に JuxtapositionDeterminant が当てはまり、かつ二つ目の Prefix
+の解析に失敗した場合、文法エラーである。</p>
+
+<h2 id="multiplication">乗算演算子</h2>
+<dl class="definition">
+<dt id="d-multiplication">Multiplication</dt>
+<dd><a href="#d-juxtaposition">Juxtaposition</a>
+	((Star / Slash / Backslash / Percent) Juxtaposition)*</dd>
+<dt id="d-star">Star</dt>
+<dd><code>*</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-slash">Slash</dt>
+<dd><code>/</code> D</dd>
+<dt id="d-backslash">Backslash</dt>
+<dd><code>\</code> D</dd>
+<dt id="d-percent">Percent</dt>
+<dd><code>%</code> D</dd>
+</dl>
+<p>乗算演算子は、左結合の中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>*</code>
+(Star) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$multiply[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>/</code>
+(Slash) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$divide[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>\</code>
+(Backslash) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$quotient[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>%</code>
+(Percent) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$mod[<var>B</var>]</code></p>
+
+<h2 id="addition">加算演算子</h2>
+<dl class="definition">
+<dt id="d-addition">Addition</dt>
+<dd><a href="#d-multiplication">Multiplication</a>
+((Plus / Minus) Multiplication)*</dd>
+<dt id="d-plus">Plus</dt>
+<dd><code>+</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-minus">Minus</dt>
+<dd><code>-</code> D</dd>
+</dl>
+<p>加算演算子は、左結合の中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>+</code> (Plus)
+の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$add[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>-</code> (Minus)
+の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$subtract[<var>B</var>]</code></p>
+
+<h2 id="interval">区間生成演算子</h2>
+<dl class="definition">
+<dt id="d-interval">Interval</dt>
+<dd>IntervalOperator <a href="#d-addition">Addition</a>?</dd>
+<dd>Addition (IntervalOperator Addition?)?</dd>
+<dt id="d-interval-operator">IntervalOperator</dt>
+<dd>EndpointType Tilde EndpointType</dd>
+<dt id="d-endpoint-type">EndpointType</dt>
+<dd><a href="#d-less">Less</a> / <a href="#d-less-equal">LessEqual</a>
+	/ [空]</dd>
+<dt id="d-tilde">Tilde</dt>
+<dd><code>~</code> <a href="tokens.html#d-d">D</a></dd>
+</dl>
+<p>区間生成演算子は<a href="b-interval.html">区間オブジェクト</a
+>を生成する。この演算子は二項演算子であるが、左辺・右辺共に省略可能である。</p>
+<p>被演算子 <var>A</var>, <var>B</var>
+に対する区間生成演算の評価は次の式の評価と同様である:
+<code><a href="b-interval.html#call">Interval</a>[<var>A</var>, <var>B</var>,
+<var>C</var>, <var>D</var>]</code></p>
+<p>ただし上の評価において、部分式 <var>C</var> の評価結果は、IntervalOperator
+の一つ目の EndpointType が Less ならば [[初期の <a href="b-boolean.html#m-false"
+><code>Boolean.false</code></a>]]、さもなくば [[初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] とする。また部分式
+<var>D</var> の評価結果は、IntervalOperator の二つ目の EndpointType が Less
+ならば [[初期の <a href="b-boolean.html#m-false"><code>Boolean.false</code
+></a>]]、さもなくば [[初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a>]] とする。</p>
+<p>この演算子の左辺が省略されているとき、左辺の評価結果は
+[[初期の <a href="b-infinity.html#m-negativeinfinity"><code
+>Infinity.negativeInfinity</code></a>]] とする。
+この演算子の右辺が省略されているとき、右辺の評価結果は
+[[初期の <a href="b-infinity.html#m-positiveinfinity"><code
+>Infinity.positiveInfinity</code></a>]] とする。</p>
+<div class="informative">
+<p>以下は、区間生成式の例である:</p>
+<pre><code>0 &lt; ~ &lt; 1   // 0 から 1 までの開区間
+0 &lt;= ~ &lt;= 1 // 0 から 1 までの開区間
+0 ~ 1       // 同上
+0 ~&lt;        // 0 以上の全実数を表す半開区間
+&lt;~&lt;         // 実数全てを表す開区間</code></pre>
+</div>
+
+<h2 id="chainable-relation">多項関係演算子</h2>
+<dl class="definition">
+<dt id="d-chainable-relation">ChainableRelation</dt>
+<dd><a href="#d-interval">Interval</a> ((LessEqual / Less /
+	GreaterEqual / Greater / EqualEqual / BangEqual) Interval)*</dd>
+<dt id="d-less-equal">LessEqual</dt>
+<dd><code>&lt;=</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-less">Less</dt>
+<dd><code>&lt;</code> D</dd>
+<dt id="d-greater-equal">GreaterEqual</dt>
+<dd><code>>=</code> D</dd>
+<dt id="d-greater">Greater</dt>
+<dd><code>></code> D</dd>
+<dt id="d-equal-equal">EqualEqual</dt>
+<dd><code>==</code> D</dd>
+<dt id="d-bang-equal">BangEqual</dt>
+<dd><code>!=</code> D</dd>
+</dl>
+<p>多項関係演算子は、左結合の中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>&lt;=</code>
+(LessEqual) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$lessEqual[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>&lt;</code>
+(Less) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$less[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>>=</code>
+(GreaterEqual) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$greaterEqual[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>></code>
+(Greater) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$greater[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>==</code>
+(EqualEqual) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$equal[<var>B</var>]</code></p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>!=</code>
+(BangEqual) の評価は次の式の評価と同様である:
+<code>(<var>A</var>).$unequal[<var>B</var>]</code></p>
+<!--a != b を !(a == b) の糖衣構文に?-->
+<!--xxx: 比較を続けて x < y <= z などとできるように-->
+
+<h2 id="binary-relation">二項関係演算子</h2>
+<dl class="definition">
+<dt id="d-binary-relation">BinaryRelation</dt>
+<dd><a href="#d-chainable-relation">ChainableRelation</a>
+((EqualEqualEqual / BangEqualEqual) ChainableRelation)?</dd>
+<dt id="d-equal-equal-equal">EqualEqualEqual</dt>
+<dd><code>===</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-bang-equal-equal">BangEqualEqual</dt>
+<dd><code>!==</code> D</dd>
+</dl>
+<p>二項関係演算子は、<!--左結合の-->中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>===</code>
+(EqualEqualEqual) の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>B</var> を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>b</var> とする。</li>
+<li><var>b</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値と <var>b</var> の値が同じオブジェクトならば [[初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>]]
+を、さもなくば
+[[初期の <a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]]
+を返す。</li>
+</ol>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>!==</code>
+(BangEqualEqual) の評価は次の式の評価と同様である:
+<code>!(<var>A</var> === <var>B</var>)</code></p>
+<!--p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>~</code>
+(Tilde) の評価は次の式の評価と同様である:
+<code><a href="#interval">@interval</a> [<var>A</var>, <var>B</var>]</code></p-->
+
+<h2 id="condition">条件演算子</h2>
+<dl class="definition">
+<dt id="d-conditional-and">ConditionalAnd</dt>
+<dd><a href="#d-binary-relation">BinaryRelation</a>
+	(AndAnd BinaryRelation)*</dd>
+<dt id="d-conditional-or">ConditionalOr</dt>
+<dd><a href="#d-conditional-and">ConditionalAnd</a>
+	(PipePipe ConditionalAnd)*</dd>
+<dt id="d-condition">Condition</dt>
+<dd><a href="#d-conditional-or">ConditionalOr</a>	(Query
+	<a href="#d-expression">Expression</a> Colon Expression)?</dd>
+<dt id="d-and-and">AndAnd</dt>
+<dd><code>&amp;&amp;</code> <a href="tokens.html#d-d">D</a></dd>
+<dt id="d-pipe-pipe">PipePipe</dt>
+<dd><code>||</code> D</dd>
+<dt id="d-query">Query</dt>
+<dd><code>?</code> D</dd>
+<dt id="d-colon">Colon</dt>
+<dd><code>:</code> D</dd>
+</dl>
+<p>条件演算子 <code>&amp;&amp;</code> と <code>||</code>
+は右結合の中置二項演算子である。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>&amp;&amp;</code>
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、それに対して <a href="objects.html#get-property"
+>get-property</a> を実行し、その結果を <var>v</var> とする。そして <var>v</var>
+の値がオブジェクトでなければ、[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を改めて <var>v</var> とする。</li>
+<li><var>a</var> の値がメンバ参照でなければ、<var>a</var> の値に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければ、それを返す。</li>
+<li><var>v</var> の値に対して <a href="#to-boolean">to-boolean</a>
+を実行し、その結果が false ならば、<var>v</var> を返す。</li>
+<li><var>B</var> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>||</code>
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、それに対して <a href="objects.html#get-property"
+>get-property</a> を実行し、その結果を <var>v</var> とする。そして <var>v</var>
+の値がオブジェクトでなければ、[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を改めて <var>v</var> とする。</li>
+<li><var>a</var> の値がメンバ参照でなければ、<var>a</var> の値に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければ、それを返す。</li>
+<li><var>v</var> の値に対して <a href="#to-boolean">to-boolean</a>
+を実行し、その結果が true ならば、<var>v</var> を返す。</li>
+<li><var>B</var> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>条件演算子 <code>? :</code> は便宜的に三項演算子として分類される。</p>
+<p>Condition: ConditionalOr の評価結果は ConditionalOr の評価結果である。</p>
+<p>Condition: ConditionalOr Query Expression Colon Expression
+の評価は次のように行う:</p>
+<ol>
+<li>ConditionalOr を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、それに対して <a href="objects.html#get-property"
+>get-property</a> を実行し、その結果を <var>c</var> とする。そして <var>c</var>
+の値がオブジェクトでなければ、[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を改めて <var>c</var> とする。</li>
+<li><var>a</var> の値がメンバ参照でなければ、<var>a</var> の値に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければ、それを返す。</li>
+<li><var>c</var> の値に対して <a href="#to-boolean">to-boolean</a>
+を実行し、その結果が true ならば一つ目の Expression を、false ならば二つ目の
+Expression を評価し、その結果を返す。</li>
+</ol>
+
+<h2 id="assignment">代入演算子</h2>
+<dl class="definition">
+<dt id="d-assignment">Assignment</dt>
+<dd><a href="#d-condition">Condition</a> (AssignmentOperator
+	<a href="#d-expression">Expression</a>)?</dd>
+<dt id="d-assignment-operator">AssignmentOperator</dt>
+<dd>Equal</dd>
+<dd><code>+=</code> <a href="tokens.html#d-d">D</a></dd>
+<dd><code>-=</code> D</dd>
+<dd><code>*=</code> D</dd>
+<dd><code>^=</code> D</dd>
+<dd><code>**=</code> D</dd>
+<dd><code>/=</code> D</dd>
+<dd><code>\=</code> D</dd>
+<dd><code>%=</code> D</dd>
+<dd><code>&amp;&amp;=</code> D</dd>
+<dd><code>||=</code> D</dd>
+<dt id="d-equal">Equal</dt>
+<dd><code>=</code> D</dd>
+</dl>
+<p>代入演算子は、式の中で最も優先順位が低い中置二項演算子である。
+代入演算子は複数の種類があり、種類によって動作が異なる。
+代入演算子の種類は、AssignmentOperator から D を除いた部分により決定する。</p>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>=</code> (Equal)
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければそれを返す。</li>
+<li><var>B</var> を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>b</var> とする。</li>
+<li><var>b</var> が正常終了でなければそれを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-reference">参照型</a
+>の値でない場合は新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>a</var> の値と <var>b</var> の値に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>&amp;&amp;=</code>
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、それに対して <a href="objects.html#get-property"
+>get-property</a> を実行し、その結果を <var>v</var> とする。そして <var>v</var>
+の値がオブジェクトでなければ、[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を改めて <var>v</var> とする。</li>
+<li><var>a</var> の値がメンバ参照でなければ、<var>a</var> の値に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければそれを評価結果として評価を終了する。</li>
+<li><var>v</var> の値に対して <a href="#to-boolean">to-boolean</a>
+を実行し、その結果が false ならば <var>v</var> を返す。</li>
+<li><var>B</var> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>b</var> とする。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-reference">参照型</a
+>の値でない場合は新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>a</var> の値と <var>b</var> の値に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算 <code>||=</code>
+の評価は次のように行う:</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければ、それを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-member-reference"
+>メンバ参照</a>ならば、それに対して <a href="objects.html#get-property"
+>get-property</a> を実行し、その結果を <var>v</var> とする。そして <var>v</var>
+の値がオブジェクトでなければ、[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を改めて <var>v</var> とする。</li>
+<li><var>a</var> の値がメンバ参照でなければ、<var>a</var> の値に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければそれを評価結果として評価を終了する。</li>
+<li><var>v</var> の値に対して <a href="#to-boolean">to-boolean</a>
+を実行し、その結果が true ならば <var>v</var> を返す。</li>
+<li><var>B</var> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>b</var> とする。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-reference">参照型</a
+>の値でない場合は新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>a</var> の値と <var>b</var> の値に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+<p>被演算子 <var>A</var>, <var>B</var> に対する二項演算
+<var>X</var><code>=</code>
+の評価は次のように行う (ここで <var>X</var> とは次の演算子のどれか一つである:
+<code>+</code>、<code>-</code>、<code>*</code>、<code>^</code>、<code>**</code
+>、<code>/</code>、<code>\</code>、<code>%</code>):</p>
+<ol>
+<li><var>A</var> を評価し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> が正常終了でなければそれを返す。</li>
+<li><var>a</var> と <var>B</var> をそれぞれ演算子 <var>X</var>
+の左辺と右辺の評価結果と見なして演算子 <var>X</var>
+を評価し、その評価結果に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了でなければそれを返す。</li>
+<li><var>a</var> の値が<a href="primitives.html#type-reference">参照型</a
+>の値でない場合は新しい <a href="b-error.html"><code
+>NotAssignableError</code></a> のインスタンスを投げる。</li>
+<li><var>a</var> の値と <var>r</var> の値に対して <a
+href="primitives.html#set-reference-value">set-reference-value</a>
+を実行し、その結果を返す。</li>
+</ol>
+
+<h2 id="function-2">関数生成演算子</h2>
+<dl class="definition">
+<dt id="d-expression">Expression</dt>
+<dd>And Expression</dd>
+<dd><a href="#d-assignment">Assignment</a></dd>
+<dt id="d-and">And</dt>
+<dd><code>&amp;</code> <a href="tokens.html#d-d">D</a></dd>
+</dl>
+<p>関数生成演算子は、構文上は前置単項演算子である。</p>
+<p>被演算子 <var>A</var> に対する関数生成演算 <code>&amp;</code> (And)
+の評価は次の式の評価と同様である: <code>@ { <var>A</var> }</code></p>
+
+<p class="informative">Expression
+の評価結果は、常に正常終了またはエラー終了である。</p>
+
+<h2 id="expressions">複式</h2>
+<dl class="definition">
+<dt id="d-expressions">Expressions</dt>
+<dd><a href="#d-expression">Expression</a>
+	(<a href="#d-comma">Comma</a> Expression)*</dd>
+</dl>
+<p>複式は、一つ以上の式の配列である。</p>
+<p>複式 Expressions: Expression (Comma Expression)*
+の評価は次のように行う:</p>
+<ol>
+<li>Expressions に含まれる Expression の数を <var>n</var> とする。</li>
+<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順に以下の処理を行う:
+	<ol>
+	<li>Expressions の <var>i</var> 番目の Expression を評価し、その結果に対して
+	<a href="primitives.html#get-reference-value">get-reference-value</a>
+	を実行し、その結果を <var>r</var><sub><var>i</var></sub> とする。</li>
+	<li><var>r</var><sub><var>i</var></sub>
+	が正常終了でなければ、直ちにそれを返す。</li>
+	<li><var>r</var><sub><var>i</var></sub> の値を
+	<var>v</var><sub><var>i</var></sub> とする。</li>
+	</ol>
+</li>
+<li>[[<var>v</var><sub>1</sub> から <var>v</var><sub><var>n</var></sub> までの
+<var>n</var> 個のオブジェクトを要素とする<a
+href="primitives.html#type-primitive-list">原始リスト</a>]]
+を返す。このとき、原始リストの要素の順序は <var>v</var>
+の添字の順序を保つ。</li>
+</ol>
+
+<h2 id="to-boolean">条件判定</h2>
+<p>値が真であるか偽であるかを判定する操作 to-boolean は一つのオブジェクト
+<var>v</var> に対して true または false
+のどちらかの値を結果として返す。判定基準は、<var>v</var> がいずれも初期の <a
+href="b-void.html#m-void"><code>Void.void</code></a>、<a
+href="b-null.html#m-null"><code>Null.null</code></a>、<a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a>、<a
+href="b-nan.html#m-nan"><code>NaN.nan</code></a>
+のどれかなら false、さもなくば true である。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

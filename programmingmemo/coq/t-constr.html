@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq の constructor, split, exists, left, right タクティクのクィックリファレンス">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq タクティクリファレンス: コンストラクタの適用</title>
+</head>
+
+<body>
+<h1 id="title">タクティクリファレンス: コンストラクタの適用</h1>
+
+<h2 id="constructor"><code>constructor</code> タクティク</h2>
+<dl>
+<dt><code>constructor <var>num</var></code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> した後、代数的データ型であるゴールの型について、その <var>num</var> 番目のコンストラクタを <code><a href="t-apply.html#apply">apply</a></code> する。</p>
+</dd>
+<dt><code>constructor <var>num</var> with …</code></dt>
+<dd>
+<p><code><a href="t-apply.html#apply">apply</a></code> する際に必要な引数を指定する。<code><a href="t-apply.html#apply">apply</a> … with …</code> を参照。</p>
+</dd>
+<dt><code>constructor</code></dt>
+<dd>
+<p><code><a href="t-apply.html#apply">apply</a></code> 可能なコンストラクタを一つ目から順番に試す。</p>
+<pre><code><samp>Coq < </samp><kbd>Print True.
+</kbd><samp>Inductive True : Prop :=  I : True
+
+Coq < </samp><kbd>Goal True.
+</kbd><samp>1 subgoal
+  
+  ============================
+   True
+
+Unnamed_thm < </samp><kbd>constructor. (* <a href="t-apply.html#apply">apply</a> I に同じ *)
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+</dl>
+
+<h2 id="split"><code>split</code> タクティク</h2>
+<dl>
+<dt><code>split</code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> した後、一つのコンストラクタのみによって定義された代数的データ型のゴールについて、そのコンストラクタを <code><a href="t-apply.html#apply">apply</a></code> する。<code>constructor 1</code> に等しいが、一つのコンストラクタのみによって定義された代数的データ型のゴールにしか使えない。</p>
+<pre><code><samp>Coq < </samp><kbd>Print and.
+</kbd><samp>Inductive and (A B : Prop) : Prop :=  conj : A -> B -> A /\ B
+
+Coq < </samp><kbd>Goal P -> Q -> P /\ Q.
+</kbd><samp>1 subgoal
+  
+  ============================
+   P -> Q -> P /\ Q
+
+Unnamed_thm < </samp><kbd>split. (* <a href="t-induct.html#intros">intros</a>; <a href="t-apply.html#apply">apply</a> conj に同じ *)
+</kbd><samp>2 subgoals
+  
+  H : P
+  H0 : Q
+  ============================
+   P
+
+subgoal 2 is:
+ Q
+
+Unnamed_thm < </samp><kbd>assumption.
+</kbd><samp>1 subgoal
+  
+  H : P
+  H0 : Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>split with <var>bindinglist</var></code></dt>
+<dd>
+<p><code><a href="t-apply.html#apply">apply</a></code> する際に必要な引数を指定する。<code>constructor 1 with <var>bindinglist</var></code> に等しいが、一つのコンストラクタのみによって定義された代数的データ型のゴールにしか使えない。<code><a href="t-apply.html#apply">apply</a> … with …</code> を参照。</p>
+</dd>
+</dl>
+
+<h2 id="exists"><code>exists</code> タクティク</h2>
+<dl>
+<dt><code>exists <var>bindinglist</var></code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> した後、一つのコンストラクタのみによって定義された代数的データ型のゴールについて、指定した引数でそのコンストラクタを <code><a href="t-apply.html#apply">apply</a></code> する。<code>constructor 1 with <var>bindinglist</var></code> に等しいが、一つのコンストラクタのみによって定義された代数的データ型のゴールにしか使えない。</p>
+<pre><code><samp>Coq < </samp><kbd>Print ex.
+</kbd><samp>Inductive ex (A : Type) (P : A -> Prop) : Prop :=
+    ex_intro : forall x : A, P x -> ex P
+
+For ex: Argument A is implicit
+For ex_intro: Argument A is implicit
+For ex: Argument scopes are [type_scope _]
+For ex_intro: Argument scopes are [type_scope _ _ _]
+
+Coq < </samp><kbd>Goal exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+  
+  ============================
+   exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd>exists 0. (* <a href="t-apply.html#apply">apply</a> ex_intro with 0 に同じ *)
+</kbd><samp>1 subgoal
+  
+  ============================
+   0 = 0
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>exists <var>bindinglist</var><sub>1</sub>, …, <var>bindinglist</var><sub><var>n</var></sub></code> (Coq 8.3 以降)</dt>
+<dd>
+<p>複数の <code>exists</code> を順に行う。</p>
+</dd>
+</dl>
+
+<h2 id="left"><code>left</code> タクティク</h2>
+<dl>
+<dt><code>left</code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> した後、二つのコンストラクタによって定義された代数的データ型のゴールについて、その一つ目のコンストラクタを <code><a href="t-apply.html#apply">apply</a></code> する。<code>constructor 1</code> に等しいが、ちょうど二つのコンストラクタによって定義された代数的データ型のゴールにしか使えない。</p>
+<pre><code><samp>Coq < </samp><kbd>Print or.
+</kbd><samp>Inductive or (A B : Prop) : Prop :=
+    or_introl : A -> A \/ B | or_intror : B -> A \/ B
+
+Coq < </samp><kbd>Goal P -> P \/ Q.
+</kbd><samp>1 subgoal
+  
+  ============================
+   P -> P \/ Q
+
+Unnamed_thm < </samp><kbd>left. (* <a href="t-induct.html#intros">intros</a>; <a href="t-apply.html#apply">apply</a> or_introl に同じ *)
+</kbd><samp>1 subgoal
+  
+  H : P
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd>assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>left with <var>bindinglist</var></code></dt>
+<dd>
+<p><code><a href="t-apply.html#apply">apply</a></code> する際に必要な引数を指定する。<code>constructor 1 with <var>bindinglist</var></code> に等しいが、ちょうど二つのコンストラクタによって定義された代数的データ型のゴールにしか使えない。<code><a href="t-apply.html#apply">apply</a> … with …</code> を参照。</p>
+</dd>
+</dl>
+
+<h2 id="right"><code>right</code> タクティク</h2>
+<dl>
+<dt><code>right</code></dt>
+<dd>
+<p><code><a href="t-induct.html#intros">intros</a></code> した後、二つのコンストラクタによって定義された代数的データ型のゴールについて、その二つ目のコンストラクタを <code><a href="t-apply.html#apply">apply</a></code> する。<code>constructor 2</code> に等しいが、ちょうど二つのコンストラクタによって定義された代数的データ型のゴールにしか使えない。</p>
+<pre><code><samp>Coq < </samp><kbd>Print or.
+</kbd><samp>Inductive or (A B : Prop) : Prop :=
+    or_introl : A -> A \/ B | or_intror : B -> A \/ B
+
+Coq < </samp><kbd>Goal Q -> P \/ Q.
+</kbd><samp>1 subgoal
+  
+  ============================
+   Q -> P \/ Q
+
+Unnamed_thm < </samp><kbd>right. (* <a href="t-induct.html#intros">intros</a>; <a href="t-apply.html#apply">apply</a> or_intror に同じ *)
+</kbd><samp>1 subgoal
+  
+  H : Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>right with <var>bindinglist</var></code></dt>
+<dd>
+<p><code><a href="t-apply.html#apply">apply</a></code> する際に必要な引数を指定する。<code>constructor 2 with <var>bindinglist</var></code> に等しいが、ちょうど二つのコンストラクタによって定義された代数的データ型のゴールにしか使えない。<code><a href="t-apply.html#apply">apply</a> … with …</code> を参照。</p>
+</dd>
+</dl>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010-2011 Magicant / 更新 2011-05-08 / 初出 2010-11-30
+</address>
+
+</body>
+</html>

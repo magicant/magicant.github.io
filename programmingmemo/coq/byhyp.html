@@ -1,0 +1,620 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq での証明における、前提別事例集">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq 証明事例集: 前提が……のとき</title>
+</head>
+
+<body>
+<h1 id="title">証明事例集: 前提が……のとき</h1>
+
+<p>Coq においてデータ型のプリミティブは二つある。</p>
+<p>一つは関数の型であり、<code>forall</code> または <code>-></code> を用いて表される。これは論理学でいうところの<q>ならば</q>に対応している。関数に引数を与えることによって、その戻り値を得ることができる。すなわち、<code><var>A</var> -> <var>B</var></code> に <code><var>A</var></code> を与えることで、<code><var>B</var></code> を得ることができる。</p>
+<p>もう一つは、<code>Inductive</code> 文によって定義された代数的データ型である。代数的データ型の値は、それに対して数学的帰納法や場合分けを行うことができる。</p><!--TODO coinduction-->
+<p>証明において前提を使用するということは、基本的には上記二つの操作のいづれかを行うということである。Coq での証明における前提に対する様々な操作は、以下に挙げるものもそうでないものも、いづれもこの二つの操作に帰着できるということを念頭に置かれたい。</p>
+<p>以下の例では、全て予め <code>Parameters P Q R : Prop.</code> を実行してあるものとする。</p>
+
+<h2 id="goal">前提がゴールに等しい場合</h2>
+<p><code>assumption</code> で一発。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> P.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> P
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : P
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd>assumption.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>もちろん、<code><a href="t-apply.html#exact">exact</a> H</code> や <code><a href="t-apply.html#apply">apply</a> H</code> や <code><a href="t-apply.html#refine">refine</a> H</code> などでもよい。</p>
+
+<h2 id="implication">前提が含意の場合 (<code><var>P</var> -> <var>Q</var></code> の形) および前提が全称量化子 (<code>forall</code>) の場合</h2>
+<p><code><a href="t-apply.html#apply">apply</a></code> で適用する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q) -> Q.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q) -> Q
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   P</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q) -> Q.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q) -> Q
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2 in H1.
+</kbd><samp>1 subgoal
+
+  H1 : Q
+  H2 : P -> Q
+  ============================
+   Q</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P : nat -> Prop, (forall n : nat, P n) -> P 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P : nat -> Prop, (forall n : nat, P n) -> P 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> P H.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H : forall n : nat, P n
+  ============================
+   P 0
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>最後の例は本来ならば <code><a href="t-apply.html#apply">apply</a> (H 0)</code> とすべきところだが、<code>n</code> が <code>0</code> であることは推論されるので、<code><a href="t-apply.html#apply">apply</a> H</code> だけでよい。</p>
+
+<h2 id="adt">前提が代数的データ型の場合</h2>
+<p>前提の型が代数的データ型の場合は、<code><a href="t-induct.html#induction">induction</a></code> や <code><a href="t-induct.html#elim">elim</a></code> で数学的帰納法に持ち込んだり <code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> や <code><a href="t-induct.html#decompose">decompose</a></code> で場合分けをしたりすることができる。<!--a>TODO帰納法と場合分け</a--></p>
+
+<h3 id="true">前提が <code>True</code> の場合</h3>
+<p><code>True</code> は代数的データ型として定義されている:</p>
+<pre><code>Inductive True := I.</code></pre>
+<p>しかしその唯一のコンストラクタは引数を取らないため、これに対して数学的帰納法や場合分けをすることは意味をなさない。従って、前提に <code>True</code> があっても証明には何の役にも立たない。</p>
+
+<h3 id="false">前提が <code>False</code> の場合</h3>
+<p><code>False</code> は代数的データ型として定義されている:</p>
+<pre><code>Inductive False := .</code></pre>
+<p>この型はコンストラクタを持たないため、場合分けの対象となる場合がない。従って、場合分けを行うと (どのようなゴールに対しても) 直ちに証明が終了する。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal False -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   False -> 0 = 1
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : False
+  ============================
+   0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.  (* 代わりに <a href="t-induct.html#destruct">destruct</a> H. や <a href="t-induct.html#inversion">inversion</a> H. でもよい *)
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>前提に <code>False</code> そのものはないが前提から <code>False</code> を導くことができそうな場合は、<code>elimtype False</code> を使うとゴールが <code>False</code> に変わるので、後はそれを導けば良い。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> ~ P -> 0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   0 = 1
+
+Unnamed_thm < </samp><kbd>elimtype False.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2; <a href="t-apply.html#apply">apply</a> H1.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code><a href="t-contra.html#contradiction">contradiction</a></code> は、このような手続きをある程度自動化してくれる。
+<pre><code><samp>Coq < </samp><kbd>Goal P -> ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> ~ P -> 0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-contra.html#contradiction">contradiction</a>.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>また <code>False</code> を導くのに <code><a href="t-contra.html#absurd">absurd</a></code> を使うこともできる。<code>absurd <var>P</var></code> はゴールを <code><var>P</var></code> と <code>~ <var>P</var></code> の二つに変え(そこから自動的に <code>False</code> を導いて証明を完了してくれ)る。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal (P -> Q) -> (P -> ~ Q) -> ~ P.
+</kbd><samp>1 subgoal
+
+  ============================
+   (P -> Q) -> (P -> ~ Q) -> ~ P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2 H3.
+</kbd><samp>1 subgoal
+
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-contra.html#absurd">absurd</a> Q.
+</kbd><samp>2 subgoals
+
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   ~ Q
+
+subgoal 2 is:
+ Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2; <a href="t-apply.html#apply">apply</a> H3.
+</kbd><samp>1 subgoal
+
+  H1 : P -> Q
+  H2 : P -> ~ Q
+  H3 : P
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H1; <a href="t-apply.html#apply">apply</a> H3.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="conjunction">前提が連言の場合 (<code><var>P</var> /\ <var>Q</var></code> の形)</h3>
+<p>連言は代数的データ型として定義されている:</p>
+<pre><code>Inductive and (A B : Prop) := conj : A -> B -> A /\ B.</code></pre>
+<p>従って、<code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> を使って分解することができる。</p>
+<pre><code><samp>1 subgoal
+
+  H : P /\ Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#destruct">destruct</a> H as [ H1 H2 ].
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd>Undo.
+</kbd><samp>1 subgoal
+
+  H : P /\ Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H.
+</kbd><samp>1 subgoal
+
+  H : P /\ Q
+  ============================
+   P -> Q -> P
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H : P /\ Q
+  H1 : P
+  H2 : Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H1.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="disjunction">前提が選言の場合 (<code><var>P</var> \/ <var>Q</var></code> の形)</h3>
+<p>選言は代数的データ型として定義されている:</p>
+<pre><code>Inductive or (A B : Prop) :=
+  | or_introl : A -> A \/ B
+  | or_intror : B -> A \/ B.</code></pre>
+<p>従って、<code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> を使って場合分けをすることができる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P \/ Q -> (P -> R) -> (Q -> R) -> R.
+</kbd><samp>1 subgoal
+
+  ============================
+   P \/ Q -> (P -> R) -> (Q -> R) -> R
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2 H3.
+</kbd><samp>1 subgoal
+
+  H1 : P \/ Q
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   R
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#destruct">destruct</a> H1 as [ HA | HB ].
+</kbd><samp>2 subgoals
+
+  HA : P
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   R
+
+subgoal 2 is:
+ R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> (H2 HA).
+</kbd><samp>1 subgoal
+
+  HB : Q
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> (H3 HB).
+</kbd><samp>Proof completed.</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal (P \/ Q) -> (P -> R) -> (Q -> R) -> R.
+</kbd><samp>1 subgoal
+
+  ============================
+   P \/ Q -> (P -> R) -> (Q -> R) -> R
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2 H3.
+</kbd><samp>1 subgoal
+
+  H1 : P \/ Q
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   R
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H1.
+</kbd><samp>2 subgoals
+
+  H1 : P \/ Q
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   P -> R
+
+subgoal 2 is:
+ Q -> R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>1 subgoal
+
+  H1 : P \/ Q
+  H2 : P -> R
+  H3 : Q -> R
+  ============================
+   Q -> R
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H3.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="exists">前提が存在量化子 (<code>exists</code>) の場合</h3>
+<p>存在量化子は代数的データ型として定義されている:</p>
+<pre><code>Inductive ex (A : Type) (P : A -> Prop) :=
+    ex_intro : forall x : A, P x -> ex P.</code></pre>
+<p>従って、<code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> を使って分解することができる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P : nat -> Prop,
+</kbd><samp>Coq < </samp><kbd>  (exists n : nat, ~ P n) -> ~ (forall n : nat, P n).
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P : nat -> Prop, (exists n : nat, ~ P n) -> ~ (forall n : nat, P n)
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> P H1 H2.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H1 : exists n : nat, ~ P n
+  H2 : forall n : nat, P n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#destruct">destruct</a> H1 as [ n H3 ].
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  n : nat
+  H3 : ~ P n
+  H2 : forall n : nat, P n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H3; <a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>Proof completed.</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal forall P : nat -> Prop,
+</kbd><samp>Coq < </samp><kbd>  (exists n : nat, ~ P n) -> ~ (forall n : nat, P n).
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P : nat -> Prop, (exists n : nat, ~ P n) -> ~ (forall n : nat, P n)
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> P H1 H2.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H1 : exists n : nat, ~ P n
+  H2 : forall n : nat, P n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H1.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H1 : exists n : nat, ~ P n
+  H2 : forall n : nat, P n
+  ============================
+   forall x : nat, ~ P x -> False
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n H3.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H1 : exists n : nat, ~ P n
+  H2 : forall n : nat, P n
+  n : nat
+  H3 : ~ P n
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H3; <a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+<h3 id="eq">前提が等式の場合 (<code>a = b</code> の形)</h3>
+<p>等式は代数的データ型として定義されている:</p>
+<pre><code>Inductive eq (A : Type) (x : A) : A -> Prop :=
+    refl_equal : eq A x x.</code></pre>
+<p>従って、<code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> を使って分解することができ、これによりゴールに含まれる左辺が右辺に (または右辺が左辺に) 置き換わる。しかしこのような等式を用いた式変形は <code><a href="t-induct.html#destruct">destruct</a></code> や <code><a href="t-induct.html#case">case</a></code> を使うよりも <code>rewrite</code> を使ったほうがわかりやすい。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n : nat, m = n -> S m = S n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m n : nat, m = n -> S m = S n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> m n H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : m = n
+  ============================
+   S m = S n
+
+Unnamed_thm < </samp><kbd>rewrite H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : m = n
+  ============================
+   S n = S n
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>あるコンストラクタ <code><var>C</var></code> に対し前提 <code><var>C</var> <var>a</var> = <var>C</var> <var>b</var></code> から <code><var>a</var> = <var>b</var></code> を得るには、<code>injection</code> を使う。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m n : nat, S m = S n -> m = n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m n : nat, S m = S n -> m = n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> m n H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : S m = S n
+  ============================
+   m = n
+
+Unnamed_thm < </samp><kbd>injection H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  n : nat
+  H : S m = S n
+  ============================
+   m = n -> m = n</samp></code></pre>
+<p>等式の両辺が明らかに異なるコンストラクタである場合は、<code>discriminate</code> を使うことで <code>False</code> を導き直ちに任意のゴールを証明することができる (以下の例では <code>intro H</code> の後に <code>discriminate H</code> しているが、<code>discriminate</code> は <code><a href="t-induct.html#intros">intros</a></code> と前提の選択を自動的に行うので、実は <code>discriminate</code> だけで一発で解ける)。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal 0 = 1 -> 2 = 4.
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 1 -> 2 = 4
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : 0 = 1
+  ============================
+   2 = 4
+
+Unnamed_thm < </samp><kbd>discriminate H.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>rewrite</code> の繰り返しでゴールが導ける場合は、<code>congruence</code> が自動的に解いてくれる (→<a href="bygoal.html#eq">ゴールが等式の場合</a>の例)。</p>
+
+<h2 id="not">前提が否定の場合 (<code>~ <var>P</var></code> の形)</h2>
+<p><code>~ <var>P</var></code> の定義は <code><var>P</var> -> False</code> であることに注意。他の前提から <code><var>P</var></code> も導ける場合は、それに適用することで <code>False</code> を得ることができるので、任意の命題を証明できる (→<a href="#implication">前提が含意の場合</a>, <a href="#false">前提が <code>False</code> の場合</a>)。
+<pre><code><samp>Coq < </samp><kbd>Goal P -> ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> ~ P -> 0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2 in H1.
+</kbd><samp>1 subgoal
+
+  H1 : False
+  H2 : ~ P
+  ============================
+   0 = 1</samp></code></pre>
+<p>または</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> ~ P -> 0 = 1.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> ~ P -> 0 = 1
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   0 = 1
+
+Unnamed_thm < </samp><kbd>elimtype False.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   False
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : ~ P
+  ============================
+   P</samp></code></pre>
+
+<h3 id="neq">前提が不等式の場合 (<code><var>a</var> &lt;> <var>b</var></code> の形)</h3>
+<p><code><var>a</var> &lt;> <var>b</var></code> の定義は <code>~ <var>a</var> = <var>b</var></code> すなわち <code><var>a</var> = <var>b</var> -> False</code> であることに注意。他の前提から <code><var>a</var> = <var>b</var></code> も導ける場合は、それに適用することで <code>False</code> を得ることができるので、任意の命題を証明できる (→<a href="#implication">前提が含意の場合</a>, <a href="#false">前提が <code>False</code> の場合</a>, <a href="#eq">前提が等式の場合</a>)。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall n, n &lt;> 0 -> n = 0 -> 1 = 2.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, n &lt;> 0 -> n = 0 -> 1 = 2
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> n H1 H2.
+</kbd><samp>1 subgoal
+
+  n : nat
+  H1 : n &lt;> 0
+  H2 : n = 0
+  ============================
+   1 = 2
+
+Unnamed_thm < </samp><kbd><a href="t-apply.html#apply">apply</a> H1 in H2.
+</kbd><samp>1 subgoal
+
+  n : nat
+  H1 : n &lt;> 0
+  H2 : False
+  ============================
+   1 = 2
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#case">case</a> H2.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p>不等式の両辺が明らかに等しい場合は、<code>congruence</code> が自動的に解いてくれる (実は上の例も <code>congruence</code> で一発で解ける)。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall m, m &lt;> 0 -> exists n, m = S n.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall m : nat, m &lt;> 0 -> exists n : nat, m = S n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> m H.
+</kbd><samp>1 subgoal
+
+  m : nat
+  H : m &lt;> 0
+  ============================
+   exists n : nat, m = S n
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#destruct">destruct</a> m as [ | m' ].
+</kbd><samp>2 subgoals
+
+  H : 0 &lt;> 0
+  ============================
+   exists n : nat, 0 = S n
+
+subgoal 2 is:
+ exists n : nat, S m' = S n
+
+Unnamed_thm < </samp><kbd>congruence.
+</kbd><samp>1 subgoal
+
+  m' : nat
+  H : S m' &lt;> 0
+  ============================
+   exists n : nat, S m' = S n
+
+Unnamed_thm < </samp><kbd><a href="t-constr.html#exists">exists</a> m'.
+</kbd><samp>1 subgoal
+
+  m' : nat
+  H : S m' &lt;> 0
+  ============================
+   S m' = S m'
+
+Unnamed_thm < </samp><kbd>reflexivity.
+</kbd><samp>Proof completed.</samp></code></pre>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / <!--更新 2009-09-18 /--> 初出 2010-06-20
+</address>
+
+</body>
+</html>

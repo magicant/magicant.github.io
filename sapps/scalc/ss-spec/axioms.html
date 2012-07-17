@@ -1,0 +1,305 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-03T20:50:38+09:00">
+<title>公理 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="functions.html" title="関数">
+<link rel="next" href="b-object.html" title="Object 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">公理</h1>
+<p>この章では、関数が呼出されたとき動作の定義を行う前提となる公理を定める。</p>
+<p>これらは実行環境の動作を厳密に定めるために導入するものであり、
+多くの読者にとってこの章の内容は退屈なものだろう。</p>
+
+<h2 id="axiom-based-procedures">公理に基づく処理</h2>
+<p>この仕様書において実行環境の動作が公理に基づいて定められている場合は、
+実行環境はその裁量によって、その動作で定められた結果そのものの代わりに、
+公理によってその結果と等しいと導かれる結果を用いても良い。</p>
+<p>動作が<q>公理を満たしていると見なして</q>という制約付きで定められている
+場合は、実際に公理が満たされているかどうかに関わらず、公理が満たされていれば
+正しい結果が得られるような一定の手順によって処理を行わなければならない。
+すなわち、実際には公理が満たされていなくても、処理を行うのに支障がない限り、
+公理が満たされている場合と同様の処理を行わなければならない
+(そしてその結果は本来の結果に等しくなくても良い)。
+実際には公理が満たされておらず、そのために処理の継続に支障がある場合は、
+エラーとする。特に、結果が正常終了となることが公理によって保証される部分の結果が
+正常終了でなかった場合は、直ちにその結果を公理に基づく処理全体の結果として返す。
+</p>
+
+<h2 id="equality">相等関係の公理</h2>
+<p>オブジェクトの集合 <var>S</var> が<dfn>相等関係の公理</dfn
+>を満たしているとは、<var>S</var> に属する任意のオブジェクト <var>a</var>,
+<var>b</var>, <var>c</var> が以下の条件を全て満たすことである。</p>
+<ul>
+<li>式 <code>!!(<var>a</var> == <var>a</var>)</code> の評価結果は [[初期の
+<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] である。</li>
+<li>式 <code>!!(<var>a</var> == <var>b</var>) ===
+!!(<var>b</var> == <var>a</var>)</code> の評価結果は [[初期の
+<code>Boolean.true</code>]] である。</li>
+<li>式 <code>!!(<var>a</var> == <var>b</var> &amp;&amp; <var>b</var> ==
+<var>c</var>)</code> の評価結果が [[初期の <code>Boolean.true</code>]]
+ならば、式 <code>!!(<var>a</var> == <var>c</var>)</code> の評価結果も
+[[初期の <code>Boolean.true</code>]] である。</li>
+<li>式 <code>!!(<var>a</var> == <var>b</var>) ===
+!(<var>a</var> != <var>b</var>)</code> の評価結果は [[初期の
+<code>Boolean.true</code>]] である。</li>
+<li>オブジェクト <var>a</var>, <var>b</var> が等しいことと式
+<code>!!(<var>a</var> == <var>b</var>)</code> の評価結果が [[初期の
+<code>Boolean.true</code>]] であることは同値である。</li>
+</ul>
+<p class="informative">相等関係の公理は、<code>==</code>
+演算子が同値関係であることを表している。</p>
+
+<h2 id="function">関数の公理</h2>
+<p>オブジェクト <var>F</var> が<dfn>関数の公理</dfn
+>を満たしているとは、以下の条件を満たすことである。</p>
+<ul>
+<li><var>F</var> は関数として呼出し可能である。</li>
+<li><var>n</var> を 1 以上の自然数とし、<var>a</var><sub>1</sub>,
+<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub> および
+<var>b</var><sub>1</sub>, <var>b</var><sub>2</sub>, …,
+<var>b</var><sub><var>n</var></sub> をそれぞれオブジェクトとする。1 以上
+<var>n</var> 以下の任意の自然数 <var>i</var> について
+<var>a</var><sub><var>i</var></sub> と <var>b</var><sub><var>i</var></sub>
+が等しいとき、式 <code><var>F</var>[<var>a</var><sub>1</sub>,
+<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub>]</code> と
+<code><var>F</var>[<var>b</var><sub>1</sub>, <var>b</var><sub>2</sub>, …,
+<var>b</var><sub><var>n</var></sub>]</code> の評価結果は等しい。</li>
+</ul>
+<p class="informative">関数の公理は、関数として呼出し可能なオブジェクトが
+(プログラミングにおける手続きとしての関数ではなく)
+数学的な意味での関数であることを表す。</p>
+
+<h2 id="magma">マグマの公理</h2>
+<p class="informative">マグマとは、
+特定の二項演算が定義されたオブジェクトの集合である。</p>
+<h3 id="additive-magma">加法に関するマグマ</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>加法に関するマグマの公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#equality">相等関係の公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var> に対し、
+式 <code><var>a</var> + <var>b</var></code> の評価結果は正常終了であり、
+その値もまた <var>S</var> に属する。</li>
+</ul>
+<h3 id="multiplicative-magma">乗法に関するマグマ</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>乗法に関するマグマの公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#equality">相等関係の公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var> に対し、
+式 <code><var>a</var> * <var>b</var></code> の評価結果は正常終了であり、
+その値もまた <var>S</var> に属する。</li>
+</ul>
+
+<h2 id="semigroup">半群の公理</h2>
+<p class="informative">半群とは、演算に結合法則が成り立つマグマである。</p>
+<h3 id="additive-semigroup">加法に関する半群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>加法に関する半群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#additive-magma">加法に関するマグマの公理</a
+>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>,
+<var>c</var> に対し、式
+<code>(<var>a</var> + <var>b</var>) + <var>c</var></code> と
+<code><var>a</var> + (<var>b</var> + <var>c</var>)</code>
+の評価結果は等しい。</li>
+</ul>
+<h3 id="multiplicative-semigroup">乗法に関する半群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>乗法に関する半群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#multiplicative-magma">乗法に関するマグマの公理</a
+>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>,
+<var>c</var> に対し、式
+<code>(<var>a</var> * <var>b</var>) * <var>c</var></code> と
+<code><var>a</var> * (<var>b</var> * <var>c</var>)</code>
+の評価結果は等しい。</li>
+</ul>
+
+<!--p>オブジェクトの集合 <var>S</var> とオブジェクト <var>A</var> が<dfn
+>半群の公理</dfn>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#equality">相等関係の公理</a>を満たしている。</li>
+<li><var>A</var> は<a href="#function">関数の公理</a>を満たしている。</li>
+<li><var>S</var> に属する一つ以上有限個のオブジェクトを引数として <var>A</var>
+を関数として呼出した結果は正常終了であり、その値もまた <var>S</var> に属する。
+</li>
+<li><var>n</var> を 1 以上の自然数とし、<var>a</var><sub>1</sub>,
+<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub> を <var>S</var>
+に属する <var>n</var> 個のオブジェクトとする。0 ≤ <var>i</var> &lt; <var>j</var>
+≤ <var>n</var> を満たす 任意の自然数 <var>i</var>, <var>j</var> について、式
+<code><var>F</var>[<var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …,
+<var>a</var><sub><var>n</var></sub>]</code> と
+<code><var>F</var>[<var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …,
+<var>a</var><sub><var>i</var></sub>,
+<var>F</var>[<var>a</var><sub><var>i</var>+1</sub>,
+<var>a</var><sub><var>i</var>+2</sub>, …, <var>a</var><sub><var>j</var></sub>],
+<var>a</var><sub><var>j</var>+1</sub>, <var>a</var><sub><var>j</var>+2</sub>, …,
+<var>a</var><sub><var>n</var></sub>]</code> の評価結果は等しい。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var> に対し、式
+<code><var>F</var>[<var>a</var>]</code> と <code><var>a</var></code>
+の評価結果は等しい。</li>
+</ul>
+<p class="informative">半群の公理は、演算が結合法則を満たすことを表す。</p-->
+
+<h2 id="monoid">モノイドの公理</h2>
+<p class="informative">モノイドとは、単位元のある半群である。</p>
+<h3 id="additive-monoid">加法に関するモノイド</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>加法に関するモノイドの公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#additive-semigroup">加法に関する半群の公理</a
+>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var> は
+<code>Math$zero</code> という名前のプロパティを持ち、その値もまた <var>S</var>
+に属する。そして <var>S</var> に属する任意のオブジェクト <var>b</var> について式
+<code><var>a</var>.Math$zero + <var>b</var></code> および
+<code><var>b</var> + <var>a</var>.Math$zero</code> の評価結果は
+<code><var>b</var></code> の評価結果に等しい。</li>
+</ul>
+<h3 id="multiplicative-monoid">乗法に関するモノイド</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>乗法に関するモノイドの公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#multiplicative-semigroup">乗法に関する半群の公理</a
+>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var> は
+<code>Math$one</code> という名前のプロパティを持ち、その値もまた <var>S</var>
+に属する。そして <var>S</var> に属する任意のオブジェクト <var>b</var> について式
+<code><var>a</var>.Math$one * <var>b</var></code> および
+<code><var>b</var> * <var>a</var>.Math$one</code> の評価結果は
+<code><var>b</var></code> の評価結果に等しい。</li>
+</ul>
+
+<!--p>オブジェクトの集合 <var>S</var> とオブジェクト <var>A</var> が<dfn
+>モノイドの公理</dfn>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> と <var>A</var> は<a href="#semigroup">半群の公理</a
+>を満たす。</li>
+<li></li>
+<li></li>
+<li></li>
+</ul-->
+
+<h2 id="group">群の公理</h2>
+<p class="informative">群とは、逆演算の可能なモノイドである。</p>
+<h3 id="additive-group">加法に関する群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>加法に関する群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#additive-monoid"
+>加法に関するモノイドの公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var> について、式
+<code>-<var>a</var></code> の評価結果は正常終了であり、
+その値もまた <var>S</var> に属する。そして式
+<code>-<var>a</var> + <var>a</var></code> および
+<code><var>a</var> + -<var>a</var></code> の評価結果は
+<code><var>a</var>.Math$zero</code> の評価結果に等しい。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>
+について、式 <code><var>a</var> - <var>b</var></code> と
+<code><var>a</var> + -<var>b</var></code> の評価結果は等しい。</li>
+</ul>
+<h3 id="multiplicative-group">乗法に関する群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>乗法に関する群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#multiplicative-monoid"
+>乗法に関するモノイドの公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var> について、式
+<code>/<var>a</var></code> の評価結果は正常終了であり、
+その値もまた <var>S</var> に属する。そして式
+<code>/<var>a</var> * <var>a</var></code> および
+<code><var>a</var> * /<var>a</var></code> の評価結果は
+<code><var>a</var>.Math$one</code> の評価結果に等しい。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>
+について、式 <code><var>a</var> / <var>b</var></code> と
+<code><var>a</var> * /<var>b</var></code> の評価結果は等しい。</li>
+</ul>
+
+<h2 id="commutative-group">可換群の公理</h2>
+<p class="informative">可換群とは、演算に交換法則が成り立つ群である。</p>
+<h3 id="additive-commutative-group">加法に関する可換群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>加法に関する可換群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#additive-group"
+>加法に関する群の公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>
+について、式 <code><var>a</var> + <var>b</var></code> と
+<code><var>b</var> + <var>a</var></code> の評価結果は等しい。</li>
+</ul>
+<h3 id="multiplicative-commutative-group">乗法に関する可換群</h3>
+<p>オブジェクトの集合 <var>S</var> が<dfn>乗法に関する可換群の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#multiplicative-group"
+>乗法に関する群の公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>
+について、式 <code><var>a</var> * <var>b</var></code> と
+<code><var>b</var> * <var>a</var></code> の評価結果は等しい。</li>
+</ul>
+
+<h2 id="ring">環の公理</h2>
+<p class="informative">環とは、
+加法・減法・乗法が定義されたオブジェクトの集合である。
+環は加法に関する可換群である。また環の加法と乗法には分配法則が成り立つ。</p>
+<p>オブジェクトの集合 <var>S</var> が<dfn>環の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#additive-commutative-group"
+>加法に関する可換群の公理</a>と<a href="#multiplicative-semigroup"
+>乗法に関する半群の公理</a>を満たしている。</li>
+<li><var>S</var> に属する任意のオブジェクト <var>a</var>, <var>b</var>,
+<var>c</var> について、式
+<code><var>a</var> * (<var>b</var> + <var>c</var>)</code> と
+<code><var>a</var> * <var>b</var> + <var>a</var> * <var>c</var></code>
+の評価結果は等しく、また式
+<code>(<var>a</var> + <var>b</var>) * <var>c</var></code> と
+<code><var>a</var> * <var>c</var> + <var>b</var> * <var>c</var></code>
+の評価結果も等しい。</li>
+</ul>
+
+<h2 id="unitary-ring">単位的環の公理</h2>
+<p class="informative">単位的環とは、乗法に単位元が存在する環である。</p>
+<p>オブジェクトの集合 <var>S</var> が<dfn>単位的環の公理</dfn
+>を満たしているとは、<var>S</var> が<a href="#ring">環の公理</a>と<a
+href="#multiplicative-monoid">乗法に関するモノイドの公理</a
+>の両方を満たしていることである。</p>
+
+<h2 id="skew-field">斜体の公理</h2>
+<p class="informative">斜体とは、
+四則演算が定義されたオブジェクトの集合である。加法は可換であるが、
+乗法は可換とは限らない。</p>
+<p>オブジェクトの集合 <var>S</var> が<dfn>斜体の公理</dfn
+>を満たしているとは、以下の条件を全て満たすことである。</p>
+<ul>
+<li><var>S</var> は<a href="#unitary-ring">単位的環の公理</a
+>を満たしている。</li>
+<li><var>S</var> から、自身の <code>Math$zero</code> プロパティの値と等しい
+オブジェクトを除いた集合は、<a href="#multiplicative-group"
+>乗法に関する群の公理</a>を満たす。</li>
+</ul>
+
+<h2 id="field">体の公理</h2>
+<p class="informative">体とは、加法だけでなく乗法も可換な斜体である。</p>
+<p>オブジェクトの集合 <var>S</var> が<dfn>体の公理</dfn
+>を満たしているとは、<var>S</var> が<a href="#skew-field">斜体の公理</a>と<a
+href="#multiplicative-monoid">乗法に関する可換群の公理</a
+>の両方を満たしていることである。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

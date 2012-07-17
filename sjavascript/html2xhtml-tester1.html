@@ -1,0 +1,39 @@
+﻿<!>
+<!DOCTYPE hTMl PUBLIC "-//W3C//DTD HTML 4.01//EN"
+-- 文書型宣言 -- "http://www.w3.org/TR/html4/strict.dtd"  >
+<meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8">
+<title>HTML to XHTML 変換テスト用文書</title>
+<style type="text/css">
+/* <![IGNORE[ */
+p { margin: 1em } /* 有効なスタイル指定 */
+/* ]]> */
+</style>
+<body
+<p class=paragraph1>これは HTML to XHTML の変換テスト用文書です <!</P
+<script type="text/javascript" /document.write(1+2+3);/
+<script type="text/javascript" /document.write(4+5+6);</script>
+<p id = "paragraph-id" class='paragraph2' ltr>属性
+<>空タグ</>
+<dl/<dd>
+<P<a ltr href=sample:uri/anchor/>
+<!-- <a dir="ltr" href="sample:uri">anchor</a>> となる -->
+
+<![[<![TEMP[
+<p>included
+<![%HTML.Frameset INCLUDE[<![CDATA[ignored]]>]]>
+]]>]]>
+
+<p>
+<![ RCDATA --コメント-- INCLUDE [
+&#SPACE &amp & < >
+]]>
+<!-- &#32; &amp; &#38; &lt; > となる -->
+<![ CDATA [
+&#SPACE &amp & < >
+]]>
+<!-- &#SPACE &amp & < > となる -->
+/
+<!-- net 終了タグ (</dl>) -->
+<?processing instruction?>
+<!--end----of--	
+--example-- >

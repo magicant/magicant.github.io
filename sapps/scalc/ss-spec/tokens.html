@@ -1,0 +1,417 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-04-04T21:19:39+09:00">
+<title>トークン - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="calculations.html" title="数値計算">
+<link rel="next" href="expressions.html" title="式">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">トークン</h1>
+<p>この章では、スクリプトプログラムのソースコードの基本的構成要素について
+定義する。</p>
+
+<h2 id="unicode-escape">Unicode エスケープ</h2>
+<p>ソースコード内に現れる次のような規則的な文字の並びは Unicode
+エスケープとして解釈され、一つの Unicode コードポイントに変換される。Unicode
+エスケープには識別子 Unicode エスケープと文字列 Unicode
+エスケープの二種類がある。</p>
+<dl class="definition">
+<dt id="d-identifier-unicode-escape">IdentifierUnicodeEscape</dt>
+<dd><code>\[</code> <a href="#d-hexadecimal-digit">HexadecimalDigit</a>+
+	<code>]</code></dd>
+<dt id="d-string-unicode-escape">StringUnicodeEscape</dt>
+<dd><code>\u</code> <a href="#d-hexadecimal-digit">HexadecimalDigit</a>
+	HexadecimalDigit HexadecimalDigit HexadecimalDigit</dd>
+<dd><code>\U</code> HexadecimalDigit HexadecimalDigit HexadecimalDigit
+	HexadecimalDigit HexadecimalDigit HexadecimalDigit HexadecimalDigit
+	HexadecimalDigit</dd>
+</dl>
+<p>Unicode エスケープに含まれる HexadecimalDigit の並びは十六進整数を表し、
+Unicode エスケープはその数値と等しい Unicode コードポイントに変換される。
+例えば、<code>\u0020</code> という文字列 Unicode エスケープは空白文字 (U+0020)
+を表す Unicode コードポイントに変換される。</p>
+<p>Unicode エスケープの表す整数が Unicode コードスペース (0 以上 10FFFF<sub
+>(16)</sub> 以下) の範囲外のときは、文法エラーとする。</p>
+<p>Unicode エスケープは多重に解釈しない。例えば、文字列リテラル
+<code>"\u005Cu0040"</code> の中の <code>\u005C</code> は Unicode
+エスケープとして解釈されるので、これは文字列リテラル <code>"\u0040"</code>
+と等しいが、更にこれを <code>"@"</code> と解釈することはない。</p>
+
+<h2 id="end-of-code">ソースコードの終端</h2>
+<p>非終端記号 EOC は、ソースコードの終端を表す。</p>
+<dl class="definition">
+<dt id="d-eoc">EOC</dt>
+<dd>!{任意の Unicode コードポイント}</dd>
+</dl>
+
+<h2 id="delimiter">区切り</h2>
+<p><dfn>区切り</dfn>は、トークン以外の構文構成要素であり、トークンを分離する。
+</p>
+<p>区切りは、任意の個数 (0 個を含む)
+の空白文字、改行文字、またはコメントから成る。</p>
+<dl class="definition">
+<dt id="d-d">D</dt>
+<dd>(<a href="#d-white-space">WhiteSpace</a> /
+<a href="#d-line-separator">LineSeparator</a> /
+<a href="#d-comment">Comment</a>)*</dd>
+</dl>
+<p><dfn>キーワード区切り</dfn>は、キーワードとその直後のトークンを分離する。</p>
+<p>キーワード区切りはキーワードの直後に識別子文字が続かないことを強制する。</p>
+<dl class="definition">
+<dt id="d-kd">KD</dt>
+<dd>!<a href="#d-identifier-char">IdentifierChar</a> D</dd>
+</dl>
+
+<h3 id="white-space">空白文字</h3>
+<p><dfn>空白文字</dfn>は以下の Unicode 文字として定義する:</p>
+<dl class="definition">
+<dt id="d-white-space">WhiteSpace</dt>
+<dd>{Unicode のカテゴリ Zs (space separator) に属する文字}</dd>
+<dd>{水平タブ (U+0009)}</dd>
+<dd>{垂直タブ (U+000B)}</dd>
+<dd>{フォームフィード (U+000C)}</dd>
+</dl>
+<p>これらの文字は、コメントやトークンの一部を構成する場合があるが、
+この場合それらは単なるコメントやトークンの構成要素と見なし、
+空白文字とは見なさない。</p>
+
+<h3 id="line-separator">改行文字</h3>
+<p><dfn>改行文字</dfn>は以下の Unicode 文字列として定義する:</p>
+<dl class="definition">
+<dt id="d-line-separator">LineSeparator</dt>
+<dd>{ラインフィード (U+000A)}</dd>
+<dd>{キャリッジリターン (U+000D)} {ラインフィード (U+000A)}?</dd>
+<dd>{ネクストライン (U+0085)}</dd>
+<dd>{行区切り (U+2028)}</dd>
+<dd>{段落区切り (U+2029)}</dd>
+</dl>
+<p>定義の通り、キャリッジリターンの直後にラインフィードが続くときは、
+その二つを合わせて一つの改行文字とする。</p>
+<p>これらの文字は、コメントやトークンの内部に出現する場合がある。
+この場合、それらはコメントやトークンの一部となる。
+ただし、パーサがソースコードの行数を数えるときは、これらの文字がコメントや
+トークンの一部であるかどうかにかかわらずこれらを改行文字として数えるべきであり、
+また上記の文字以外の文字を改行文字として数えるべきでない。</p>
+
+<h3 id="comment">コメント</h3>
+<p><dfn>コメント</dfn>は以下のように定義する:</p>
+<dl class="definition">
+<dt id="d-comment">Comment</dt>
+<dd><code>//</code> ((!<a href="#d-line-separator">LineSeparator</a>)
+	{任意の Unicode コードポイント})*</dd>
+<dd><code>/*</code> ((!<code>*/</code>) {任意の Unicode コードポイント})*
+	<code>*/</code></dd>
+</dl>
+<p>コメントには行末までのコメントと任意範囲のコメントがある。</p>
+<p><dfn>行末までのコメント</dfn>は、二つのスラッシュ <code>//</code> で始まり、
+その後現れる最初の<a href="#line-separator">改行文字</a>の直前で終わる。
+改行文字がその後に一つも現れない場合は、
+ソースコードの末尾までを行末までのコメントとする。</p>
+<p><dfn>任意範囲のコメント</dfn>は、連続するスラッシュとアスタリスク
+<code>/*</code> で始まり、その後現れる最初の連続するアスタリスクとスラッシュ
+<code>*/</code> で終わる。
+連続するアスタリスクとスラッシュが一つも現れない場合は、文法エラーとする。
+任意範囲のコメントの中には改行文字を含む任意の文字を含めることが出来る。
+例えば、<code>/*/</code> は任意範囲のコメントとはみなさないが、<code
+>/*//* */</code> は一つの任意範囲のコメントである。</p>
+<p>コメントの内部に現れる文字は、コメントの終わりを示す文字以外は文法的な
+意味を持たない。特に、コメントの中に別のコメントを入れることはできない。</p>
+
+<h2 id="token">トークン</h2>
+<p><dfn>トークン</dfn>は、プログラムにとって具体的な意味を持つソースコードの
+構成単位である。</p>
+
+<h3 id="identifier">識別子</h3>
+<p>識別子先頭文字で始まるトークンは<dfn>識別子</dfn>である。
+識別子は識別子先頭文字で始まり、それに続く 0
+文字以上の識別子文字によって構成される。</p>
+<dl class="definition">
+<dt id="d-identifier">Identifier</dt>
+<dd>IdentifierFirstChar IdentifierChar* <a href="#d-d">D</a></dd>
+<dt id="d-identifier-first-char">IdentifierFirstChar</dt>
+<dd>{Unicode カテゴリ letter (L) の各サブカテゴリの文字}</dd>
+<dd>{Unicode カテゴリ letter number (Nl) の各サブカテゴリの文字}</dd>
+<dd>{アンダースコア <code>_</code> (U+005F)}</dd>
+<dd>{ドル <code>$</code> (U+0024)}</dd>
+<dd>{上記の文字に対応する
+	<a href="#d-identifier-unicode-escape">IdentifierUnicodeEscape</a>}</dd>
+<dt id="d-identifier-char">IdentifierChar</dt>
+<dd>IdentifierFirstChar</dd>
+<dd>{Unicode カテゴリ mark (M) の各サブカテゴリの文字}</dd>
+<dd>{Unicode カテゴリ number (N) の各サブカテゴリの文字}</dd>
+<dd>{Unicode カテゴリ connector punctuation (Pc) の文字}</dd>
+<dd>{Unicode カテゴリ other format (Cf) の文字}</dd>
+<dd>{上記の文字に対応する
+	<a href="#d-identifier-unicode-escape">IdentifierUnicodeEscape</a>}</dd>
+</dl>
+<p>複数の識別子は、それを構成する Unicode
+文字のコードが完全に一致する場合のみ等しいとみなす。</p>
+<p>識別子では<a href="#unicode-escape">識別子 Unicode エスケープ</a
+>が解釈される。例えば、ソースコードにおいて <code>abc</code> と <code
+>a\[0062]c</code> は等しい識別子トークンとみなす。識別子 Unicode
+エスケープが表している文字が識別子として本来使えない文字ならば、
+文法エラーとする。</p>
+
+<h3 id="keyword">キーワード</h3>
+<p><dfn>キーワード</dfn>は、記号 <code>@</code> とそれに続く一つ以上の<a
+href="#d-identifier-char">識別子文字</a>によって構成されるトークンである。</p>
+<p>キーワードの直後に<a href="#white-space">空白文字</a>などを一切間に置かずに
+識別子文字を置くことはできない。</p>
+
+<h3 id="string-literal">文字列リテラル</h3>
+<p><dfn>文字列リテラル</dfn>は、スクリプトプログラムで扱われる文字列を表す。</p>
+<dl class="definition">
+<dt id="d-string-literal">StringLiteral</dt>
+	<dd><code>'</code> (StringLiteralChar / <code>"</code>)* <code>'</code>
+		<a href="#d-d">D</a></dd>
+	<dd><code>"</code> (StringLiteralChar / <code>'</code>)* <code>"</code> D</dd>
+	<dd><code>@'</code> (<code>\</code> / StringChar
+		/ <code>''</code> / <code>"</code>)* <code>'</code> D</dd>
+	<dd><code>@"</code> (<code>\</code> / StringChar
+		/ <code>""</code> / <code>'</code>)* <code>"</code> D</dd>
+<dt id="d-string-literal-char">StringLiteralChar</dt>
+	<dd>StringChar</dd>
+	<dd>StringCharEscape</dd>
+<dt id="d-string-char">StringChar</dt>
+	<dd>{<code>'</code>、<code>"</code>、<code>\</code> 以外の任意の Unicode
+	コードポイント}</dd>
+<dt id="d-string-char-escape">StringCharEscape</dt>
+	<dd><a href="#d-string-unicode-escape">StringUnicodeEscape</a></dd>
+	<dd><code>\</code> {任意の Unicode コードポイント}</dd>
+</dl>
+<p>文字列トークンの内容は、引用符 <code>'</code> または <code>"</code>
+で囲まれた Unicode
+文字列である。文字列トークンの内容を囲む引用符が <code>'</code> であるとき、
+その文字列トークンの中身において <code>"</code> は特別な意味を持たず、また、
+その逆も同様である。</p>
+<p>文字列トークンの先頭に <code>@</code> があれば、その文字列トークンでは記号
+<code>\</code> によるエスケープが無効となる。このとき、記号 <code>\</code>
+は他の文字と同じく文字列を構成する一文字とみなす。このとき、文字列に含まれる
+<code>''</code> は一つの文字 <code>'</code> を表し、<code>""</code> は一つの文字
+<code>"</code> を表す。</p>
+<p>先頭に <code>@</code> がなければ、エスケープは有効であり、記号 <code>\</code>
+は文字列トークンの中身において特別な意味を持つ。</p>
+
+<h4 id="string-char-escape">StringCharEscape の解釈</h4>
+<p>エスケープが有効の文字列リテラルの中身において、StringCharEscape
+はそれぞれ次のような一つの Unicode コードポイントを表すものと解釈する。</p>
+<dl class="definition">
+<dt><a href="#d-string-unicode-escape">StringUnicodeEscape</a></dt>
+<dd>その文字列 Unicode エスケープが表す Unicode コードポイント</dd>
+<dt><code>\0</code></dt>
+<dd>Null 文字 (U+0000)</dd>
+<dt><code>\a</code></dt>
+<dd>ベル文字 (U+0007)</dd>
+<dt><code>\b</code></dt>
+<dd>バックスペース (U+0008)</dd>
+<dt><code>\f</code></dt>
+<dd>フォームフィード (U+000C)</dd>
+<dt><code>\n</code></dt>
+<dd>ラインフィード (U+000A)</dd>
+<dt><code>\r</code></dt>
+<dd>キャリッジリターン (U+000D)</dd>
+<dt><code>\t</code></dt>
+<dd>水平タブ (U+0009)</dd>
+<dt><code>\v</code></dt>
+<dd>垂直タブ (U+000B)</dd>
+<dt>上記以外の StringCharEscape: <code>\</code> {Unicode 文字}</dt>
+<dd><code>\</code> に続く文字が 0 から 9 までの数字または a から z までまたは A
+から Z までのアルファベットならば、文法エラーとする。
+それ以外のコード単位である場合は、そのコード単位そのものを表す。</dd>
+</dl>
+<p>注意: 文法上は、フォームフィードや水平タブをエスケープせずに
+そのまま文字列リテラルの中身にしてもよい。</p>
+
+<h4 id="string-example">文字列リテラルの例</h4>
+<p>次の四つの文字列リテラルは、全て <code>a"b'c\d</code> という 7
+文字の文字列を表す。</p>
+<ul>
+<li><code>'a"b\'c\\d'</code></li>
+<li><code>"a\"b'c\\d"</code></li>
+<li><code>@'a"b''c\d'</code></li>
+<li><code>@"a""b'c\d"</code></li>
+</ul>
+
+<h3 id="number-literal">数値リテラル</h3>
+<p><dfn>数値リテラル</dfn>は、スクリプトプログラム内で数を直接表す記法である。
+数値リテラルには、<a href="#integer-literal">整数リテラル</a>と<a
+href="#float-literal"
+>浮動小数点数リテラル</a>の二種類がある。</p>
+<p>以下に、数値リテラルの定義に用いるための解析ルールをいくつか定義する:</p>
+<dl class="definition">
+<dt id="d-imaginary-mark">ImaginaryMark</dt>
+<dd><code>i</code> / <code>I</code></dd>
+<dt id="d-exact-number-mark">ExactNumberMark</dt>
+<dd><code>x</code> / <code>X</code></dd>
+<dt id="d-illegal-number-trailer">IllegalNumberTrailer</dt>
+<dd><a href="#d-identifier-char">IdentifierChar</a></dd>
+<dd><code>.</code> <a href="#d-decimal-digit">DecimalDigit</a></dd>
+</dl>
+<div class="informative">
+<p>ImaginaryMark は、数値リテラルが純虚数を表すことを表す。大文字の <code
+>I</code> は数字の <code>1</code> と見かけが紛らわしいので、
+数値リテラルでは大文字の <code>I</code> の仕様は推奨しない。</p>
+<p>ExactNumberMark は、浮動小数点数リテラルが表す数値に誤差がないことを表す。
+<!--ExactNumberMark を整数リテラルに付けることはできない。
+(整数は元元誤差がないし、<code>0x</code> を不完全な十六進数リテラルとして
+エラーにせずに 0 を表す十進リテラルとみなすのには抵抗がある。)--></p>
+<p>IllegalNumberTrailer
+は、数値リテラルの直後に続くことができない文字列を定めるために使うルールである。
+</p>
+</div>
+
+<h4 id="integer-literal">整数リテラル</h4>
+<p><dfn>整数リテラル</dfn>は、スクリプトプログラム内で整数を直接表す記法である。
+整数リテラルは、二進法、八進法、十進法、十六進法のいづれかで表される。</p>
+<dl class="definition">
+<dt id="d-integer-literal">IntegerLiteral</dt>
+<dd>Integer <a href="#d-imaginary-mark">ImaginaryMark</a>?
+	!<a href="#d-illegal-number-trailer">IllegalNumberTrailer</a>
+	<a href="#d-d">D</a></dd>
+<dt id="d-integer">Integer</dt>
+<dd>BinaryInteger</dd>
+<dd>OctalInteger</dd>
+<dd>HexadecimalInteger</dd>
+<dd>DecimalInteger</dd>
+<dt id="d-binary-integer">BinaryInteger</dt>
+<dd>(<code>0b</code> / <code>0B</code>) BinaryDigit+</dd>
+<dt id="d-binary-digit">BinaryDigit</dt>
+<dd><code>0</code> / <code>1</code></dd>
+<dt id="d-octal-integer">OctalInteger</dt>
+<dd>(<code>0o</code> / <code>0O</code>) OctalDigit+</dd>
+<dt id="d-octal-digit">OctalDigit</dt>
+<dd><code>0</code> / <code>1</code> / <code>2</code> / <code>3</code> /
+	<code>4</code> / <code>5</code> / <code>6</code> / <code>7</code></dd>
+<dt id="d-decimal-integer">DecimalInteger</dt>
+<dd>DecimalDigit+</dd>
+<dt id="d-decimal-digit">DecimalDigit</dt>
+<dd><code>0</code> / <code>1</code> / <code>2</code> / <code>3</code> /
+	<code>4</code> / <code>5</code> / <code>6</code> / <code>7</code> /
+	<code>8</code> / <code>9</code></dd>
+<dt id="d-hexadecimal-integer">HexadecimalInteger</dt>
+<dd>(<code>0x</code> / <code>0X</code>) HexadecimalDigit+</dd>
+<dt id="d-hexadecimal-digit">HexadecimalDigit</dt>
+<dd><code>0</code> / <code>1</code> / <code>2</code> / <code>3</code> /
+	<code>4</code> / <code>5</code> / <code>6</code> / <code>7</code> /
+	<code>8</code> / <code>9</code> / <code>a</code> / <code>b</code> /
+	<code>c</code> / <code>d</code> / <code>e</code> / <code>f</code> /
+	<code>A</code> / <code>B</code> / <code>C</code> / <code>D</code> /
+	<code>E</code> / <code>F</code></dd>
+</dl>
+<p>整数リテラルの Integer の部分は、非負整数を位取り記数法により表したもので
+ある。BinaryInteger は二進法、OctalInteger は八進法、DecimalInteger は十進法、
+HexadeicmalInteger は十六進法によるリテラルである。DecimalInteger 以外の
+整数リテラルの最初の二文字はリテラルの種類を区別する記号であり、数字ではない。
+</p>
+<p>整数リテラルは大文字と小文字の区別をしない。例えば、<code>0xABC</code> と
+<code>0Xabc</code> は等価である。数字の 0 と大文字の O
+は見かけが紛らわしいので、八進法リテラルでは大文字の O の使用は推奨しない。</p>
+<p class="informative">プログラミング言語によっては 0 で始まり 0 から 7
+までの数字のみで構成される整数リテラルは八進法によるリテラルとみなされるが、
+#Script ではこのようなリテラルは十進法によるリテラルである。
+混乱を避けるため、プログラマは 0 で始まる十進整数リテラルを記述すべきでない。
+</p>
+<!--p>整数リテラルの数字に含まれる下線 <code>_</code> は意味を持たず、
+桁を区切る目印として使用できる。
+例えば、<code>0b1100_1100_1100_1100</code> は <code>0b1100110011001100</code>
+と等価である。例外として、十進法リテラルの先頭に下線を置くことはできない
+(下線で始まるトークンは<a href="#identifier">識別子</a>とみなされる)。
+また整数リテラルには少なくとも一つの数字を含めねばならない。</p-->
+<p>整数リテラルに ImaginaryMark (<code>i</code> または <code>I</code>)
+が含まれている場合、それは純虚数を表す。すなわち、その整数リテラルは
+そのリテラルの Integer の部分が表す値に虚数単位 <var class="imaginary-unit"
+>i</var> を掛けた値を表す。</p>
+<p>整数リテラルに ImaginaryMark が含まれていない場合、そのリテラルはその Integer
+の部分が表す整数を表す。</p>
+
+<h4 id="float-literal">浮動小数点数リテラル</h4>
+<p><dfn>浮動小数点数リテラル</dfn>は、スクリプトプログラム内で
+浮動小数点数を直接表す記法である。</p>
+<dl class="definition">
+<dt id="d-float-literal">FloatLiteral</dt>
+<dd>FloatBody FloatPostfix
+	!<a href="#d-illegal-number-trailer">IllegalNumberTrailer</a>
+	<a href="#d-d">D</a></dd>
+<dt id="d-float-body">FloatBody</dt>
+<dd>(<code>.</code> <a href="tokens.html#d-decimal-digit">DecimalDigit</a>+
+	/ DecimalDigit+ <code>.</code> DecimalDigit*) Exponent?</dd>
+<dd><a href="#d-decimal-integer">DecimalInteger</a> Exponent</dd>
+<dt id="d-exponent">Exponent</dt>
+<dd>(<code>e</code> / <code>E</code>) (<code>+</code> / <code>-</code>)?
+	DecimalInteger</dd>
+<dt id="d-float-postfix">FloatPostfix</dt>
+<dd><a href="#d-imaginary-mark">ImaginaryMark</a>
+	<a href="#d-exact-number-mark">ExactNumberMark</a>? /
+	ExactNumberMark? ImaginaryMark?</dd>
+</dl>
+<p>浮動小数点数リテラルが表す数値は、次のようにして算出する:</p>
+<ol>
+<li>リテラルの仮数部 (FloatBody から Exponent を除いたもの)
+を十進位取り記数法で表記された実数として解釈し、
+その値を <var>M</var> とする。このとき、<code>.</code> は小数点として扱う。</li>
+<li>Exponent がある場合は、それに含まれる DecimalInteger
+を十進位取り記数法で表記された整数とみなし、その整数の値を <var>E</var> とする。
+ただし、Exponent に <code>-</code> を含む場合は <var>E</var>
+は符号を反転して負数とする。Exponent がない場合は、<var>E</var> は 0 とする。
+</li>
+<li>FloatPostfix に ImaginaryMark が含まれる場合は、虚数単位
+<var class="imaginary-unit">i</var> を <var>U</var> とする。さもなくば、整数 1
+を <var>U</var> とする。</li>
+<li>浮動小数点リテラルが表す数値は <var>M</var> × 10<sup><var>E</var></sup>
+× <var>U</var> である。また、浮動小数点リテラルが表す数値の絶対値は <var>M</var>
+× 10<sup><var>E</var></sup> である。</li>
+</ol>
+<p>実行環境は、浮動小数点リテラルが表す数値の絶対値が<a
+href="primitives.html#type-primitive-real">原始実数型</a>の表せる値の範囲に
+ない場合は、文法エラーとしてもよい。</p>
+<!--p>上記の方法で算出した <var>M</var> と <var>E</var>
+を元にして、浮動小数点リテラルが表す数値は以下のようにして正規化する:</p>
+<ul>
+<li>リテラルの FloatBody に小数点 <code>.</code> が含まれていない場合、<dfn
+>正規化された仮数部</dfn>は <var>M</var> であり、<dfn>正規化された指数部</dfn>は
+<var>E</var> である。</li>
+<li>リテラルの FloatBody に小数点 <code>.</code> が含まれている場合、
+小数点よりも後にある数字の桁数を <var>C</var> として、<dfn
+>正規化された仮数部</dfn>は <var>M</var> × 10<sup><var>C</var></sup>
+であり、<dfn>正規化された指数部</dfn>は <var>E</var> - <var>C</var> である。
+</li>
+</ul>
+<p>正規化された仮数部と正規化された指数部はどちらも整数となる。</p-->
+<p>浮動小数点リテラルは、数値そのものだけではなく、その精度も表す。
+浮動小数点リテラルの FloatPostfix に ExactNumberMark
+が含まれているならば、その絶対精度は無限大である。
+さもなくば、浮動小数点リテラルの精度は、上記で算出した数値を元に
+次のようにして算出する:</p>
+<dl>
+<dt><var>M</var> が 0 の場合:</dt>
+<dd><ol>
+<li>リテラルの仮数部の小数点 <code>.</code> よりも後にある数字の桁数を
+<var>C</var> とする。リテラルの仮数部に小数点が含まれていなければ、0 を
+<var>C</var> とする。</li>
+<li>このリテラルの表す数値の絶対精度は、<var>C</var> − <var>E</var> である。
+</li>
+</ol></dd>
+<dt><var>M</var> が 0 でない場合:</dt>
+<dd><ol>
+<li>リテラルの仮数部から小数点 <code>.</code> を除いたものを十進位取り記数法で
+表記された整数として解釈し、その値を <var>N</var> とする。</li>
+<li>このリテラルの表す数値の相対精度は、log<sub>10</sub><var>N</var> である。
+</li>
+</ol></dd>
+</dl>
+<p class="informative">例えば、浮動小数点リテラル <code>00.0000E+3</code>
+の絶対精度は 4 − 3 = 1 であり、<code>123.45678</code> の相対精度は
+log<sub>10</sub>12345678 である。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

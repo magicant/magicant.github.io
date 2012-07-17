@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>Type 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-object.html" title="Object 組込みオブジェクト">
+<link rel="next" href="b-void.html" title="Void 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Type</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Type</code> 組込みオブジェクトを定義する。</p>
+
+<h2 id="members"><code>Type</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Type"</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>Type</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><code>Type.prototype</code></dd>
+</dl>
+
+<h2 id="call"><code>Type</code> の関数としての呼出し</h2>
+<p><code>Type</code> は関数として呼出し可能であり、
+関数として呼出されると新しい
+<a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。<!--xxx--></p>
+
+<!--h2 id="prototype-members"><code>Type.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>Type</code> のインスタンスのプロパティ</h2>
+<p><code>Type</code> のインスタンスは以下のプロパティを持つ。ただし、
+<code>Type.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-istypeof"><code>isTypeOf</code> メソッド</dt>
+<dd>1-ary メソッド。一つの引数で関数として呼出されると、その引数が
+@this 値の<a href="objects.html#instance">インスタンス</a>ならば [[初期の
+<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を、さもなくば
+[[初期の <a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]]
+を返す。引数が一つでなければ、エラーとする。</dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>関数として呼び出されると、渡された @this
+値を文字列に変換し、その文字列を内容とする<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>を値とする正常終了の結果を返す。文字列への変換の方法は実行環境に任せる。</dd>
+<!--dd>以下の関数生成式で生成されるような関数オブジェクト:
+<code>@{ "typeof(" + @this.name + ")" }</code></dd-->
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

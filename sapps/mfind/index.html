@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="コマンドライン用テキスト検索・置換ツール mfind の案内">
+<meta name="date" content="2010-03-08T12:29:10+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="../">
+<link rel="contents" href="../">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>mfind - コマンドライン用テキスト検索・置換ツール</title>
+</head>
+
+<body>
+<h1 id="title">mfind</h1>
+
+<h2 id="summary">概要</h2>
+<p>
+<dfn>mfind</dfn>は、コマンドライン用のテキスト検索・置換ツールです。
+</p>
+<p>
+Windows のコマンドプロンプトには find コマンドと findstr コマンドが備わっていますが、文字コードが
+Shift_JIS のファイルしか検索できず、また findstr コマンドで使える正規表現はごく基本的なものだけです。
+mfind は多くの文字コードに対応し、Perl 5 のような高度な正規表現をサポートします。
+</p>
+<p>
+バージョン 1.0 では、置換機能を加えました。
+検索して見つかった文字列を別の文字列に置き換えて上書き保存することができます。
+</p>
+<p>
+注意: 本ソフトウェアは正規表現やコマンドプロンプトの使い方などについて一通りの知識・経験がある方を対象としています。
+</p>
+
+<h2 id="environment">動作環境</h2>
+<p>
+Microsoft .NET Framework 2.0 あるいはこれと互換性のある実行環境が必須です。.NET Framework 2.0
+は <a href="//windowsupdate.microsoft.com/">Windows Update</a> から入手可能です。
+</p>
+<p>
+Windows Update からダウンロードできない場合は、代わりに <a
+href="//www.microsoft.com/japan/msdn/netframework/downloads/">.NET Framework
+ダウンロード情報</a>から「.NET Framework 2.0 再頒布可能パッケージ」をダウンロード・インストールしてください。
+</p>
+<p class="notice">
+※ .NET Framework 2.0 は Windows 95/NT 4 以前のコンピュータにはインストールできません。
+また Windows 98/ME では機能が一部制限されます。
+</p>
+
+<h2 id="condition">使用条件</h2>
+<p>
+本ソフトウェアはフリーウェアです。
+どなたでも無償でお使いいただけますが、本ソフトウェアに関して何らかの不具合が生じても
+作者は一切責任を取りませんので、予めご了承の上お使い下さい。
+</p>
+
+<h2 id="download">ダウンロード</h2>
+<p>
+ZIP 形式アーカイブにプログラム本体と<a href="readme.txt">説明書</a>が入っています。
+</p>
+<ul>
+<li><a href="mfind-1.7.zip">バージョン 1.7</a>: 17.0 キロバイト</li>
+</ul>
+<p>
+注: 最新版のみ公開しています。新しいバージョンを出したら古いバージョンは公開を停止します。
+</p>
+
+<h2 id="versions">バージョン情報</h2>
+<dl>
+<dt>バージョン 0.2 (2006 年 1 月 24 日)</dt>
+	<dd>初版</dd>
+<dt>バージョン 0.3 (2006 年 3 月 12 日)</dt>
+	<dd>/M オプションの動作を変更</dd>
+<dt>バージョン 1.0 (2006 年 5 月 27 日)</dt>
+	<dd>置換機能を追加</dd>
+<dt>バージョン 1.1 (2006 年 6 月 25 日)</dt>
+	<dd>エラーメッセージの修正</dd>
+	<dd>検索・置換文字列の「\」によるエスケープの修正</dd>
+<dt>バージョン 1.2 (2006 年 7 月 2 日)</dt>
+	<dd>BOM 無しの UTF-8/16 エンコーディングに対応</dd>
+	<dd>検索・置換文字列の書式を変更</dd>
+	<dd>/P オプションを追加</dd>
+	<dd>単純なオプションを一纏めにできるようにした</dd>
+	<dd>ヘルプを標準エラー出力ではなく標準出力に出力するようにした</dd>
+<dt>バージョン 1.3 (2006 年 7 月 14 日)</dt>
+	<dd>結果の出力の際にコントロール文字をエスケープするようにした</dd>
+	<dd>置換文字列の「\」によるエスケープの修正</dd>
+<dt>バージョン 1.4 (2007 年 4 月 8 日)</dt>
+	<dd>オプションの指定の仕方を若干変更</dd>
+<dt>バージョン 1.5 (2008 年 4 月 23 日)</dt>
+	<dd>エラー処理の仕方を少し変更</dd>
+<dt>バージョン 1.6 (2010 年 1 月 26 日)</dt>
+	<dd>/B オプションが正しく動作していなかったのを修正</dd>
+<dt>バージョン 1.7 (2010 年 3 月 8 日)</dt>
+  <dd>/M オプション指定時「.」が改行 (LF) にマッチしていなかったのを修正</dd>
+</dl>
+
+<h2 id="others">関連情報</h2>
+<p>作者のブログ「<a href="//magicant.txt-nifty.com/main/">まじかんと雑記</a>」の
+<a href="//magicant.txt-nifty.com/main/mfind/">mfind カテゴリ</a>もご覧下さい。</p>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2006-2010 Magicant / 更新 2010-03-08 / 初出 2006-01-24
+</address>
+
+</body>
+</html>

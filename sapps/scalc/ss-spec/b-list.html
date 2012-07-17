@@ -1,0 +1,819 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-18T22:11:28+09:00">
+<title>List 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-enum.html" title="Enum 組込みオブジェクト">
+<link rel="next" href="b-tensor.html" title="Tensor 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>List</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>List</code> 組込みオブジェクトを定義する。</p>
+<p><code>List</code> はスクリプトで扱われる可変長リスト (配列) オブジェクト
+に対応する <a href="b-type.html"><code>Type</code></a>
+のインスタンスである。</p>
+
+<h2 id="list-object">リストオブジェクト</h2>
+<p>以下の条件を全て満たすオブジェクトを<dfn>リストオブジェクト</dfn>という:</p>
+<ul>
+<li>(少なくともオブジェクトが作られた当初において) <code>List</code>
+のインスタンスであるか、初期の <code>List.prototype</code>
+と同じオブジェクトである。</li>
+<!--li>オブジェクトのプロトタイプは不変である。</li-->
+<li><code>elements</code> という名前の内部メンバを持ち、その値は<a
+href="primitives.html#type-primitive-list">原始リスト</a>である。原始リストに
+含まれる全てのデータはオブジェクトであり、その個数は有限である。</li>
+<li>関数として呼出し可能であり、呼出されると、規定の処理を行う。(→<a
+href="#instance-call">リストオブジェクトの関数としての呼出し</a>)</li>
+</ul>
+<p>リストオブジェクトは、有限個のオブジェクトを順序付きで保持する
+抽象データ構造を表す。リストオブジェクトが保持する各オブジェクト
+(<code>elements</code> 内部メンバの値が含むデータ)
+をリストオブジェクトの<dfn>要素</dfn>という。
+リストの要素は一意の (重複のない) 番号によって識別する。この番号を<dfn
+>インデックス</dfn>という。インデックスは要素が <code>elements</code>
+内部メンバの値の何番目に含まれているかを表しており、1
+以上で要素の個数以下の整数である。</p>
+<p>一般にリストの内容は読み取り専用ではなく、要素の個数も自由に変化する。しかし
+リストオブジェクトの <a href="#p-isreadonly"><code
+>isReadOnly</code> プロパティ</a>に <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> を設定すると、リストは読み取り専用とみなされる。</p>
+<p>リストオブジェクトは、少なくとも作られた当初は <code>List</code>
+のインスタンスでなければならない (<code>List.prototype</code>
+自身がリストオブジェクトと見なされる場合を除く)。
+リストオブジェクトのプロトタイプが変更されて <code>List</code>
+のインスタンスではなくなった場合、それ以降そのオブジェクトを
+リストオブジェクトと見なすかどうかは実行環境の裁量による。</p>
+
+<h2 id="members"><code>List</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-enum.html#m-prototype"><code>Enum.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"List"</code></dd>
+<dt id="m-of"><code>of</code> メソッド</dt>
+<dd>関数として呼出されると次の処理を行う:
+	<ol>
+	<li>呼出しで渡された全ての引数を、渡された順序のまま含む<a
+	href="primitives.html#type-primitive-list">原始リスト</a>を <var>e</var>
+	とする。</li>
+	<li><var>e</var> を <code>elements</code> 内部メンバの値とする
+	読み取り専用でない新しいリストオブジェクトを作成し、それを <var>L</var>
+	とする。</li>
+	<li>[[<var>L</var>]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、
+引数として渡された各オブジェクトを要素とする新しい配列オブジェクトを返す。</dd>
+<dt id="m-concat"><code>concat</code> メソッド</dt>
+<dd>関数として呼出されると、引数が全てリストオブジェクトならば (引数が 0
+個の場合を含む)、次の処理を行う:
+	<ol>
+	<li>引数のリストオブジェクトの <code>elements</code> 内部メンバの値を
+	渡された引数の順に <var>e</var><sub>1</sub>, <var>e</var><sub>2</sub>,
+	…, <var>e</var><sub><var>n</var></sub> とする。(<var>n</var>
+	は引数の個数)</li>
+	<li><var>e</var><sub>1</sub>[1], <var>e</var><sub>1</sub>[2], …,
+	<var>e</var><sub>1</sub>[<var>e</var><sub>1</sub>.count],
+	<var>e</var><sub>2</sub>[1], <var>e</var><sub>2</sub>[2], …,
+	<var>e</var><sub>2</sub>[<var>e</var><sub>2</sub>.count],
+	……,
+	<var>e</var><sub><var>n</var></sub>[1], <var>e</var><sub><var>n</var></sub
+	>[2], …, <var>e</var><sub><var>n</var></sub>[<var>e</var><sub><var>n</var
+	></sub>.count] を含む<a href="primitives.html#type-primitive-list"
+	>原始リスト</a>を <var>e</var>′ とする。<var>n</var> = 0 ならば、<var>e</var>′
+	は 0 個のオブジェクトを含む原始リストである。</li>
+	<li><var>e</var>′ を <code>elements</code> 内部メンバの値とする
+	読み取り専用でない新しいリストオブジェクトを作成し、それを <var>L</var>
+	とする。</li>
+	<li>[[<var>L</var>]] を返す。</li>
+	</ol>
+引数にリストオブジェクトでないオブジェクトが含まれている場合の動作は規定しない。
+</dd>
+<dd class="informative">このメソッドは、
+引数として渡された各配列オブジェクトを連結し、
+一つの新しい配列オブジェクトとして返す。</dd>
+</dl>
+
+<h2 id="internal-members"><code>List</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>List</code> の関数としての呼出し</h2>
+<p><code>List</code>
+は関数として呼出し可能であり、関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>呼出しで渡された引数がなければ、[[0 個の要素を持つ読み取り専用でない
+新しいリストオブジェクト]] を返す。</li>
+<li>呼出しで渡された引数が一つのリストオブジェクトなら、[[以下の条件を全て満たす
+新しいリストオブジェクト]] を返す:
+	<ul>
+	<li>引数のリストオブジェクトと同じ <code>elements</code>
+	内部メンバを持つ。</li>
+	<li>読み取り専用でない。</li>
+	<li>プロトタイプは、引数のリストオブジェクトである。</li>
+	</ul>
+</li>
+<li>呼出しで渡された引数の数が一つまたは二つで、一つ目が <code>Real</code>
+オブジェクトならば、以下の動作を行う:
+	<ol>
+	<li>そのオブジェクトに対して <a href="b-integer.html#real-to-int"
+	>real-to-int</a> を行い、その結果を <var>c</var> とする。<var>c</var> が null
+	または負数ならば、新しい <a href="b-error.html"><code>OutOfRangeError</code
+	></a> のインスタンスを投げる。</li>
+	<li>二つ目の引数があればそれを <var>O</var> とする。なければ初期の <a
+	href="b-void.html#m-void"><code>Void.void</code></a> を <var>O</var>
+	とする。</li>
+	<li><var>O</var> のみを含む原始リストを <var>e</var> とする。ただし、<var
+	>e</var>.count = <var>c</var> とする。</li>
+	<li><var>e</var> を <code>elements</code> 内部メンバの値とする
+	読み取り専用でない新しいリストオブジェクトを作成し、それを <var>L</var>
+	とする。</li>
+	<li>[[<var>L</var>]] を返す。</li>
+	</ol>
+<li>これ以降の動作は規定しない。</li>
+</ol>
+
+<!--h2 id="prototype-members"><code>List.prototype</code> のプロパティ</h2>
+<p>この仕様では、<code>List.prototype</code> のプロパティは定義しない。
+しかし実行環境はリストオブジェクトが持つべきプロパティを実現するために、
+<code>$set$count</code> や <code>$set$isReadOnly</code> などのメソッドを
+<code>List.prototype</code> に用意することができる。</p-->
+<h2 id="instance-members">リストオブジェクトのプロパティ</h2>
+<p>リストオブジェクトは以下のプロパティを持つ。ただし、
+<code>List.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-count"><code>count</code></dt>
+<dd>このプロパティの値は、<a href="b-integer.html"><code>Integer</code></a>
+オブジェクトである。この値は、このリストオブジェクトの現在の
+<code>elements</code> 内部メンバの値に含まれている要素の個数を表す。</dd>
+<dd>このプロパティを削除しようとすると、<a href="b-error.html"><code
+>UnsupportedOperationError</code></a> のインスタンスが投げられる。</dd>
+<dd>このプロパティに対してオブジェクト <var>N</var>
+が代入されるとき、次の動作を行う:
+	<ol>
+	<li><var>N</var> が <a href="calculations.html#real-objects"><code>Real</code>
+	オブジェクト</a>でなければ、新しい <a
+	href="b-error.html"><code>TypeError</code></a> のインスタンスを投げる。</li>
+	<li><var>N</var> に対して <a href="b-integer.html#real-to-int">real-to-int</a>
+	を行い、その結果を <var>n</var> とする。<var>n</var> が null
+	または負数ならば、新しい <a href="b-error.html"><code
+	>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li>このリストオブジェクトが <code>isReadOnly</code> 内部メンバを持つならば、
+	新しい <a href="b-error.html"><code>ReadOnlyError</code></a>
+	のインスタンスを投げる。</li>
+	<li><var>e</var>.count &lt; <var>n</var> ならば、
+		<ol>
+		<li><var>n</var> 個の要素からなる新たな原始リストを <var>e</var>′
+		とする。この原始リストの最初の <var>e</var>.count 個の要素は、<var>e</var>
+		の各要素にそれぞれ一致する。残りの (<var>n</var> − <var>e</var>.count)
+		個の要素は、すべて初期の <a href="b-void.html#m-void"><code>Void.void</code
+		></a> である。</li>
+		<li>このリストオブジェクトの <code>elements</code>
+		内部メンバの値を、<var>e</var>′ に変更する。</li>
+		</ol>
+	</li>
+	<li><var>e</var>.count > <var>n</var> ならば、
+		<ol>
+		<li><var>n</var> 個の要素からなる新たな原始リストを <var>e</var>′
+		とする。この原始リストの要素は、<var>e</var> の最初の <var>n</var>
+		個の要素にそれぞれ一致する。</li>
+		<li>このリストオブジェクトの <code>elements</code>
+		内部メンバの値を、<var>e</var>′ に変更する。</li>
+		</ol>
+	</li>
+	<li>[[<var>N</var>]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative"><code>count</code> プロパティに整数を代入する
+ことによって、リストオブジェクトの要素数を変更できる。要素数が減少する場合、
+リストの最後の方にある余った要素はリストから削除される。要素数が増加する場合、
+足りない要素を補うためにリストの最後の方に <code>@void</code> が追加される。
+負の要素数を設定しようとすると <code>OutOfRangeError</code> エラーが、
+リストが読み取り専用の場合は <code>ReadOnlyError</code> エラーが投げられる。
+</dd>
+<dt id="p-isreadonly"><code>isReadOnly</code></dt>
+<dd>このプロパティの値はリストが読み取り専用であるかどうかを表す。</dd>
+<dd>このリストオブジェクトが <code>isReadOnly</code> 内部メンバを持つならば、
+このプロパティの値は初期の <a href="b-boolean.html#m-true"><code
+>Boolean.true</code></a> である。さもなくば、このプロパティの値は初期の
+<a href="b-boolean.html#m-false"><code>Boolean.false</code></a> である。</dd>
+<dd>このプロパティを削除しようとすることは、このプロパティに対して初期の
+<a href="b-boolean.html#m-false"><code>Boolean.false</code></a>
+を代入することと同じように処理される。</dd>
+<dd>このプロパティに対してオブジェクト <var>N</var>
+が代入されるとき、次の動作を行う:
+	<ol>
+	<li><var>N</var> が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、
+		<ol>
+		<li>このリストオブジェクトが <code>isReadOnly</code>
+		内部メンバを持たなければ、<code>isReadOnly</code> 内部メンバを作成し
+		<var>N</var> をその値に設定する。</li>
+		<li>[[<var>N</var>]] を返す。</li>
+		</ol>
+	</li>
+	<li><var>N</var> が初期の <a href="b-boolean.html#m-false"><code
+	>Boolean.false</code></a> ならば、
+		<ol>
+		<li>このリストオブジェクトが <code>isReadOnly</code>
+		内部メンバを持つならば、新しい <a href="b-error.html"><code
+		>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+		<li>[[<var>N</var>]] を返す。</li>
+		</ol>
+	</li>
+	<li>新しい <a href="b-error.html"><code
+	>TypeError</code></a> のインスタンスを投げる。</li>
+	</ol>
+</dd>
+<dd class="informative">このプロパティに <code>@true</code> を代入することで、
+リストを読み取り専用にすることができる。一度読み取り専用になったリストを
+元の状態に戻すことは出来ない。</dd>
+<dt id="p-insert"><code>insert</code> メソッド</dt>
+<dd>2-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>渡された引数が一つもなければ新しい <a
+	href="b-error.html"><code>NumberOfArgumentsError</code></a>
+	のインスタンスを投げる。さもなくば一つ目の引数を <var>I</var> とする。</li>
+	<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+	値、<var>I</var> を唯一の引数として、<a href="b-math.html#m-ceil"
+	><code>Math.ceil</code></a> を関数として呼出し、その結果に対して
+	<a href="primitives.html#get-reference-value">get-reference-value</a>
+	を行い、その結果を <var>r</var> とする。</li>
+	<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+	<li><var>r</var> の値が <a href="calculations.html#integer-objects"
+	><code>Integer</code> オブジェクト</a>ならば、そのオブジェクトが表す整数と
+	1 との最大値を <var>i</var> とする。さもなくば、新しい <a
+	href="b-error.html"><code>TypeError</code></a> のインスタンスを投げる。</li>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>e</var>.count &lt; <var>i</var> − 1 ならば、<var>e</var> の末尾に
+	初期の <a href="b-void.html#m-void"><code>Void.void</code></a>
+	を適当な個数だけ追加して、要素数を <var>i</var> − 1 にした原始リストを改めて
+	<var>e</var> とする。</li>
+	<li>呼出しで渡された二つ目以降の全ての引数を <var>a</var><sub>1</sub>,
+	<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub> とする。</li>
+	<li><var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>i</var> − 1],
+	<var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …, <var>a</var><sub><var
+	>n</var></sub>, <var>e</var>[<var>i</var>], <var>e</var>[<var>i</var> + 1], …,
+	<var>e</var>[<var>e</var>.count] を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[このリストオブジェクト]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、一つ目の引数で指示されたインデックスの
+直前に、二つ目以降の引数を挿入する。</dd>
+<dt id="p-append"><code>append</code> メソッド</dt>
+<dt id="p-push"><code>push</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li>呼出しで渡された全ての引数を <var>a</var><sub>1</sub>,
+	<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub> とする。</li>
+	<li><var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>e</var>.count],
+	<var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …, <var>a</var><sub><var
+	>n</var></sub> を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[このリストオブジェクト]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、
+引数をこのリストオブジェクトの要素としてリストの末尾に追加する。</dd>
+<dt id="p-pop"><code>pop</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>e</var>.count = 0 ならば [[初期の
+	<a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+	<li><var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>e</var>.count − 1]
+	を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[ <var>e</var>[<var>e</var>.count] ]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは
+リストオブジェクトの最後の要素をリストから削除し、返す。</dd>
+<dt id="p-prepend"><code>prepend</code> メソッド</dt>
+<dt id="p-unshift"><code>unshift</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li>呼出しで渡された全ての引数を <var>a</var><sub>1</sub>,
+	<var>a</var><sub>2</sub>, …, <var>a</var><sub><var>n</var></sub> とする。</li>
+	<li><var>a</var><sub>1</sub>, <var>a</var><sub>2</sub>, …, <var>a</var><sub
+	><var>n</var></sub>, <var>e</var>[1], <var>e</var>[2], …,
+	<var>e</var>[<var>e</var>.count] を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[このリストオブジェクト]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、
+引数をこのリストオブジェクトの要素としてリストの先頭に追加する。</dd>
+<dt id="p-shift"><code>shift</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>e</var>.count = 0 ならば [[初期の
+	<a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+	<li><var>e</var>[2], <var>e</var>[3], …, <var>e</var>[<var>e</var>.count]
+	を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[ <var>e</var>[1] ]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは
+リストオブジェクトの最初の要素をリストから削除し、返す。</dd>
+<dt id="p-reverse"><code>reverse</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li><var>e</var>[<var>e</var>.count], <var>e</var>[<var>e</var>.count − 1],
+	…, <var>e</var>[2], <var>e</var>[1]
+	を含む原始リストを <var>e</var>′ とする。</li>
+	<li>このリストオブジェクトの <code>elements</code>
+	内部メンバの値を、<var>e</var>′ に変更する。</li>
+	<li>[[このリストオブジェクト]] を返す。</li>
+	</ol>
+</dd>
+<dd class="informative">このメソッドは、リストオブジェクトの要素の順序を逆転し、
+リストオブジェクトを返す。</dd>
+<dt id="p-concat"><code>concat</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数がリストオブジェクトならば、
+その @this 値と全ての引数を引数として <a href="#m-concat"><code
+>List.concat</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-copy"><code>copy</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出されると、[[以下の条件を全て満たす
+新しいリストオブジェクト]] を返す:
+	<ul>
+	<li>呼出しで渡された @this 値と同じ <code>elements</code>
+	内部メンバを持つ。</li>
+	<li>読み取り専用でない。</li>
+	<li>プロトタイプは、呼出しで渡された @this 値である。</li>
+	</ul>
+</dd>
+<dd class="informative">このメソッドは、
+例えば次の関数生成式を評価して得られるような関数オブジェクトとして実装できる:
+<code>@{ <a href="#call">List</a>[@this] }</code></dd>
+<dt id="p-findindex"><code>findIndex</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>呼出しで渡された引数が一つまたは二つでなければ新しい <a
+	href="b-error.html"><code>NumberOfArgumentsError</code></a>
+	のインスタンスを投げる。さもなくば一つ目の引数を <var>P</var> とする。</li>
+	<li><var>P</var> が関数として呼出し可能でなければ、新しい <a
+	href="b-error.html"><code>NotCallableError</code></a>
+	のインスタンスを投げる。</li>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li>二つ目の引数があれば、それを <var>I</var> として、次の動作を行う:
+		<ol>
+		<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+		値、<var>I</var> を唯一の引数として、<a href="b-math.html#m-ceil"
+		><code>Math.ceil</code></a> を関数として呼出し、その結果に対して
+		<a href="primitives.html#get-reference-value">get-reference-value</a>
+		を行い、その結果を <var>r</var> とする。</li>
+		<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+		<li><var>r</var> の値が <a href="calculations.html#integer-objects"
+		><code>Integer</code> オブジェクト</a>ならば、そのオブジェクトが表す整数と
+		1 との最大値を <var>i</var> とする。さもなくば、新しい <a
+		href="b-error.html"><code>TypeError</code></a> のインスタンスを投げる。</li>
+		</ol>
+	二番目の引数がなければ、<var>i</var> = 1 とする。</li>
+	<li>*1: <var>i</var> > <var>e</var>.count ならば、[[<a
+	href="calculations.html#nan-object"><code>NaN</code> オブジェクト</a>]]
+	を返す。</li>
+	<li>初期の <code>Void.void</code> を @this 値、<var>e</var>[<var>i</var>]
+	を唯一の引数として、<var>P</var> を関数として呼出し、その結果に対して
+	<a href="primitives.html#get-reference-value">get-reference-value</a>
+	を行い、その結果を <var>r</var> とする。</li>
+	<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+	<li><var>r</var> の値に対して <a href="expressions.html#to-boolean"
+	>to-boolean</a> 操作を行い、その結果が true ならば、[[整数 <var>i</var> を表す
+	<code>Integer</code> オブジェクト]] を返す。</li>
+	<li><var>i</var> を 1 増やして、<var>i</var> と <var>e</var>.count との比較
+	(*1) に戻る。</li>
+	</ol>
+ただし、関数の呼出しが完了するまでにリストオブジェクトの <code>elements</code>
+内部メンバの値が変化したならば、それ以降の動作は未定義とする。</dd>
+<dd class="informative">
+<p>このメソッドは、一つ目の引数を述語関数と見なして、
+リストの要素のうちその述語を満たす最初のもののインデックスを返す。
+二番目の引数でインデックスを指定すると、そのインデックス以降についてのみを
+検索の対象とする。述語を満たす要素がない場合は <code>@nan</code> を返す。</p>
+<p>例えば以下のコードでは、リストには整数 1, 10, 100, 1000 が含まれており、
+述語として <q>50 より大きい</q>を指定している。この述語を満たす最初の要素は 100
+であり、そのインデックスは 3 であるから、<code>findIndex</code> メソッドの結果は
+3 となる。</p>
+<pre><code>List.<a href="#m-of"
+>of</a>[1, 10, 100, 1000].findIndex[&amp; # > 50 ]</code></pre>
+</dd>
+<dt id="p-findlastindex"><code>findLastIndex</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>呼出しで渡された引数が一つまたは二つでなければ新しい <a
+	href="b-error.html"><code>NumberOfArgumentsError</code></a>
+	のインスタンスを投げる。さもなくば一つ目の引数を <var>P</var> とする。</li>
+	<li><var>P</var> が関数として呼出し可能でなければ、新しい <a
+	href="b-error.html"><code>NotCallableError</code></a>
+	のインスタンスを投げる。</li>
+	<li>このリストオブジェクトの現在の <code>elements</code> 内部メンバの値を
+	<var>e</var> とする。</li>
+	<li>二つ目の引数があれば、それを <var>I</var> として、次の動作を行う:
+		<ol>
+		<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+		値、<var>I</var> を唯一の引数として、<a href="b-math.html#m-floor"
+		><code>Math.floor</code></a> を関数として呼出し、その結果に対して
+		<a href="primitives.html#get-reference-value">get-reference-value</a>
+		を行い、その結果を <var>r</var> とする。</li>
+		<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+		<li><var>r</var> の値が <a href="calculations.html#integer-objects"
+		><code>Integer</code> オブジェクト</a>ならば、そのオブジェクトが表す整数と
+		<var>e</var>.count との最小値を <var>i</var> とする。さもなくば、新しい <a
+		href="b-error.html"><code>TypeError</code></a> のインスタンスを投げる。</li>
+		</ol>
+	二番目の引数がなければ、<var>i</var> = <var>e</var>.count とする。</li>
+	<li>*1: <var>i</var> &lt; 1 ならば、[[<a
+	href="calculations.html#nan-object"><code>NaN</code> オブジェクト</a>]]
+	を返す。</li>
+	<li>初期の <code>Void.void</code> を @this 値、<var>e</var>[<var>i</var>]
+	を唯一の引数として、<var>P</var> を関数として呼出し、その結果に対して
+	<a href="primitives.html#get-reference-value">get-reference-value</a>
+	を行い、その結果を <var>r</var> とする。</li>
+	<li><var>r</var> が正常終了でなければ、直ちにそれを返す。</li>
+	<li><var>r</var> の値に対して <a href="expressions.html#to-boolean"
+	>to-boolean</a> 操作を行い、その結果が true ならば、[[整数 <var>i</var> を表す
+	<code>Integer</code> オブジェクト]] を返す。</li>
+	<li><var>i</var> を 1 減らして、<var>i</var> と 1 との比較
+	(*1) に戻る。</li>
+	</ol>
+ただし、関数の呼出しが完了するまでにリストオブジェクトの <code>elements</code>
+内部メンバの値が変化したならば、それ以降の動作は未定義とする。</dd>
+<dd class="informative">
+<p>このメソッドは、一つ目の引数を述語関数と見なして、
+リストの要素のうちその述語を満たす最後のもののインデックスを返す。
+二番目の引数でインデックスを指定すると、そのインデックス以前についてのみを
+検索の対象とする。述語を満たす要素がない場合は <code>@nan</code> を返す。</p>
+</dd>
+<dt id="p-find"><code>find</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this[@this.<a href="#p-findindex"
+>findIndex</a>[[$args]]] }</code></dd>
+<dd class="informative">このメソッドは <code>findIndex</code> メソッドと
+同様に述語を満たす要素を検索するが、インデックスではなくて要素そのものを返す点が
+異なる。</dd>
+<dt id="p-findlast"><code>findLast</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this[@this.<a href="#p-findlastindex"
+>findLastIndex</a>[[$args]]] }</code></dd>
+<dd class="informative">このメソッドは <code>findLastIndex</code> メソッドと
+同様に述語を満たす要素を検索するが、インデックスではなくて要素そのものを返す点が
+異なる。</dd>
+<dt id="p-indexof"><code>indexOf</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[obj] {
+   $args[1] = @bind obj.$equal;
+   @return @this.<a href="#p-findindex">findIndex</a>[[$args]];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、リストの要素のうち引数に等しい
+最初のもののインデックスを返す。二番目の引数でインデックスを指定すると、
+そのインデックス以降についてのみを検索の対象とする。引数に等しい要素がない場合は
+<code>@nan</code> を返す。オブジェクトが等しいかどうかの判定は <code>==</code>
+によって行う。</dd>
+<dt id="p-lastindexof"><code>lastIndexOf</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<pre><code>@[obj] {
+   $args[1] = @bind obj.$equal;
+   @return @this.<a href="#p-findlastindex">findLastIndex</a>[[$args]];
+}</code></pre></dd>
+<dd class="informative">このメソッドは、リストの要素のうち引数に等しい
+最後のもののインデックスを返す。二番目の引数でインデックスを指定すると、
+そのインデックス以前についてのみを検索の対象とする。引数に等しい要素がない場合は
+<code>@nan</code> を返す。オブジェクトが等しいかどうかの判定は <code>==</code>
+によって行う。</dd>
+<dt id="p-contains"><code>contains</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[obj] { $args.<a href="b-enum.html#p-forall">forAll</a>[@bind @this.<a
+href="#p-indexof">indexOf</a>] }</code></dd>
+<dd class="informative">このメソッドは、
+引数全てがこのリストオブジェクトに含まれているかどうかを調べる。</dd>
+<dt id="p-getenum"><code>getEnum</code> メソッド</dt>
+<dd>関数として呼びだされると、[[新しい<a href="b-enum.html#enumeration-object"
+>開始列挙オブジェクト</a>]] を返す。この列挙オブジェクトによる列挙操作は、
+このリストオブジェクトの要素を番号の若い順に一度づつ列挙する。ただし、
+列挙操作が完了する (列挙オブジェクトの <a href="b-enum.html#p-tonext"><code
+>toNext</code> メソッド</a>が <code>null</code> を返す) までに
+このリストオブジェクトの <code>elements</code> 内部メンバが変更された場合は、
+それ以降の列挙操作の挙動は規定しない。</dd>
+<dd class="informative">このメソッドは、
+例えば次の関数生成式を評価して得られるような関数オブジェクトとして実装できる:
+<pre><code>@{
+   @var toNext = @{
+      @this.index ||= 0;
+      @if ++@this.index > #source.count:
+         @return @null;
+      @this.item = #source[@this.index];
+      @return @this;
+   };
+   @return <a href="b-enum.html#call">Enum</a>[toNext, @this];
+}</code></pre></dd>
+<dt id="p-getcyclicenum"><code>getCyclicEnum</code> メソッド</dt>
+<dd>関数として呼びだされると、[[新しい<a href="b-enum.html#enumeration-object"
+>開始列挙オブジェクト</a>]] を返す。この列挙オブジェクトによる列挙操作は、
+このリストオブジェクトの要素を番号の若い順に列挙する。リストの最後の要素まで
+列挙すると、リストの最初の要素に戻って列挙を続ける。ただし、
+このリストオブジェクトの <code>elements</code> 内部メンバが変更された場合は、
+それ以降の列挙操作の挙動は規定しない。また、リストオブジェクトの要素が一つも
+存在しないときは、列挙オブジェクトは何も列挙しない。</dd>
+<dd class="informative">このメソッドは、
+例えば次の関数生成式を評価して得られるような関数オブジェクトとして実装できる:
+<pre><code>@{
+   @var toNext = @{
+      @if #source.count == 0:
+         @return @null;
+      @this.index ||= 0;
+      @if ++@this.index > #source.count:
+         @this.index = 1;
+      @this.item = #source[@this.index];
+      @return @this;
+   };
+   @return <a href="b-enum.html#call">Enum</a>[toNext, @this];
+}</code></pre></dd>
+<dt id="p-tonext"><code>toNext</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.getEnum[].toNext[] }</code></dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。リストオブジェクトを @this
+値として関数として呼び出されると、渡された @this
+値を文字列に変換し、その文字列を内容とする<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>を値とする正常終了の結果を返す。文字列への変換の方法は実行環境に任せるが、
+リストオブジェクトに含まれている各オブジェクトを文字列に変換したものがそれぞれ
+含まれているのが望ましい。</dd>
+</dl>
+
+<h2 id="instance-internal-members">リストオブジェクトの内部メンバ</h2>
+<dl class="member-def">
+<dt id="ip--prototype"><code>$prototype</code></dt>
+<dd><code>List.prototype</code>、または <code>List.prototype</code>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="ip-elements"><code>elements</code></dt>
+<dd>任意個のオブジェクトを含む<a href="primitives.html#type-primitive-list"
+>原始リスト</a>。この原始リストはリストオブジェクトの内容を保持する。</dd>
+<dt id="ip-isreadonly"><code>isReadOnly</code></dt>
+<dd>この内部メンバが存在するならばリストオブジェクトは読み取り専用である。</dd>
+</dl>
+
+<h2 id="instance-call">リストオブジェクトの関数としての呼出し</h2>
+<p>リストオブジェクトは関数として呼出し可能である。
+リストオブジェクトが関数として呼出されると次の処理を行う:</p>
+<ol>
+<li>関数として呼出されたこの <code>List</code> のインスタンスを <var>L</var>
+とする。</li>
+<li>渡された引数の個数が一つでなければ、新しい <a href="b-error.html"
+><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+<li>渡された引数を <var>A</var> とする。</li>
+<li><var>A</var> が初期の <a href="b-void.html#m-void"><code>Void.void</code></a
+> または初期の <a href="b-null.html#b-null"><code>Null.null</code></a> または
+<a href="calculations.html#nan-object"><code>NaN</code> オブジェクト</a>ならば、
+[[初期の <code>Void.void</code>]] を返す。</li>
+<li><var>A</var> が <a href="calculations.html#real-objects"><code>Real</code>
+オブジェクト</a>ならば、以下の動作を行う:
+	<ol>
+	<li><var>A</var> に対して <a href="b-integer.html#real-to-int">real-to-int</a>
+	を行い、その結果を <var>i</var> とする。ただし、結果が null のときは
+	<var>i</var> = −1 とする。</li>
+	<li>[[<var>L</var> と <var>i</var> に対応する<a href="#list-element-reference"
+	>リスト要素参照</a>]] を返す。</li>
+	</ol>
+</li>
+<li><var>A</var> に対して <a href="b-interval.html#ints-in-interval"
+>ints-in-interval</a> を実行し、その結果を <var>I</var> とする。<var>I</var>
+が正常終了でなければ直ちにそれを返す。</li>
+<li><var>I</var> の値を <var>R</var> とする。<var>R</var> が null でなければ、
+[[<var>L</var> と <var>R</var> に対応する<a href="#list-range-reference"
+>リスト範囲参照</a>]] を返す。</li>
+<li><var>A</var> が <a href="b-enum.html"><code>Enum</code></a>
+のインスタンスならば、式 <code><var>a</var>.map[<var>l</var>].toList[]</code>
+を評価し、その結果を返す。ただし、この式における部分式 <code><var>a</var></code>
+の評価結果は [[<var>A</var>]] とし、部分式 <code><var>l</var></code>
+の評価結果は [[<var>L</var>]] とする。</li>
+<li>これ以降の動作は、未定義である。</li>
+</ol>
+
+<h2 id="list-element-reference">リスト要素参照</h2>
+<p><dfn>リスト要素参照</dfn>は<a href="primitives.html#type-reference"
+>参照</a>の一種である。全てのリスト要素参照は、それぞれ対応する
+リストオブジェクト <var>L</var> と整数 <var>i</var> を持つ。</p>
+<p>リスト要素参照に対する動作を以下に定める:</p>
+<dl>
+<dt>check-reference-value</dt>
+<dd><ol>
+	<li><var>L</var> の現在の <a href="#ip-elements"><code>elements</code>
+	内部メンバ</a>の値を <var>e</var> とする。</li>
+	<li>0 &lt; <var>i</var> ≤ <var>e</var>.count ならば、[[初期の <a
+	href="b-boolean.html#m-true"><code>Boolean.true</code></a>]]
+	を返す。さもなくば [[初期の <a href="b-boolean.html#m-false"><code
+	>Boolean.false</code></a>]] を返す。</li>
+</ol></dd>
+<dt>get-reference-value</dt>
+<dd><ol>
+	<li><var>L</var> の現在の <a href="#ip-elements"><code>elements</code>
+	内部メンバ</a>の値を <var>e</var> とする。</li>
+	<li>0 &lt; <var>i</var> ≤ <var>e</var>.count ならば、[[
+	<var>e</var>[<var>i</var>] ]] を返す。さもなくば [[初期の <a
+	href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+</ol></dd>
+<dt>set-reference-value</dt>
+<dd><ol>
+	<li>set-reference-value の対象となるオブジェクトを <var>O</var> とする。</li>
+	<li><var>L</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>i</var> ≤ 0 ならば、新しい <a href="b-error.html"
+	><code>OutOfRangeError</code></a> のインスタンスを投げる。</li>
+	<li><var>L</var> の現在の <a href="#ip-elements"><code>elements</code>
+	内部メンバ</a>の値を <var>e</var> とする。</li>
+	<li><var>L</var> の <code>elements</code> 内部メンバの値を、新しい<a
+	href="primitives.html#type-primitive-list">原始リスト</a> <var>e</var>′
+	に変更する。<var>e</var>′ に含まれる <var>k</var> 個目のオブジェクトは、
+		<dl>
+		<dt><var>k</var> = <var>i</var> ならば</dt>
+		<dd><var>O</var></dd>
+		<dt><var>k</var> ≠ <var>i</var> かつ
+		0 &lt; <var>k</var> ≤ <var>e</var>.count ならば</dt>
+		<dd><var>e</var>[<var>k</var>]</dd>
+		<dt><var>e</var>.count &lt; <var>k</var> &lt; <var>i</var> ならば</dt>
+		<dd>初期の <a href="b-void.html#m-void"><code>Void.void</code></a></dd>
+		</dl>
+	とする。これにより、<var>e</var>′ には max(<var>e</var>.count, <var>i</var>)
+	個の要素が含まれることになる。</li>
+	<li>[[<var>O</var>]] を返す。</li>
+</ol></dd>
+<dt>delete-reference-value</dt>
+<dd><ol>
+	<li><var>L</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>L</var> の現在の <a href="#ip-elements"><code>elements</code>
+	内部メンバ</a>の値を <var>e</var> とする。</li>
+	<li>0 &lt; <var>i</var> ≤ <var>e</var>.count ならば、
+		<ol>
+		<li><var>L</var> の <code>elements</code> 内部メンバの値を、新しい<a
+		href="primitives.html#type-primitive-list">原始リスト</a> <var>e</var>′
+		に変更する。<var>e</var>′ に含まれる <var>k</var> 個目のオブジェクトは、
+			<dl>
+			<dt>0 &lt; <var>k</var> &lt; <var>i</var> ならば</dt>
+			<dd><var>e</var>[<var>k</var>]</dd>
+			<dt><var>i</var> ≤ <var>k</var> &lt; <var>e</var>.count ならば</dt>
+			<dd><var>e</var>[<var>k</var> + 1]</dd>
+			</dl>
+		とする。これにより、<var>e</var>′ には max(0, <var>e</var>.count − 1)
+		個の要素が含まれることになる。</li>
+		<li>[[ <var>e</var>[<var>i</var>] ]] を返す。</li>
+		</ol>
+	</li>
+	<li>[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]]
+	を返す。</li>
+</ol></dd>
+</dl>
+
+<h2 id="list-range-reference">リスト範囲参照</h2>
+<p><dfn>リスト範囲参照</dfn>は<a href="primitives.html#type-reference"
+>参照</a>の一種である。全てのリスト範囲参照は、それぞれ対応する
+リストオブジェクト <var>L</var> と整数の集合 <var>R</var> を持つ。</p>
+<p>リスト範囲参照に対する動作を以下に定める:</p>
+<dl>
+<dt>check-reference-value</dt>
+<dd><ol>
+	<li>[[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]]
+	を返す。</li>
+</ol></dd>
+<dt>get-reference-value</dt>
+<dd><ol>
+	<li><var>L</var> の現在の <code>elements</code> 内部メンバの値を <var>e</var>
+	とする。1 以上 <var>e</var>.count 以下の整数の集合と <var>R</var>
+	との積集合を <var>R</var>′ とする。</li>
+	<li><var>R</var>′ が空集合ならば、[[0
+	個の要素を持つ読み取り専用でない新しいリストオブジェクト]] を返す。ただし、
+	この新しいリストオブジェクトのプロトタイプは <var>L</var> とする。</li>
+	<li><var>R</var>′ に含まれている整数の最小値を <var>m</var>、最大値を
+	<var>n</var> とする。</li>
+	<li><var>e</var>[<var>m</var>], <var>e</var>[<var>m</var> + 1], …,
+	<var>e</var>[<var>n</var>] を含む<a href="primitives.html#type-primitive-list"
+	>原始リスト</a>を <code>elements</code> 内部メンバの値とする
+	読み取り専用でない新しいリストオブジェクトを作成し、それを <var>L</var>′
+	とする。ただし、<var>L</var>′ のプロトタイプは <var>L</var> とする。</li>
+	<li>[[<var>L</var>′]] を返す。</li>
+</ol></dd>
+<dt>set-reference-value</dt>
+<dd><ol>
+	<li>set-reference-value の対象となるオブジェクトを <var>O</var> とする。</li>
+	<li><var>L</var> の現在の <code>elements</code> 内部メンバの値を <var>e</var>
+	とする。</li>
+	<li><var>L</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>R</var> が空集合ならば、直ちに [[<var>O</var>]] を返す。</li>
+	<li><var>R</var> に 0 以下の整数が含まれているならば、新しい <a
+	href="b-error.html"><code>OutOfRangeError</code></a>
+	のインスタンスを投げる。</li>
+	<li><var>R</var> に含まれている整数の最小値を <var>m</var>、最大値を
+	<var>n</var> とする。ただし、最大値が存在しなければ (すなわち
+	<var>R</var> が無限集合ならば) 新しい <a href="b-error.html"
+	><code>OverflowError</code></a> のインスタンスを投げる。</li>
+	<li><var>e</var>.count &lt; <var>m</var> − 1 ならば、<var>e</var> の末尾に
+	初期の <a href="b-void.html#m-void"><code>Void.void</code></a>
+	を適当な個数だけ追加して、要素数を <var>m</var> − 1 にした原始リストを改めて
+	<var>e</var> とする。</li>
+	<li><var>O</var> がリストオブジェクトでなければ、以下の動作を行う:
+		<ul>
+		<li><var>n</var> &lt; <var>e</var>.count ならば、
+		<var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>m</var> − 1],
+		<var>O</var>, …, <var>O</var>,
+		<var>e</var>[<var>n</var> + 1], <var>e</var>[<var>n</var> + 2], …,
+		<var>e</var>[<var>e</var>.count] を含む原始リストを <var>e</var>″ とする。
+		ただし、<var>e</var>″.count = <var>e</var>.count となるようにする。</li>
+		<li><var>e</var>.count ≤ <var>n</var> ならば、
+		<var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>m</var> − 1],
+		<var>O</var>, …, <var>O</var> を含む原理リストを <var>e</var>″ とする。
+		ただし、<var>e</var>″.count = <var>n</var> となるようにする。</li>
+		</ul>
+	<var>O</var> がリストオブジェクトならば、<var>O</var> の現在の
+	<code>elements</code> 内部メンバの値を <var>e</var>′ として、以下の動作を行う:
+		<ul>
+		<li><var>n</var> &lt; <var>e</var>.count ならば、
+		<var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>m</var> − 1],
+		<var>e</var>′[1], <var>e</var>′[2], …, <var>e</var>′[<var>e</var>′.count],
+		<var>e</var>[<var>n</var> + 1], <var>e</var>[<var>n</var> + 2], …,
+		<var>e</var>[<var>e</var>.count]
+		を含む原始リストを <var>e</var>″ とする。</li>
+		<li><var>e</var>.count ≤ <var>n</var> ならば、
+		<var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>m</var> − 1],
+		<var>e</var>′[1], <var>e</var>′[2], …, <var>e</var>′[<var>e</var>′.count]
+		を含む原理リストを <var>e</var>″ とする。</li>
+		</ul>
+	</li>
+	<li><var>L</var> の <code>elements</code> 内部メンバの値を、<var>e</var>″
+	に変更する。</li>
+	<li>[[<var>O</var>]] を返す。</li>
+</ol></dd>
+<dt>delete-reference-value</dt>
+<dd><ol>
+	<li><var>L</var> の現在の <a href="#p-isreadonly"><code>isReadOnly</code>
+	プロパティ</a>の値が初期の <a href="b-boolean.html#m-true"><code
+	>Boolean.true</code></a> ならば、新しい <a href="b-error.html"><code
+	>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+	<li><var>L</var> の現在の <code>elements</code> 内部メンバの値を <var>e</var>
+	とする。1 以上 <var>e</var>.count 以下の整数の集合と <var>R</var>
+	との積集合を <var>R</var>′ とする。</li>
+	<li><var>R</var>′ が空集合ならば、[[0
+	個の要素を持つ読み取り専用でない新しいリストオブジェクト]] を返す。ただし、
+	この新しいリストオブジェクトのプロトタイプは <var>L</var> とする。</li>
+	<li><var>R</var>′ に含まれている整数の最小値を <var>m</var>、最大値を
+	<var>n</var> とする。</li>
+	<li><var>e</var>[<var>m</var>], <var>e</var>[<var>m</var> + 1], …,
+	<var>e</var>[<var>n</var>] を含む<a href="primitives.html#type-primitive-list"
+	>原始リスト</a>を <code>elements</code> 内部メンバの値とする
+	読み取り専用でない新しいリストオブジェクトを作成し、それを <var>L</var>′
+	とする。ただし、<var>L</var>′ のプロトタイプは <var>L</var> とする。</li>
+	<li><var>e</var>[1], <var>e</var>[2], …, <var>e</var>[<var>m</var> − 1],
+	<var>e</var>[<var>n</var> + 1], <var>e</var>[<var>n</var> + 2], …,
+	<var>e</var>[<var>e</var>.count] を含む原理リストを <var>e</var>′ とする。</li>
+	<li><var>L</var> の <code>elements</code> 内部メンバの値を、<var>e</var>′
+	に変更する。</li>
+	<li>[[<var>L</var>′]] を返す。</li>
+</ol></dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

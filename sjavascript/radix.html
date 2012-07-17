@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で位取り表示された整数の基数を変換します">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 基数変換</title>
+<style type="text/css">
+table {
+	text-align: left;
+}
+</style>
+<script type="text/javascript">
+// 定数宣言
+var MinRadix = 2;
+var MaxRadix = 36;
+var DefaultRadix = 10;
+var MaxValue = 9007199254740991;
+
+// グローバルオブジェクト
+var elv, elr, elo;
+
+// 初期化
+function init() {
+	elv = document.getElementById("srcvalue");
+	elr = document.getElementById("srcradix");
+	elo = document.getElementById("result");
+	elv.focus();
+}
+
+// エントリポイント
+function main() {
+	var out;
+	var src = elv.value;
+	var radix = parseInt(elr.value, DefaultRadix);
+	
+	if (src == "" || isNaN(radix)) {
+		out = "<p>値が入力されていません。";
+	} else if (radix < MinRadix || radix > MaxRadix) {
+		out = "<p>元の基数は " + MinRadix + " 以上 " +
+		                         MaxRadix + " 以下でなければなりません。";
+	} else {
+		out = convert(src, radix);
+	}
+	elo.innerHTML = out;
+	elv.value = "";
+	elr.value = "";
+	elv.focus();
+}
+
+function convert(src, oldradix) {
+	var value = 0;
+	
+	for (var index = 0; index < src.length; index++) {
+		var u = digit(src.charAt(index));
+		if (u >= oldradix) {
+			return "<p>値に不適切な文字が含まれています: " + src.charAt(index);
+		}
+		value = value * oldradix + u;
+	}
+	if (value > MaxValue) {
+		return "<p>値が大きすぎます。";
+	}
+	
+	var result = "<p>値 " + src + " を " + oldradix + " 進数として解釈しました。";
+	result += '<table><thead><tr><th>基数<th>表記<\/tr><\/thead>';
+	result += '<tbody>';
+	for (var newradix = MinRadix; newradix <= MaxRadix; newradix++) {
+		result += "<tr><td>" + newradix +
+		              "<td>" + value.toString(newradix) + "<\/tr>";
+	}
+	result += "<\/tbody><\/table>";
+	return result;
+}
+
+function digit(c) {
+	switch (c.toLowerCase()) {
+		case '0':  case '０':   return 0;
+		case '1':  case '１':   return 1;
+		case '2':  case '２':   return 2;
+		case '3':  case '３':   return 3;
+		case '4':  case '４':   return 4;
+		case '5':  case '５':   return 5;
+		case '6':  case '６':   return 6;
+		case '7':  case '７':   return 7;
+		case '8':  case '８':   return 8;
+		case '9':  case '９':   return 9;
+		case 'a':  case 'ａ':   return 10;
+		case 'b':  case 'ｂ':   return 11;
+		case 'c':  case 'ｃ':   return 12;
+		case 'd':  case 'ｄ':   return 13;
+		case 'e':  case 'ｅ':   return 14;
+		case 'f':  case 'ｆ':   return 15;
+		case 'g':  case 'ｇ':   return 16;
+		case 'h':  case 'ｈ':   return 17;
+		case 'i':  case 'ｉ':   return 18;
+		case 'j':  case 'ｊ':   return 19;
+		case 'k':  case 'ｋ':   return 20;
+		case 'l':  case 'ｌ':   return 21;
+		case 'm':  case 'ｍ':   return 22;
+		case 'n':  case 'ｎ':   return 23;
+		case 'o':  case 'ｏ':   return 24;
+		case 'p':  case 'ｐ':   return 25;
+		case 'q':  case 'ｑ':   return 26;
+		case 'r':  case 'ｒ':   return 27;
+		case 's':  case 'ｓ':   return 28;
+		case 't':  case 'ｔ':   return 29;
+		case 'u':  case 'ｕ':   return 30;
+		case 'v':  case 'ｖ':   return 31;
+		case 'w':  case 'ｗ':   return 32;
+		case 'x':  case 'ｘ':   return 33;
+		case 'y':  case 'ｙ':   return 34;
+		case 'z':  case 'ｚ':   return 35;
+		default:   return 36;
+	}
+}
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+基数変換
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 1.1.6 (2005-12-23)
+</address>
+<noscript>
+<div><strong>
+基数変換には JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<form id="mainform" action="" onsubmit="main(); return false;">
+<p>
+値 <input type="text" id="srcvalue" maxlength="64" size="25"> を
+<input type="text" id="srcradix" maxlength="2" size="4"> 進数として
+<input type="submit" value="解釈">
+</p>
+</form>
+<div id="result">
+(2<sup>53</sup> までの自然数を扱えます。)
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2004-09-20 v1.0
+2004-10-09 v1.1
+2005-12-23 v1.1.6
+-->

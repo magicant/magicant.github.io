@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で使える正規表現の構文の説明です">
+<meta name="date" content="2006-07-20T13:14:35+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="regexp.html">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>JavaScript の正規表現</title>
+</head>
+
+<body>
+<h1 id="title">
+JavaScript の正規表現の書式
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / (2006-07-20) <!--(2005-11-19)-->
+</address>
+
+<dl>
+
+<dt><var>X</var><code>|</code><var>Y</var></dt>
+<dd>
+<p><var>X</var> と <var>Y</var> のどちらかにマッチする。例えば
+<code class="idp">abc|def</code> は <code class="idp">abc</code> と
+<code class="idp">def</code> のどちらかにマッチし、<code class="idp">abcdef</code>
+にはマッチしない。</p>
+<p>マッチ検索は <var>Y</var> より <var>X</var> が優先される。
+例えば <code class="idp">abc|abcdef</code> というパターンは、マッチ対象
+<code class="idp">abcdefghi</code> の中の <code class="idp">abc</code>
+にマッチし、<code class="idp">abcdef</code> にはマッチしない。</p>
+</dd>
+
+<dt><code>^</code><var>X</var></dt>
+<dd>
+<p><var>X</var> がマッチ対象の先頭に位置する場合にマッチする。例えば
+<code class="idp">^def</code> というパターンは、マッチ対象 <code class="idp">defghi</code>
+の中の <code class="idp">def</code> にはマッチするが、マッチ対象
+<code class="idp">abcdefghi</code> の中の <code class="idp">def</code> にはマッチしない。</p>
+<p>複数行マッチ時は、<var>X</var> が行頭にある場合にもマッチする。つまり、
+line feed (U+000A), carriage return (U+000D), line separator (U+2028),
+paragraph separator (U+2029) の直後にある <var>X</var> にもマッチする。</p>
+</dd>
+
+<dt><var>X</var><code>$</code></dt>
+<dd>
+<p><var>X</var> がマッチ対象の末尾に位置する場合にマッチする。例えば
+<code class="idp">def$</code> というパターンは、マッチ対象 <code class="idp">abcdef</code>
+の中の <code class="idp">def</code> にはマッチするが、マッチ対象
+<code class="idp">abcdefghi</code> の中の <code class="idp">def</code> にはマッチしない。</p>
+<p>複数行マッチ時は、<var>X</var> が行末にある場合にもマッチする。つまり、
+line feed (U+000A)、carriage return (U+000D)、line separator (U+2028)、
+paragraph separator (U+2029) の直前にある <var>X</var> にもマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>\b</code><var>y</var></dt>
+<dd>
+<p><var>x</var> と <var>y</var> のどちらかが単語文字であり、もう一方が単語文字でない場合にマッチする。</p>
+<p>例えば、<code class="idp">\bdef\b</code> というパターンは、マッチ対象
+<code class="idp">abc-def-ghi</code> の中の <code class="idp">def</code> にはマッチするが、
+<code class="idp">abcdefghi</code> の中の <code class="idp">def</code> にはマッチしない。</p>
+</dd>
+
+<dt><var>x</var><code>\B</code><var>y</var></dt>
+<dd>
+<p><var>x</var> と <var>y</var> の両方が単語文字であるか、どちらも単語文字でない場合にマッチする。</p>
+<p>例えば、<code class="idp">\Bdef\B</code> というパターンは、マッチ対象
+<code class="idp">abcdefghi</code> の中の <code class="idp">def</code> にはマッチするが、
+<code class="idp">abc-def-ghi</code> の中の <code class="idp">def</code> にはマッチしない。</p>
+</dd>
+
+<dt><var>x</var><code>*</code></dt>
+<dd>
+<p>0 文字以上の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>+</code></dt>
+<dd>
+<p>1 文字以上の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>?</code></dt>
+<dd>
+<p>0 文字または 1 文字の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>{</code><var>a</var><code>}</code></dt>
+<dd>
+<p><var>a</var> 文字の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>{</code><var>a</var><code>,}</code></dt>
+<dd>
+<p><var>a</var> 文字以上の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt><var>x</var><code>{</code><var>a</var><code>,</code><var>b</var><code>}</code></dt>
+<dd>
+<p><var>a</var> 文字以上 <var>b</var> 文字以下の <var>x</var> にマッチする。</p>
+</dd>
+
+<dt>無欲化: <code>?</code></dt>
+<dd>
+<p><var>x</var><code>*</code>、<var>x</var><code>+</code>、<var>x</var><code>?</code>、
+<var>x</var><code>{</code><var>a</var><code>}</code>、
+<var>x</var><code>{</code><var>a</var><code>,}</code>、
+<var>x</var><code>{</code><var>a</var><code>,</code><var>b</var><code>}</code>
+の直後に <code>?</code> を置くことで、反復量指定子を無欲化することができる。</p>
+<p>反復量指定子を無欲化すると、できるだけ少ない回数の反復にマッチしようとする。
+反復量指定子を無欲化しないと (貪欲な反復量指定子)、できるだけ多い回数の反復にマッチしようとする。</p>
+<p>例えば、マッチ対象 <code class="idp">abcabcabc</code> に対して、
+<code class="idp">a[a-z]*c</code> というパターンは <code class="idp">abcabcabc</code> にマッチするが、
+<code class="idp">a[a-z]*?c</code> というパターンは <code class="idp">abc</code> にマッチする。</p>
+</dd>
+
+<dt><code>.</code></dt>
+<dd>
+<p><code>.</code> は改行文字以外の任意の 1 文字にマッチする。</p>
+</dd>
+
+<dt><code>\1</code>、<code>\2</code>、<code>\3</code>…</dt>
+<dd>
+<p><code>\1</code> や <code>\2</code> はそれぞれ 1 番目、2 番目の捕捉括弧の内容を表す。例えば、
+<code class="idp">(a+)(b+)c\2\1</code> というパターンは <code class="idp">abbcbba</code>
+や <code class="idp">aaabcbaaa</code> にマッチする。</p>
+</dd>
+
+<dt><code>\0</code></dt>
+<dd><p><code>\0</code> は null 文字 (U+0000) にマッチする。</p></dd>
+<dt><code>\t</code></dt>
+<dd><p><code>\t</code> は horizontal tab 文字 (U+0009) にマッチする。</p></dd>
+<dt><code>\n</code></dt>
+<dd><p><code>\n</code> は line feed 文字 (U+000A) にマッチする。</p></dd>
+<dt><code>\v</code></dt>
+<dd><p><code>\v</code> は vertical tab 文字 (U+000B) にマッチする。</p></dd>
+<dt><code>\f</code></dt>
+<dd><p><code>\f</code> は form feed 文字 (U+000C) にマッチする。</p></dd>
+<dt><code>\r</code></dt>
+<dd><p><code>\r</code> は carriage return 文字 (U+000D) にマッチする。</p></dd>
+
+<dt><code>\d</code></dt>
+<dd><p><code>\d</code> は、0 から 9 までの数字のどれか一つにマッチする。</p></dd>
+<dt><code>\D</code></dt>
+<dd><p><code>\D</code> は、0 から 9 までの数字以外の文字一つにマッチする。</p></dd>
+<dt><code>\s</code></dt>
+<dd><p><code>\s</code> は、一つの空白文字または改行文字にマッチする。</p></dd>
+<dt><code>\S</code></dt>
+<dd><p><code>\S</code> は、空白文字および改行文字以外の文字一つにマッチする。</p></dd>
+<dt><code>\w</code></dt>
+<dd><p><code>\w</code> は、単語文字のどれか一つにマッチする。</p></dd>
+<dt><code>\W</code></dt>
+<dd><p><code>\W</code> は、単語文字以外の文字一つにマッチする。</p></dd>
+
+<dt><code>\cA</code>、<code>\cB</code>、<code>\cC</code>…</dt>
+<dd>
+<p><code>\cA</code> は文字 U+0001 に、<code>\cB</code> は文字 U+0002 に、
+<code>\cC</code> は文字 U+0003 にマッチする。以下、<code>\cZ</code>まで同様。</p>
+<p><code>\ca</code>、<code>\cb</code>、<code>\cc</code>…は
+<code>\cA</code>、<code>\cB</code>、<code>\cC</code>…と同じである。</p>
+</dd>
+
+<dt><code>\x</code><var>A</var><var>B</var></dt>
+<dd>
+<p><code>\x</code><var>A</var><var>B</var> は文字 U+00<var>A</var><var>B</var> にマッチする。
+ただし、<var>A</var> と <var>B</var> はそれぞれ十六進法の数字の一桁。</p>
+</dd>
+
+<dt><code>\u</code><var>A</var><var>B</var><var>C</var><var>D</var></dt>
+<dd>
+<p><code>\u</code><var>A</var><var>B</var><var>C</var><var>D</var>
+は文字 U+<var>A</var><var>B</var><var>C</var><var>D</var> にマッチする。
+ただし、<var>A</var>、<var>B</var>、<var>C</var>、<var>D</var> はそれぞれ十六進法の数字の一桁。</p>
+</dd>
+
+<dt><code>\</code><var>&lt;記号></var></dt>
+<dd>
+<p><code>\</code><var>&lt;記号></var> はその <var>&lt;記号></var> にマッチする。</p>
+</dd>
+
+<dt><code>[</code><var>文字列</var><code>]</code></dt>
+<dd>
+<p><code>[</code><var>文字列</var><code>]</code> は <var>文字列</var>
+に含まれるどれか一つの文字にマッチする。</p>
+<p><var>文字列</var> の中に <var>x</var><code>-</code><var>y</var> が含まれる場合、
+それは Unicode コードポイントにおいて <var>x</var> から <var>y</var> までの全ての文字を表す。
+例えば、<code class="idp">[a-d]</code> は <code class="idp">[abcd]</code> と同じであり、
+<code class="idp">[a-dghp-s-]</code> は <code class="idp">[abcdghpqrs-]</code>
+と同じである。</p>
+<p><var>文字列</var> の中に <code>\b</code> が含まれる場合、それは backspace 文字 (U+0008)
+を意味する。<var>文字列</var> の中では <code>\B</code> および
+<code>\1</code>、<code>\2</code>、<code>\3</code>…は使えない。</p>
+<p><var>文字列</var> の中に記号 <code>]</code> を含めるには、<code>\]</code> とエスケープする。
+<var>文字列</var> の中では、上記例外を除いて <code>\</code> で始まる各エスケープが使える。</p>
+</dd>
+
+<dt><code>[^</code><var>文字列</var><code>]</code></dt>
+<dd>
+<p><code>[^</code><var>文字列</var><code>]</code> は <var>文字列</var>
+に含まれないどれか一つの文字にマッチする。</p>
+</dd>
+
+<dt><code>(</code><var>X</var><code>)</code></dt>
+<dd>
+<p><code>(</code><var>X</var><code>)</code> は <var>X</var> を一つの文字として扱うと同時に、
+捕捉括弧を生成する。</p>
+<p>例えば、<code class="idp">(abc){3}</code> というパターンは
+<code class="idp">abcabcabc</code> にマッチする。</p>
+</dd>
+
+<dt><code>(?:</code><var>X</var><code>)</code></dt>
+<dd>
+<p><code>(?:</code><var>X</var><code>)</code> は <var>X</var> を一つの文字として扱う。
+しかし捕捉括弧は生成しない。</p>
+</dd>
+
+<dt><code>(?=</code><var>X</var><code>)</code><var>Y</var></dt>
+<dd>
+<p><code>(?=</code><var>X</var><code>)</code><var>Y</var> は <var>Y</var>
+の先頭部分が <var>X</var> にマッチするような <var>Y</var> にマッチする。</p>
+<p>例えば、<code class="idp">(?=a)\w{3}</code> というパターンは、
+<code class="idp">abc</code> や <code class="idp">ayz</code> にはマッチするが
+<code class="idp">Abc</code> や <code class="idp">xyz</code> にはマッチしない。</p>
+<p><code>(?=</code><var>X</var><code>)</code> は捕捉括弧を生成しない。</p>
+</dd>
+
+<dt><code>(?!</code><var>X</var><code>)</code><var>Y</var></dt>
+<dd>
+<p><code>(?!</code><var>X</var><code>)</code><var>Y</var> は <var>Y</var>
+の先頭部分が <var>X</var> にマッチしないような <var>Y</var> にマッチする。</p>
+<p>例えば、<code class="idp">(?!a)\w{3}</code> というパターンは、
+<code class="idp">Abc</code> や <code class="idp">xyz</code> にはマッチするが
+<code class="idp">abc</code> や <code class="idp">ayz</code> にはマッチしない。</p>
+<p><code>(?!</code><var>X</var><code>)</code> は捕捉括弧を生成しない。</p>
+</dd>
+
+</dl>
+
+<h2 id="char-type">文字の種類</h2>
+
+<dl>
+<dt>空白文字</dt>
+<dd>
+<p>空白文字とは、horizontal tab (U+0009)、vertical tab (U+000B)、form feed (U+000C)、
+space (U+0020)、no-break space (U+00A0)、およびその他の Unicode カテゴリ Zs の文字である。</p>
+</dd>
+<dt>改行文字</dt>
+<dd>
+<p>改行文字とは、line feed (U+000A)、carriage return (U+000D)、line separator (U+2028)、
+paragraph separator (U+2029) の四つである。</p>
+</dd>
+<dt>単語文字</dt>
+<dd>
+<p>単語文字とは、0 から 9 までの数字、a から z までと A から Z までのアルファベット、および下線記号
+<code>_</code> のどれかである。</p>
+</dd>
+</dl>
+
+<h2 id="non-pat-chars">パターン文字でない文字</h2>
+<p>以下の記号はパターン文字ではないので、正規表現の中では特殊な役割を果たす。
+これらの記号を単なる文字として扱うには、エスケープが必要。</p>
+<dl>
+<dt>パターン文字でない文字</dt>
+<dd><code>^$\.*+?()[]{}|</code></dd>
+</dl>
+<p>また、正規表現リテラルの中では、<code>/</code> もエスケープが必要。</p>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+</body>
+</html>

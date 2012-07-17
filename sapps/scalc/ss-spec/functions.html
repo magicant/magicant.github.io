@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-09-24T21:14:35+09:00">
+<title>関数 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="commands.html" title="コマンド">
+<link rel="next" href="axioms.html" title="公理">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">関数</h1>
+<p>この章では、スクリプトにおける関数の呼出しの動作を定義する。</p>
+
+<h2 id="callable-objects">関数として呼出し可能なオブジェクト</h2>
+<p>スクリプトで扱われるオブジェクトには、関数として呼出し可能なものと
+そうでないものとがある。
+両者の区別は、スクリプトプログラムから直接行うことはできない。</p>
+<p>オブジェクトが関数として呼出し可能であるかどうかは、
+そのオブジェクトについて不変である。また、関数として呼出し可能なオブジェクトが
+関数として呼び出されたときの処理も、そのオブジェクトについて不変である。</p>
+<p><dfn>関数オブジェクト</dfn>とは、初期の <a href="b-function.html"><code
+>Function</code></a> のインスタンスであって、関数として呼出し可能なもの
+のことである。</p>
+<p><a href="b-function.html#p-arity"><code>arity</code> プロパティ</a
+>の値が整数 <var>x</var> を表す <a href="b-integer.html"><code
+>Integer</code></a> オブジェクトであるような関数オブジェクトを単に<dfn
+><var>x</var>-ary 関数オブジェクト</dfn>という。<a href="objects.html#property"
+>メソッド</a>についても、その値の関数オブジェクトの <code>arity</code>
+プロパティの値に関して同様に<dfn><var>x</var>-ary メソッド</dfn>という。</p>
+<p><a href="expressions.html#function">関数生成式</a>を評価すると、
+新しい関数オブジェクトを生成する。しかし、必ずしも全ての関数オブジェクトが
+関数生成式によって生成されたものであるとはいえない。
+また、関数として呼出し可能なオブジェクトが全て関数オブジェクトである
+わけでもない。</p>
+
+<h2 id="calling-function">関数の呼出し</h2>
+<p>関数として呼出し可能なオブジェクトが関数として呼出されるとき、
+次のものが渡される:</p>
+<dl>
+<dt>@this 値</dt>
+<dd>一つのオブジェクト</dd>
+<dt>引数</dt>
+<dd>任意の個数のオブジェクト (0 個でもよい)</dd>
+</dl>
+<p>関数が呼出されたときに行われる具体的な処理の内容は、
+呼出された関数によって決まる。</p>
+<p>関数の呼出しの結果は、必ず正常終了またはエラー終了のどちらか一方の<a
+href="primitives.html#type-primitive-result">結果</a>である。
+呼出しの結果が正常終了の場合は、結果の値はオブジェクトに限らない
+(すなわち、結果の値に<a href="primitives.html#type-reference"
+>参照</a>が含まれていてもよい)。
+呼出しの結果がエラー終了の場合は、結果の値は常にオブジェクトである。</p>
+<p>関数の呼出しで渡される引数が複数のオブジェクトであるとき、
+そのオブジェクトの順序は意味を持つ。</p>
+
+<h2 id="function-expression-functions">関数生成式によって生成される関数</h2>
+<p><a href="expressions.html#function">関数生成式</a>は、評価するたびに
+新しい関数オブジェクトを生成し、それを値とする正常終了の結果を返す。
+この関数オブジェクトは、次の内部メンバを持つ。</p>
+<dl class="member-def">
+<dt><code>params</code></dt>
+<dd>これは、0 個以上の識別子の<a href="primitives.html#type-primitive-list"
+>原始リスト</a>である。関数生成式に IdentifierList が含まれる場合、<code
+>params</code> はそれらの識別子全てからなる原始リストである。
+関数生成式に IdentifierList が含まれない場合、<code>params</code> は 0
+個の識別子からなる原始リストである。</dd>
+<dt><code>body</code></dt>
+<dd>これは、関数生成式の Block 構成要素である。</dd>
+<dt><code>context</code></dt>
+<dd>これは、関数生成式が評価されるときの<a href="contexts.html"
+>実行コンテクスト</a>である。</dd>
+</dl>
+<p>またこの関数オブジェクトは、次のプロパティを持つ。</p>
+<dl class="member-def">
+<dt><code>arity</code></dt>
+<dd>内部メンバ <code>params</code> に含まれる識別子の個数を表す
+<a href="b-integer.html"><code>Integer</code></a>
+オブジェクト。その表す値は 0 以上である。</dd>
+</dl>
+<p>この関数オブジェクトが関数として呼出されると、次の処理を行う。ここで、<var
+>p</var><sub>1</sub>, …, <var>p</var><sub><var>n</var></sub>
+は関数オブジェクトの <code>params</code> 内部メンバに含まれる各識別子
+(<var>n</var> は識別子の個数)、<var>a</var><sub>1</sub>, …, <var>a</var><sub
+><var>m</var></sub> は関数の呼出しにおいて渡された各引数オブジェクト
+(<var>m</var> は引数オブジェクトの個数) である。</p>
+<ol>
+<li>新しいオブジェクトを作成し、それを <var>d</var> とする。
+この時点では、このオブジェクトは (<code>$prototype</code> 内部メンバを含めて)
+一切メンバ・内部メンバを持たない。</li>
+<li>新しい<a href="contexts.html">実行コンテクスト</a>を作成し、これを
+<var>c</var> とする。この実行コンテクストが持つ情報を以下のように設定する。
+	<dl>
+	<dt>変数領域</dt>
+	<dd>オブジェクト <var>d</var></dd>
+	<dt>@this 値</dt>
+	<dd>関数呼出しにおいて @this 値として渡されたオブジェクト</dd>
+	<dt>デフォルトの精度</dt>
+	<dd>現在の実行コンテクストに同じ</dd>
+	<dt>親実行コンテクスト</dt>
+	<dd>この関数オブジェクトの <code>context</code> 内部メンバの値</dd>
+	</dl>
+</li>
+<li>オブジェクト <var>d</var> に <code>$callee</code>
+という名前のメンバを作成し、値にこの関数オブジェクトを設定する。</li>
+<li>初期の <a href="b-list.html#m-of"><code>List.of</code></a>
+を関数として呼出す。呼出しの際に渡す @this 値は初期の
+<a href="b-void.html#m-void"><code>Void.void</code></a>、引数は
+<var>a</var><sub>1</sub>, …, <var>a</var><sub><var>m</var></sub>
+である。呼出しの結果が正常終了でなければ、その結果をそのまま返す。
+呼出しの結果が正常終了ならば、<var>d</var> に <code>$args</code>
+という名前のメンバを作成し、その値に呼出しの結果の値を設定する。</li>
+<li><var>i</var> = 1, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順番に次の処理を行う:
+	<ol>
+	<li>オブジェクト <var>d</var> に、識別子 <var>p</var><sub><var>i</var></sub>
+	を名前とするメンバを作成し、そのメンバの値を以下のように設定する:
+		<dl>
+		<dt><var>i</var> ≤ <var>m</var> の場合</dt>
+		<dd><var>a</var><sub><var>i</var></sub></dd>
+		<dt><var>i</var> > <var>m</var> の場合</dt>
+		<dd>初期の <a href="b-void.html#m-void"><code>Void.void</code></a></dd>
+		</dl>
+	</li>
+	</ol>
+</li>
+<li>現在の実行コンテクストを <var>c</var> に変更する。</li>
+<li>この関数オブジェクトの <code>body</code> 内部メンバである Block
+を実行し、その結果を <var>r</var> とする。</li>
+<li>現在の実行コンテクストを、元に戻す。</li>
+<li>以下の結果を関数呼出しの結果として返す。
+	<dl>
+	<dt><var>r</var> が正常終了または復帰終了の場合</dt>
+	<dd><var>r</var> の値を値とする正常終了</dd>
+	<!--dd>初期の <a href="b-void.html#m-void"><code>Void.void</code></a>
+	を値とする正常終了</dd-->
+	<dt><var>r</var> がエラー終了の場合</dt>
+	<dd><var>r</var></dd>
+	<dt><var>r</var> が break 終了または continue 終了の場合</dt>
+	<dd>新しい <a href="b-error.html"><code>SyntaxError</code></a>
+	のインスタンスを値とするエラー終了</dd>
+	</dl>
+</li>
+</ol>
+<!--p>FunctionBody: <a href="statements.html#d-block">Block</a> の実行は、Block
+を実行し、その結果 <var>R</var> の種類に応じて次のような結果を返す:</p>
+<p>FunctionBody: <a href="expressions.html#d-parenthesized"
+>Parenthesized</a> の実行は、Parenthesized を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を返す。</p-->
+
+<h3 id="syntax-error-in-advance">文法エラーの早期発見</h3>
+<p>実行環境は、文法解析において、関数オブジェクトの <code>body</code>
+内部メンバである Block を実行した結果が break 終了または continue
+終了となりうるようなコードに遭遇した場合は、文法エラーとしてもよい。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

@@ -1,0 +1,319 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-08-12T16:39:44+09:00">
+<title>オブジェクトとメンバ - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="primitives.html" title="原始型">
+<link rel="next" href="contexts.html" title="実行コンテクスト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">オブジェクトとメンバ</h1>
+<p>この章では、#Script におけるオブジェクトについて定義する。</p>
+
+<h2 id="definition">オブジェクトとメンバの定義</h2>
+<p>スクリプトによる処理の対象となる数や関数を<dfn>オブジェクト</dfn>と総称する。
+オブジェクトは、それに付属するデータとしてメンバおよび内部メンバを
+持つことができる。(厳密には、オブジェクトとはメンバと内部メンバの集合である)</p>
+<p>メンバは<dfn>名前</dfn>と<dfn>値</dfn>の組み合わせから成る。名前は一つの <a
+href="grammar.html#unicode-string">Unicode 文字列</a>であり、
+値は一つのオブジェクトである。一つのオブジェクトは複数のメンバを持ち得るが、
+それらはすべて異なる名前でなければならない。</p>
+<p>またオブジェクトはメンバとは独立して内部メンバも持ち得る。
+内部メンバは言語仕様の記述の簡便のために定義される形式的な存在であり、
+スクリプトプログラムによって直接扱うことはできない。
+内部メンバはメンバと同じく名前と値から成るが、
+内部メンバの値はオブジェクトに限らない。<p>
+<p>一つのオブジェクトには同じ名前のメンバと内部メンバが存在しても良い。
+メンバと内部メンバは独立しているので、同名のメンバと内部メンバは
+一般に異なる値を持つ。</p>
+<p>名前にドル記号 <code>$</code> を含むメンバの一部は、#Script
+言語において特殊な意味を持つ。プログラマは、この言語仕様で定めた所定の効用
+(メンバのゲッターや演算子の定義)
+を得る以外の目的で名前にドル記号を含むメンバを使用すべきでない。</p>
+
+<h2 id="sameness">オブジェクトの同一性</h2>
+<p>オブジェクトが持つメンバ・内部メンバは、
+それらに対して明示的に変更が行われない限り、変化しない。</p>
+<p>二つのオブジェクトが<dfn>同じ</dfn>であるとは、そのオブジェクトが存在している
+任意の時刻において、常に次の同値関係が成り立つことをいう:
+一方のオブジェクトの任意のメンバ・内部メンバについて、
+もう一方のオブジェクトも同じ名前と値のメンバ・内部メンバを持つ。</p>
+<p>二つのオブジェクトが同じでない (<dfn>異なる</dfn>) ならば、
+それらのオブジェクトのメンバ・内部メンバは独立している。すなわち、異なる二つの
+オブジェクトについて、一方のオブジェクトのメンバ・内部メンバが変化しても、
+もう一方のオブジェクトのメンバ・内部メンバは直接その変化の影響を受けない。</p>
+<p>新しくオブジェクトが作られるとき、
+その新しいオブジェクトは既に存在している他のいかなるオブジェクトとも異なる。</p>
+
+<h2 id="type">型とプロトタイプ</h2>
+<p>オブジェクトがそのような種類のメンバを持っているかという観点による
+オブジェクトの区別を<dfn>型</dfn>という。#Script
+のオブジェクトは一般にオブジェクトの生成後にもメンバの追加や削除が行えるため、
+一般にオブジェクトの型は不変ではない。</p>
+<p>オブジェクトに <code>$prototype</code> という名前の内部メンバが存在する時、
+その値はオブジェクトでなければならない。オブジェクトの <code>$prototype</code>
+内部メンバの値を、そのオブジェクトの<dfn>プロトタイプオブジェクト</dfn
+>または単に<dfn>プロトタイプ</dfn>という。一般には、
+オブジェクトのプロトタイプは不変ではない。また、全てのオブジェクトに
+<code>$prototype</code> 内部メンバが存在するわけではないので、
+全てのオブジェクトがプロトタイプを持つわけではない。</p>
+<p>次の条件のどちらかが満たされるとき、オブジェクト <var>P</var> はオブジェクト
+<var>O</var> の<dfn title="quasi-prototype (object)">準プロトタイプ
+(オブジェクト)</dfn> であるという:</p>
+<ul>
+<li><var>P</var> は <var>O</var> のプロトタイプである。</li>
+<li>(<var>O</var> のプロトタイプが存在し、かつ) <var>P</var> は <var>O</var>
+のプロトタイプの準プロトタイプである。</li>
+</ul>
+<p>すなわち、準プロトタイプとはオブジェクトの間接的なプロトタイプのことである。
+</p>
+<p>任意のオブジェクトについて、そのオブジェクトの準プロトタイプの個数は
+有限でなければならない。すなわち、任意のオブジェクト <var>O</var> について、
+次のどちらかが成り立つ:</p>
+<ul>
+<li><var>O</var> はプロトタイプを持たない。</li>
+<li>ある <var>O</var> の準プロトタイプ <var>P</var> が存在して、<var>P</var>
+はプロトタイプを持たない。</li>
+</ul>
+<p class="informative">注意: この規則は、操作 <a href="#search-property"
+>search-property</a> がアルゴリズムとして必ず終了するために重要である。
+この規則は、任意のオブジェクトはそれ自身を準プロトタイプとすることはできない
+ということを含意する。</p>
+
+<h3 id="instance">インスタンス</h3>
+<p>オブジェクト <var>T</var> に <code>prototype</code>
+という名前のメンバが存在し、そのメンバの値がオブジェクト <var>O</var>
+のプロトタイプであるとき、<var>O</var> は <var>T</var> の<dfn
+title="proper instance">真のインスタンス</dfn>であるという。また、
+オブジェクト <var>T</var> に <code>prototype</code>
+という名前のメンバが存在し、そのメンバの値がオブジェクト <var>O</var>
+の準プロトタイプであるとき、<var>O</var> は <var>T</var>
+の<dfn>インスタンス</dfn>であるという。</p>
+
+<h3 id="property">プロパティとメソッド</h3>
+<p>オブジェクト <var>O</var> を参照先オブジェクトとし Unicode 文字列 <var>n</var
+> を参照先メンバ名とする<a href="primitives.html#type-member-reference"
+>メンバ参照</a>に対して操作 <a href="#check-property">check-property</a>
+を行うと結果が [[初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code
+></a>]] となり、かつ <a href="#get-property">get-property</a>/<a
+href="#set-property">set-property</a>/<a href="#delete-property"
+>delete-property</a> を行ったときにも何らかの意味のある結果が得られるならば、
+<var>O</var> は <var>n</var> という名前の<dfn>プロパティ</dfn>を持つという。
+あるプロパティに対する操作 get-property の結果が常にオブジェクトを値とする
+正常終了の結果となるとき、その結果の値をそのプロパティの値という。
+プロパティの値が<a href="functions.html">関数オブジェクト</a>であるとき、
+それを特に<dfn>メソッド</dfn>という。また、プロパティの値が常に同じ
+オブジェクトであるとき、そのプロパティは<dfn>不変</dfn>であるという。</p>
+<p>あるプロパティに対して操作 get-property
+を行うことを、そのプロパティの値の<dfn>取得</dfn>という。また、
+プロパティに対して操作 set-property
+を行うことをそのプロパティに対する<dfn>代入</dfn>といい、操作 delete-property
+を行うことをそのプロパティの<dfn>削除</dfn>という。</p>
+<p>あるプロパティに対する代入および削除の結果が常に
+<a href="b-error.html"><code>ReadOnlyError</code></a> のインスタンスを値とする
+エラー終了となるとき、そのプロパティは<dfn>読み取り専用</dfn>であるという。</p>
+
+<h2 id="property-access">オブジェクトのプロパティへのアクセス</h2>
+<p>スクリプトプログラムからオブジェクトのプロパティを利用することを
+プロパティへの<dfn>アクセス</dfn>という。言語仕様の記述の簡略のため、
+プロパティへのアクセスに関するいくつかの操作を以下に定める。</p>
+
+<h3 id="search-property">プロパティの探索</h3>
+<p>オブジェクトのプロパティを特定するための操作 search-property
+は、一つのオブジェクト <var>o</var> と Unicode 文字列 <var>n</var>
+に対して以下の処理を行い、一つのオブジェクトかまたは void
+という特殊な値を結果として返す:</p>
+<ol>
+<li><var>o</var> に <var>n</var> を名前とするメンバが存在するならば、
+そのメンバの値を返す。</li>
+<li><var>o</var> がプロトタイプオブジェクトを持たなければ、void を返す。</li>
+<li><var>o</var> のプロトタイプオブジェクトを改めて <var>o</var>
+として、search-property 処理の始めに戻る。</li>
+</ol>
+
+<h3 id="check-property">スクリプトプログラムによるプロパティの存在の確認</h3>
+<p>スクリプトプログラムによるプロパティの取得に使われる操作 check-property は<a
+href="primitives.html#type-member-reference">メンバ参照</a> <var>r</var>
+に対して次のことを行う:</p>
+<ol>
+<li><var>r</var> の参照先オブジェクトを <var>o</var>、参照先メンバ名を
+<var>n</var> とする。</li>
+<li><var>n</var> の先頭に文字列 <code>$get$</code>
+を付加してできる新しい <a href="grammar.html#unicode-string">Unicode
+文字列</a>を <var>n</var>′ とする。操作 <a href="#search-property"
+>search-property</a> を <var>o</var> と <var>n</var>′
+に対して行い、その結果を <var>v</var>′ とする。</li>
+<li><var>v</var>′ が関数として呼出し可能なオブジェクトならば、[[初期の
+<a href="b-boolean.html#m-true"><code>Boolean.true</code></a>]] を返す。</li>
+<li>操作 <a href="#search-property">search-property</a> を <var>o</var> と
+<var>n</var> に対して行い、その結果を <var>v</var> とする。</li>
+<li><var>v</var> がオブジェクトならば、[[初期の <code>Boolean.true</code>]]
+を返す。</li>
+<li>[[初期の <a href="b-boolean.html#m-false"><code>Boolean.false</code></a>]]
+を返す。</li>
+</ol>
+<div class="informative">
+<p>操作 check-property
+では、オブジェクトにプロパティが存在するかどうかを調べることが出来る。
+詳細は以下の get-property の説明を参照の事。</p>
+</div>
+
+<h3 id="get-property">スクリプトプログラムによるプロパティの取得</h3>
+<p>スクリプトプログラムによるプロパティの取得に使われる操作 get-property は<a
+href="primitives.html#type-member-reference">メンバ参照</a> <var>r</var>
+に対して次のことを行う:</p>
+<ol>
+<li><var>r</var> の参照先オブジェクトを <var>o</var>、参照先メンバ名を
+<var>n</var> とする。</li>
+<li><var>n</var> の先頭に文字列 <code>$get$</code>
+を付加してできる新しい <a href="grammar.html#unicode-string">Unicode
+文字列</a>を <var>n</var>′ とする。操作 <a href="#search-property"
+>search-property</a> を <var>o</var> と <var>n</var>′
+に対して行い、その結果を <var>v</var>′ とする。</li>
+<li><var>v</var>′ が関数として呼出し可能なオブジェクトならば、<var>o</var>
+を @this 値とし引数無しでこの関数を呼出す。
+この結果がオブジェクトを値とする正常終了であるか、
+正常終了以外の結果であるならば、それを返す。
+それ以外の正常終了の結果ならば、新しい <a href="b-error.html"
+><code>UnsupportedOperationError</code></a> のインスタンスを投げる。</li>
+<li>操作 <a href="#search-property">search-property</a> を <var>o</var> と
+<var>n</var> に対して行い、その結果を <var>v</var> とする。</li>
+<li>[[<var>v</var>]] を返す。</li>
+</ol>
+<div class="informative">
+<p>操作 get-property では、オブジェクトが持つプロパティ取得のための
+メソッドを呼出すことによって、実際に取得される値をオブジェクトが
+制御できるようにする。</p>
+<p>例えば参照先メンバ名 <code>abc</code> について操作 get-property を行うとき、
+オブジェクトが <code>$get$abc</code> という名前のメソッドを持っていれば、
+そのメソッドを呼出してその結果を操作 get-property の結果とする。
+これにより、<code>$get$abc</code> というメソッドは <code>abc</code>
+というプロパティに対するゲッターとなる。</p>
+<p>ゲッターとして実行される関数は、get-property が取得しようとしている
+プロパティの値を<a href="expressions.html#left-hand-side">左辺式</a
+>で取得しようとしてはならない。
+例えば以下のようなコードでは、操作 get-property
+とゲッターの呼出しが再帰的に際限なく繰り返されてしまう:</p>
+<pre><code>obj.$get$prop = @{ @return @this.prop; };
+@printline obj.prop;</code></pre>
+<p>ゲッターは、代わりに <code>#</code> で始まる名前のメンバを使用できる:</p>
+<pre><code>obj.$get$prop = @{ @return #prop; };</code></pre>
+<p>ゲッター関数が存在しなければ、オブジェクトが持つそのプロパティの値が
+そのまま返される。プロパティが存在しなければ、get-property の結果は void
+となる。</p>
+</div>
+
+<h3 id="set-property">スクリプトプログラムによるプロパティへの代入</h3>
+<p>スクリプトプログラムによるプロパティへの代入に使われる操作 set-property
+は<a href="primitives.html#type-member-reference">メンバ参照</a> <var>r</var>
+とオブジェクト <var>p</var> に対して次のことを行う:</p>
+<ol>
+<li><var>r</var> の参照先オブジェクトを <var>o</var>、参照先メンバ名を
+<var>n</var> とする。</li>
+<li><var>o</var> に <code>$isImmutable</code> という名前の内部メンバが
+存在すれば、新しい <a href="b-error.html"><code>ReadOnlyError</code></a>
+のインスタンスを投げる。</li>
+<li><var>n</var> の先頭に文字列 <code>$set$</code> を付加した
+新しい <a href="grammar.html#unicode-string">Unicode 文字列</a>を <var>n</var>′
+とする。操作 <a href="#search-property">search-property</a> を <var>o</var> と
+<var>n</var>′ に対して行い、その結果を <var>v</var>′ とする。</li>
+<li><var>v</var>′ が関数として呼出し可能なオブジェクトならば、<var>o</var>
+を @this 値とし <var>p</var> を引数としてこの関数を呼出し、
+その結果を返す。</li>
+<li><var>v</var>′ が 初期の <a href="b-boolean.html#m-false"><code
+>Boolean.false</code></a> ならば、新しい <a href="b-error.html"><code
+>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+<li><var>o</var> の、<var>n</var> を名前とするメンバの値を <var>p</var>
+に変更する。このようなメンバが存在しないときは、<var>o</var>
+に <var>n</var> を名前とする新しいメンバを作成した上で値を <var>p</var>
+とする。</li>
+<li>[[<var>p</var>]] を返す。</li>
+</ol>
+<div class="informative">
+<p>操作 set-property では、オブジェクトが持つプロパティ設定のための
+メソッドを呼出すことによって、実際にプロパティを設定する動作をオブジェクトが
+制御できるようにする。(このメソッドは操作 delete-property でも使われる)</p>
+<p>例えば参照先メンバ名 <code>abc</code> について操作 set-property を行うとき、
+オブジェクトが <code>$set$abc</code> という名前のメソッドを持っていれば、
+set-property に渡されたオブジェクトを引数としてそれを呼出し、その結果を返す。
+これにより、<code>$set$abc</code> というメソッドは <code>abc</code>
+というプロパティに対するセッターとなる。</p>
+<p><code>$set$abc</code> が関数ではなく <a href="b-boolean.html#m-false"
+><code>false</code></a> である場合は、メンバの値は変更されず、<a
+href="b-error.html"><code>ReadOnlyError</code></a> が投げられる。
+プロパティ <code>$set$abc</code> を <code>false</code> にしておくことで、
+プロパティ <code>abc</code> は事実上読み取り専用プロパティとなる。</p>
+<p>セッターは、set-property が設定しようとしているプロパティを<a
+href="expressions.html#left-hand-side">左辺式</a>への代入によって設定しては
+ならない。例えば以下のようなコードでは、操作 set-property
+とセッターの呼出しが再帰的に際限なく繰り返されてしまう:</p>
+<pre><code>obj.$set$prop = @[x]{ @this.prop = x; @return x; };
+obj.prop = 1;</code></pre>
+<p>セッターは、代わりに <code>#</code> で始まる名前のメンバを使用できる:</p>
+<pre><code>obj.$set$prop = @[x]{ #prop = x; @return x; };</code></pre>
+<p>セッターは、代入されたオブジェクトを戻り値として返すのが望ましい。</p>
+<p>セッター関数が存在しなければ、指定されたオブジェクトがメンバとして
+そのまま設定される。</p>
+<p><code>$isImmutable</code> 内部メンバは、オブジェクトの不変性を示す。
+この内部メンバが存在するオブジェクトは不変であり、メンバを変更できない。
+(→<a href="b-object.html#m-isimmutable"><code>Object.isImmutable</code></a>、<a
+href="b-object.html#m-makeimmutable"><code>Object.makeImmutable</code></a>)</p>
+</div>
+
+<h3 id="delete-property">スクリプトプログラムによるプロパティの削除</h3>
+<p>スクリプトプログラムによるプロパティの削除に使われる操作 delete-property
+は<a href="primitives.html#type-member-reference">メンバ参照</a> <var>r</var>
+に対して次のことを行う:</p>
+<ol>
+<li><var>r</var> の参照先オブジェクトを <var>o</var>、参照先メンバ名を
+<var>n</var> とする。</li>
+<li><var>o</var> に <code>$isImmutable</code> という名前の内部メンバが
+存在すれば、新しい <a href="b-error.html"><code>ReadOnlyError</code></a>
+のインスタンスを投げる。</li>
+<li><var>n</var> の先頭に文字列 <code>$set$</code> を付加した
+新しい <a href="grammar.html#unicode-string">Unicode 文字列</a>を <var>n</var>′
+とする。操作 <a href="#search-property">search-property</a> を <var>o</var> と
+<var>n</var>′ に対して行い、その結果を <var>v</var>′ とする。</li>
+<li><var>v</var>′ が関数として呼出し可能なオブジェクトならば、<var>o</var> を
+@this 値とし引数無しでこの関数を呼出し、その結果を返す。</li>
+<li><var>v</var>′ が初期の <a href="b-boolean.html#m-false"><code
+>Boolean.false</code></a> ならば、新しい <a href="b-error.html"><code
+>ReadOnlyError</code></a> のインスタンスを投げる。</li>
+<li><var>o</var> に <var>n</var>
+を名前とするメンバが存在すれば、そのメンバの値を <var>v</var>
+とした上で、そのメンバを削除し、[[<var>v</var>]] を返す。</li>
+<li>[[初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a>]] を返す。</li>
+</ol>
+<div class="informative">
+<p>操作 delete-property では、オブジェクトが持つプロパティ設定のための
+メソッドを呼出すことによって、実際にメンバを削除する動作をオブジェクトが
+制御できるようにする。(このメソッドは操作 set-property でも使われる。操作
+set-property で使われるときは、呼出しにおける引数の個数が異なる)</p>
+<p>例えば参照先メンバ名 <code>abc</code> について操作 delete-property
+を行うとき、オブジェクトが <code>$set$abc</code> という名前のメソッドを
+持つならば、引数無しでそれを呼出し、その結果を返す。</p>
+<p><code>$set$abc</code> が関数ではなく <a href="b-boolean.html#m-false"
+><code>false</code></a> である場合は、メンバの値は削除されず、<a
+href="b-error.html"><code>ReadOnlyError</code></a> が投げられる。
+プロパティ <code>$set$abc</code> を <code>false</code> にしておくことで、
+プロパティ <code>abc</code> は事実上読み取り専用プロパティとなる。</p>
+<p>セッター関数が存在しなければ、そのまま当該メンバがオブジェクトから
+そのまま削除される。</p>
+<p>delete-property では、オブジェクト自身が持つメンバのみを削除する。
+プロパティの値がオブジェクトのプロトタイプオブジェクトから得られる場合では、
+メンバは削除されない。</p>
+</div>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

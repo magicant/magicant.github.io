@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-03T20:50:38+09:00">
+<title>実行コンテクスト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="objects.html" title="オブジェクトとメンバ">
+<link rel="next" href="calculations.html" title="数値計算">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">実行コンテクスト</h1>
+<p>この章では、スクリプトを実行するためのデータの集まりである
+実行コンテクストについて定義する。</p>
+
+<h2 id="definition">実行コンテクストの定義</h2>
+<p>スクリプトプログラムの実行が開始されるとき、または、実行中にある条件が
+満たされたとき、<dfn>実行コンテクスト</dfn>という特殊な情報の集まりが作られ、
+スクリプトプログラムはその情報の内容に基づいて実行される。
+一つの実行コンテクストが持つ情報は以下の通りである:</p>
+<ul>
+<li><a href="#vd">変数領域</a></li>
+<li><a href="#this-value">@this 値</a></li>
+<li><a href="#default-precision">デフォルトの精度</a></li>
+<li><a href="#pec">親実行コンテクスト</a></li>
+</ul>
+
+<h3 id="vd">変数領域</h3>
+<p><dfn>変数領域</dfn>は、変数をそのメンバとして管理するオブジェクトである。
+すなわち、<dfn>変数</dfn>とは変数領域のメンバのことである。</p>
+<p>全ての変数はある特定の変数領域に対して設定される。
+変数の名前とは対応する変数領域のメンバの名前であり、
+変数の値とは対応する変数領域のメンバの値である。</p>
+<p>ある実行コンテクストが持つ変数領域は不変である。
+(これは、変数領域のメンバすなわち変数が不変であることを意味しない。)</p>
+
+<h3 id="this-value">@this 値</h3>
+<p><dfn>@this 値</dfn>は実行コンテクストに関連づけられる一つのオブジェクトで、
+その実行コンテクストについて不変である。(これは、@this
+値のメンバが不変であることを意味しない。)</p>
+
+<h3 id="default-precision">デフォルトの精度</h3>
+<p><dfn>デフォルトの精度</dfn>は一つの<a
+href="primitives.html#type-primitive-limited-real">原始制限実数型</a
+>の値である。この値は無限大ではない正数でなければならない。
+デフォルトの精度は、<a href="b-float.html"><code>Float</code></a>
+の値を使った演算の精度を指定するのに使用する。
+デフォルトの精度の値は、不変ではない。</p>
+
+<h3 id="pec">親実行コンテクスト</h3>
+<p><a href="#bec">基底実行コンテクスト</a
+>を除く全ての実行コンテクストはそれ自身とは異なる実行コンテクストを<dfn
+>親実行コンテクスト</dfn>として関連づけられる。</p>
+<p>親実行コンテクストは実行コンテクストが生成される際に決定し、
+その実行コンテクストについて不変である。</p>
+
+<h2 id="bec">基底実行コンテクスト</h2>
+<p><dfn>基底実行コンテクスト</dfn>は、スクリプトプログラムの実行を開始する際に
+作られる最も基礎的な実行コンテクストである。
+基底実行コンテクストは、親実行コンテクストを持たない。</p>
+<p>基底実行コンテクストが持つ<a href="#default-precision">デフォルトの精度</a
+>は実行環境の裁量によって決定する。また基底実行コンテクストの <a
+href="#this-value">@this 値</a>は初期の <a href="b-void.html#m-void"><code
+>Void.void</code></a> である。</p>
+<p>基底実行コンテクストの変数領域は<dfn>基底変数領域</dfn>という。
+また、基底変数領域のプロトタイプは<dfn>組込み変数領域</dfn>という。
+スクリプトが<a href="execution.html#interactive-execution">対話形式</a
+>で実行される場合、組込み変数領域のプロトタイプは初期の <a href="b-math.html"
+><code>Math</code> 組込みオブジェクト</a>と同じでなければならない。
+スクリプトが<a href="execution.html#batch-execution">バッチ形式</a
+>で実行される場合、組込み変数領域はプロトタイプを持たない。</p>
+
+<h3 id="bivd-members">組込み変数領域のメンバ</h3>
+<p>組込み変数領域は、以下に挙げる特定のメンバを
+初めから備えていなければならない。
+これらのオブジェクトは全て互いに異なるオブジェクトであり、また基底変数領域
+および組込み変数領域とも異なるものとする。</p>
+<ul>
+<li><a href="b-object.html"><code>Object</code></a></li>
+<li><a href="b-type.html"><code>Type</code></a></li>
+<li><a href="b-void.html"><code>Void</code></a></li>
+<li><a href="b-null.html"><code>Null</code></a></li>
+<li><a href="b-boolean.html"><code>Boolean</code></a></li>
+<li><a href="b-number.html"><code>Number</code></a></li>
+<li><a href="b-real.html"><code>Real</code></a></li>
+<li><a href="b-integer.html"><code>Integer</code></a></li>
+<li><a href="b-rational.html"><code>Rational</code></a></li>
+<li><a href="b-float.html"><code>Float</code></a></li>
+<li><a href="b-complex.html"><code>Complex</code></a></li>
+<li><a href="b-infinity.html"><code>Infinity</code></a></li>
+<li><a href="b-nan.html"><code>NaN</code></a></li>
+<li><a href="b-math.html"><code>Math</code></a></li>
+<li><a href="b-string.html"><code>String</code></a></li>
+<li><a href="b-function.html"><code>Function</code></a></li>
+<li><a href="b-enum.html"><code>Enum</code></a></li>
+<li><a href="b-list.html"><code>List</code></a></li>
+<li><a href="b-error.html"><code>Error</code></a></li>
+<li><a href="b-error.html"><code>TypeError</code></a></li>
+<li><a href="b-error.html"><code>NotExistsError</code></a></li>
+<li><a href="b-error.html"><code>NotAssignableError</code></a></li>
+<li><a href="b-error.html"><code>NotDeletableError</code></a></li>
+<li><a href="b-error.html"><code>NotCallableError</code></a></li>
+<li><a href="b-error.html"><code>OutOfRangeError</code></a></li>
+<li><a href="b-error.html"><code>ArgumentError</code></a></li>
+<li><a href="b-error.html"><code>NumberOfArgumentsError</code></a></li>
+<li><a href="b-error.html"><code>UnsupportedOperationError</code></a></li>
+<li><a href="b-error.html"><code>ReadOnlyError</code></a></li>
+<li><a href="b-error.html"><code>DimensionError</code></a></li>
+<li><a href="b-error.html"><code>CalculationError</code></a></li>
+<li><a href="b-error.html"><code>OverflowError</code></a></li>
+<li><a href="b-error.html"><code>SyntaxError</code></a></li>
+</ul>
+<p>組込み変数領域に予め含まれているこれらのオブジェクトやそのメンバの値である
+オブジェクトは、<dfn>組込みオブジェクト</dfn>という。</p>
+
+<h3 id="bivds-additional-members">組込み変数領域の追加のメンバ</h3>
+<p>実行環境はその裁量によって、この仕様で定めるものの他に、
+実行環境が定義したメンバを基底変数領域・組込み変数領域に
+予め加えておくことが出来る。
+また、組込みオブジェクトに対しても、この仕様に定めるものの他に、
+実行環境が定義したメンバを予め加えておくことができる。</p>
+<p>この仕様で定められたオブジェクト (基底変数領域・組込み変数領域を含む)
+は、基底実行コンテクストが作られた時点において、この仕様で直接的にも間接的にも
+定められていない内部メンバを持っていてはならない。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

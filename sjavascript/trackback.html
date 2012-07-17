@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript を使用したフォームでトラックバック ping を送信します。">
+<meta name="date" content="2006-07-27T12:31:21+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] トラックバック ping 送信</title>
+<style type="text/css">
+#pingform input[type="text"] {
+	width: 100%;
+}
+</style>
+<script type="text/javascript">
+function validateForm() {
+	document.getElementById("pingform").action
+		= document.getElementById("pinguri").value;
+	if (!document.getElementById("tburl").value) {
+		if (typeof alert != "undefined")
+			alert("トラックバック元ページの URI が入力されていません。");
+		return false;
+	}
+	if (!document.getElementById("pingform").action) {
+		if (typeof alert != "undefined")
+			alert("トラックバック ping 送信先の URI が入力されていません。");
+		return false;
+	}
+	if (typeof confirm != "undefined") {
+		var prompt = "トラックバック ping を送信してよろしいですか?";
+		prompt += "\n\n題名:\t" + document.getElementById("tbtitle").value;
+		prompt += "\n内容:\t" + document.getElementById("tbexcerpt").value;
+		prompt += "\nURI:\t" + document.getElementById("tburl").value;
+		prompt += "\nサイト名:\t" + document.getElementById("tbblogname").value;
+		prompt += "\n\n送信先:\t" + document.getElementById("pingform").action;
+		return confirm(prompt);
+	}
+	return true;
+}
+</script>
+</head>
+<body onload="document.getElementById('pingsubmit').disabled=false;">
+<h1 id="title">
+トラックバック ping 送信
+</h1>
+<address id="about_this_document">
+© 2006 Magicant / 0.0 (2006-07-27)
+</address>
+<noscript>
+<div><strong>
+トラックバック ping 送信には JavaScript が必要です。
+</strong></div>
+</noscript>
+
+<p><a href="//d.hatena.ne.jp/keyword/%C2%E8%BB%B0%BC%D4%A5%C8%A5%E9%A5%C3%A5%AF%A5%D0%A5%C3%A5%AF"
+>第三者トラックバック</a>を送信するためのフォームです。任意のページから任意のページにトラックバック ping
+を送信できます。</p>
+<p>このフォームは<cite><a href="//jouno.s11.xrea.com/archives/b2/weblog302.html#1050318251"
+>Drifting Antigone Frontline » 外部トラックバック続報　投げ銭</a></cite>にあるものを改造したものです。</p>
+<form id="pingform" action="" method="post" onsubmit="return validateForm();">
+<fieldset>
+<legend>トラックバック元に関する情報</legend>
+<dl>
+<dt>ページの題名 (タイトル)</dt>
+<dd><input id="tbtitle" type="text" size="60" name="title"></dd>
+<dt>ページの内容の要約</dt>
+<dd><input id="tbexcerpt" type="text" size="60" name="excerpt"></dd>
+<dt>ページの <abbr title="Uniform Resource Identifier">URI</abbr> <strong>(必須)</strong></dt>
+<dd><input id="tburl" type="text" size="60" name="url"></dd>
+<dt>サイトの名前</dt>
+<dd><input id="tbblogname" type="text" size="60" name="blog_name"></dd>
+</dl>
+</fieldset>
+<fieldset>
+<legend>トラックバック先に関する情報</legend>
+<dl>
+<dt>トラックバック ping 送信先 URI <strong>(必須)</strong></dt>
+<dd><input id="pinguri" type="text" size="60"></dd>
+</dl>
+</fieldset>
+<div id="maincontrols">
+<input type="hidden" name="charset" value="UTF-8">
+<input id="pingsubmit" type="submit" value="Ping 送信" disabled>
+</div>
+</form>
+
+<h2 id="usage">使い方</h2>
+<p>上のフォームの各項目に記入し、送信ボタンを押してください。</p>
+<p>Ping の送信が正常に終了すると、次のような XML 文書が表示されます:</p>
+<pre>&lt;?xml version="1.0" encoding="iso-8859-1"?>
+&lt;response>
+&lt;error>0&lt;/error>
+&lt;/response></pre>
+<p>お使いのブラウザによっては、XML 文書の内容が解釈されて単に <q>0</q> などと表示されるかもしれません。</p>
+<p>Ping の送信が失敗した場合は、次のような XML 文書が表示されます:</p>
+<pre>&lt;?xml version="1.0" encoding="iso-8859-1"?>
+&lt;response>
+&lt;error>1&lt;/error>
+&lt;message>The error message&lt;/message>
+&lt;/response></pre>
+
+<h2 id="caution">使用上の注意</h2>
+<p>一度送信したトラックバック ping を取り消すことはできません。送信する前に入力した内容を十分良く確認してください。
+とくに、トラックバック ping 送信先 URI は間違えないようにしてください。</p>
+
+</body>
+</html>
+<!--
+Originated by jouno <http://jouno.s11.xrea.com/archives/b2/weblog302.html#1050318251>
+Modified by magicant
+2006-07-27 v0.0
+-->

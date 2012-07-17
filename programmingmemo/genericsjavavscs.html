@@ -1,0 +1,650 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="Java と C# のジェネリック (generics) 機能の比較">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>ジェネリック: Java vs C#</title>
+</head>
+
+<body>
+<h1 id="title">ジェネリック: Java vs C#</h1>
+
+<h2 id="overview">概要</h2>
+<p>2005 年初頭に公開された <a
+href="//java.sun.com/docs/books/jls/third_edition/html/j3TOC.html">Java 言語仕様第 3
+版</a> (開発実行環境は 2004 年秋に先立って公開されていた) と 2005 年 6 月に ECMA に承認された <a
+href="//www.ecma-international.org/publications/standards/Ecma-334.htm"
+title="ECMA-334">C# 言語仕様</a>第 3 版 (開発実行環境は 2005 年末に公開された)
+では、共に<dfn>ジェネリック (ジェネリックス、ジェネリクス、総称: <span lang="en">generics</span>)</dfn>
+という新しい概念が導入され、文法もそれに伴って変化している。
+また 2010 年に出荷された C# 4.0 ではジェネリックに関する機能の拡張が行われている。</p>
+<p>Java と C# はどちらも静的な型付けを行うオブジェクト指向プログラミング言語であり、C
+言語を基にした似たような文法をしている。
+この記事では、Java 言語のジェネリックと C# 言語のジェネリックを、その機能や文法の違いを中心に比較する。</p>
+
+<h2 id="generic-types">ジェネリックな型</h2>
+<p>ジェネリックな型は、どちらの言語でも山型の括弧を使って表される。ジェネリックなクラスを宣言する構文は、次のようになる。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">public class ClassName&lt;<var>T</var>> { }</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">public class ClassName&lt;<var>T</var>> { }</code></dd>
+</dl>
+<p>この例では、山型括弧の中にある <var>T</var> が<dfn>型パラメータ <span lang="en">(type
+parameter)</span></dfn> である。(注: <q lang="en">type parameter</q> は<q>型引数</q
+>とも訳し得るが、<q lang="en">type argument</q> との混同を避けるために、この記事では<q>型引数</q
+>という日本語は使用しない。) どちらの言語も、<code class="java csharp">ClassName&lt;<var>T</var
+>,<var>U</var>></code> のようにコンマで区切ることで、複数の型パラメータを指定することが可能である。</p>
+<p>Java では、同じ名前で型パラメータの有無のみが異なる二つのクラスを同時に宣言することはできない。
+例えば、<code class="java">MyClass</code> と <code class="java">MyClass&lt;<var
+>T</var>></code> を同じパッケージの中に共存させることはできない。
+同じ名前で型パラメータの数だけが異なる場合も不可である。</p>
+<p>これに対し、C# では同じ名前でも型パラメータの数が異なるならば全く別の型として扱われる。
+ゆえに、<code class="csharp">MyClass</code> と <code class="csharp">MyClass&lt;<var>T</var
+>></code> と <code class="csharp">MyClass&lt;<var>T</var>,<var>U</var>></code>
+は同じ名前空間内に共存できる。</p>
+<p>どちらの言語も、ジェネリックなクラスのほかにジェネリックなインタフェースを宣言できる。
+また C# ではジェネリックなデリゲートおよびジェネリックな構造体も宣言できる。</p>
+
+<h3 id="type-parameter-naming">型パラメータの命名規則</h3>
+<p>型パラメータの一般的な命名規則を比較してみよう。</p>
+<p>Java では、型パラメータの名前は原則として常に一文字の大文字である。例えば、<code class="java"
+>List&lt;<var>E</var>></code> や <code class="java">Map&lt;<var>K</var>,<var
+>V</var>></code> のように。
+型パラメータが表しているものの頭文字が型パラメータの名前になる。例えば <code class="java"
+>Map&lt;<var>K</var>,<var>V</var>></code> の一つ目の型パラメータはマップのキー <span
+lang="en">(key)</span> を表し、二つ目はマップの値 <span lang="en">(value)</span>
+を表しているので、それぞれの頭文字 k と v が型パラメータの名前になっている。</p>
+<p>C# では、型パラメータの名前は常に <q>T</q> で始まる。型パラメータが一つだけのときは、単に
+<var>T</var> 一文字がそのまま型パラメータの名前になることが多い。
+複数の型パラメータがあるときは、例えば <code class="csharp">Dictionary&lt;<var>TKey</var
+>,<var>TValue</var>></code>
+のように <q>T</q> を接頭辞として使う。</p>
+
+<h3 id="base-class">ジェネリックなクラスの親クラス</h3>
+<p>どちらの言語も、型パラメータを親クラスにすることはできない。つまり、例えば次のようなことはできない。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">public class MyClass&lt;<var>T</var>> extends <var>T</var> { }</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">public class MyClass&lt;<var>T</var>> : <var>T</var> { }</code></dd>
+</dl>
+<p>Java では、java.lang.Throwable の子孫クラスをジェネリックにすることはできない。</p>
+<p>C# では、System.Attribute の子孫クラスをジェネリックにすることはできない。</p>
+
+<h3 id="instantiation">ジェネリックなクラスのインスタンス化</h3>
+<p>ジェネリックなクラスをインスタンス化するには、型パラメータに当てはまる実際の型を指定して
+コンストラクタを呼び出さねばならない。例えば次のようになる。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">new MyClass&lt;String>()</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">new MyClass&lt;string>()</code></dd>
+</dl>
+<p>上の例で、山型括弧の中にある String/string がパラメータの実際の型すなわち<dfn>型アーギュメント
+<span lang="en">(type argument)</span></dfn> である。(注:
+<q lang="en">type argument</q> は<q>型引数</q>とも訳し得るが、<q lang="en">type
+parameter</q> との混同を避けるために、この記事では<q>型引数</q>という日本語は使用しない。)</p>
+<p>Java では、<code class="java">new MyClass()</code> のように型アーギュメントを指定せずに
+インスタンス化することも出来る。これにより、ジェネリックなクラスをジェネリックでないクラスとして扱うことが出来る。
+ただし、これはジェネリックが導入される前のコードがそのままコンパイルできるようにするための処置であって、
+これから書くコードには型アーギュメントを省略せずに書くべきである。</p>
+
+<h2 id="generic-methods">ジェネリックなメソッド</h2>
+<p>ジェネリックなメソッドの宣言は、例えば次のようになる。型パラメータの位置の違いに注意。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">public &lt;<var>T</var>> void method(<var>T</var> <var>t</var>) { }</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">public void Method&lt;<var>T</var>>(<var>T</var> <var>t</var>) { }</code></dd>
+</dl>
+<p>Java では、型パラメータの有無や数はシグネチャに含まれない。よって、次のようなメソッドのオーバーロードはできない。</p>
+<pre><code class="java">public class MyClass {
+    public void method() { }
+    public &lt;<var>T</var>> void method() { }
+    public &lt;<var>T</var>,<var>U</var>> void method() { }
+}</code></pre>
+<p>C# では、型パラメータの有無や数はシグネチャに含まれる。よって、次のようなメソッドのオーバーロードが可能。</p>
+<pre><code class="csharp">public class MyClass {
+    public void Method() { }
+    public void Method&lt;<var>T</var>>() { }
+    public void Method&lt;<var>T1</var>,<var>T2</var>>() { }
+}</code></pre>
+<p>ジェネリックなメソッドを型アーギュメントを明示して呼び出すのは例えば次のようになる。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">String <var>s</var> = <var>obj</var>.&lt;String>get();</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">string <var>s</var> = <var>obj</var>.Get&lt;string>();</code></dd>
+</dl>
+<p>この例では、山型の括弧の中にある String/string が型アーギュメントである。</p>
+<p>Java では、型アーギュメントを表す山型括弧の前に必ずピリオドがなければならない。例えば、<code
+class="java">this.&lt;String>get();</code> は問題ないが単に <code
+class="java">&lt;String>get();</code> と書くのは不可。これは、<code>&lt;</code>
+記号が型アーギュメントを表す括弧なのか不等号演算子なのかを明確に区別するための構文上の制約であると思われる。
+もしこの制約がない場合、例えば式 <code class="java">F((G)&lt;A,B>H(7))</code>
+は次の二通りに解釈できてしまう:</p>
+<ul>
+<li><var>G</var> と <var>A</var> の比較結果と、<var>B</var> と <var>H</var>(7)
+の比較結果の二つを引数としてメソッド <var>F</var> を呼び出す</li>
+<li><var>A</var> と <var>B</var> の二つの型アーギュメントでメソッド <var>H</var> を呼び出し、
+その結果を <var>G</var> にキャストしてメソッド <var>F</var> を呼び出す</li>
+</ul>
+<p>C# では型アーギュメントを書く位置が異なるため、Java とは少し事情が異なる。例えば式 <code
+class="csharp">F(G&lt;A,B>(7))</code> は次の二通りに解釈できる:</p>
+<ul>
+<li><var>G</var> と <var>A</var> の比較結果と、<var>B</var> と 7
+の比較結果の二つを引数としてメソッド <var>F</var> を呼び出す</li>
+<li><var>A</var> と <var>B</var> の二つの型アーギュメントでメソッド <var>G</var> を呼び出し、
+その結果を引数としてメソッド <var>F</var> を呼び出す</li>
+</ul>
+<p>C# では、このような場合には後者の解釈が採用される。</p>
+
+<h3 id="type-argument-inference">型アーギュメントの推論</h3>
+<p>多くの場合、メソッドの型アーギュメントは省略できる。というのも、コンパイラが型アーギュメントを<dfn
+>推論</dfn>するからだ。</p>
+<p>型アーギュメントの推論は、メソッドの引数の型に基づいて行われる。Java と C# とでは推論の方法が異なるが、
+非常に複雑なため (特に Java) ここでは取上げない。</p>
+<p>Java では、引数の型から型アーギュメントが推論できなかった場合、
+メソッドの戻り値の代入先の変数の型によっても推論が行われる。例えば次の例では型アーギュメントとして String
+が推論される。</p>
+<pre><code class="java">class MyClass {
+    &lt;<var>T</var>> <var>T</var> getNull() {
+        return null;
+    }
+    public static void main(String[] <var>args</var>) {
+        String <var>s</var> = getNull();
+    }
+}</code></pre>
+<p>C# では、代入式におけるこのような推論は行われない。</p>
+
+<h2 id="generic-constructors">ジェネリックなコンストラクタ</h2>
+<p>Java では、ジェネリックなコンストラクタを宣言できる。例えば以下のようになる。</p>
+<pre><code class="java">class MyClass {
+    &lt;<var>T</var>> MyClass() {
+    }
+    public static void main(String[] <var>args</var>) {
+        new &lt;String>MyClass();
+    }
+}</code></pre>
+<p>この例では、String を型アーギュメントとしてジェネリックなコンストラクタを呼び出している。
+なお、ジェネリックなコンストラクタは、ジェネリックなクラスのコンストラクタとは独立した概念であることに注意すべし。
+上の例では、コンストラクタがジェネリックなのであってクラスはジェネリックではない。
+以下のように、ジェネリックなクラスにジェネリックなコンストラクタを宣言することも出来る。</p>
+<pre><code class="java">class MyClass&lt;<var>T</var>> {
+    &lt;<var>U</var>> MyClass() {
+    }
+    public static void main(String[] <var>args</var>) {
+        new &lt;String>MyClass&lt;Integer>();
+    }
+}</code></pre>
+<p>この例では、String はコンストラクタに対する型アーギュメントであり、Integer
+はクラスに対する型アーギュメントである。</p>
+<p>コンストラクタに対する型アーギュメントは、メソッドの場合と同様に推論が可能なので、省略できる。
+クラスに対する型アーギュメントは、もちろん省略できない。</p>
+<p>一方、C# ではジェネリックなコンストラクタは宣言できない。</p>
+
+<h2 id="static-members">ジェネリックな型の静的メンバ</h2>
+
+<h3 id="static-members-java">Java におけるジェネリックな型の静的メンバ</h3>
+<p>Java では、ジェネリックなクラスはあくまでも一つのクラスとして扱われる。
+そのため、ジェネリックなクラスの静的メンバ (フィールド・メソッド) にアクセスする際には、
+クラスの型アーギュメントを指定する必要はない (してはいけない)。また、Java
+ではジェネリックなクラスの中にプログラムの開始点である main メソッドがあってもよい。</p>
+<pre><code class="java">class MyClass&lt;<var>T</var>> {
+    static Object staticField = new Object();
+    public static void main(String[] <var>args</var>) {
+        System.out.println(<em>MyClass.staticField</em>);
+    }
+}</code></pre>
+<p>つまり、ジェネリックなクラスの静的なメンバでそのクラスの型パラメータを扱うことはできないということである。</p>
+<pre><code class="java">class MyClass&lt;<var>T</var>> {
+    <em>static</em> <var>T</var> staticField;  // 不可
+}</code></pre>
+<pre><code class="java">class MyClass&lt;<var>T</var>> {
+    <em>static</em> class MyNestedClass&lt;<var>U</var> extends <var>T</var>> {  // 不可
+    }
+}</code></pre>
+<p>また、ジェネリックなクラスの静的初期化子 (<span lang="en">static initializer</span>:
+C# の静的コンストラクタに相当) は一つのクラスに対して一回だけ実行される。</p>
+<pre><code class="java">class MyClass&lt;<var>T</var>> {
+    static {
+        System.out.println("Initialized.");
+        // "Initialized." は一回だけ出力される。
+    }
+    public static void main(String[] <var>args</var>) {
+        new MyClass&lt;Object>();
+        new MyClass&lt;String>();
+    }
+}</code></pre>
+
+<h3 id="static-members-csharp">C# におけるジェネリックな型の静的メンバ</h3>
+<p>C# では、ジェネリックな型はそれぞれの型アーギュメントごとに異なる型として扱われる。
+例えば、ジェネリックなクラス <code class="csharp">List&lt;<var>T</var>></code> から <code
+class="csharp">List&lt;object></code> や <code class="csharp">List&lt;string></code
+> などの具体的なクラス (<dfn>閉じた構築型 <span lang="en">(closed constructed type)</span
+></dfn>) が<dfn>構築</dfn>される。
+ジェネリックなクラスの静的メンバは、それぞれの構築された型ごとにそれぞれ存在することになる。
+そのため、静的メンバでそのクラスの型パラメータを扱うことが出来る。</p>
+<pre><code class="csharp">class MyClass&lt;<var>T</var>> {
+    static <var>T</var> <var>t</var>;
+    static object <var>o</var>;
+}</code></pre>
+<p>上の例では、<code class="csharp">MyClass&lt;object></code> の静的フィールド
+<var>t</var> の型は object であり、<code class="csharp">MyClass&lt;string></code>
+の静的フィールド <var>t</var> の型は string である。もちろん、これらは別々のフィールドである。
+また、<code class="csharp">MyClass&lt;object></code> の静的フィールド <var>o</var> と
+<code class="csharp">MyClass&lt;string></code> の静的フィールド <var>o</var>
+も別々のフィールドである。</p>
+<p>従って、ジェネリックなクラスの静的メンバにアクセスする際には、
+必ずクラスの型アーギュメントを指定して具体的なクラスを特定しなければならない。
+型アーギュメントの指定なしで静的メソッドを呼び出すことはできないので、プログラムの開始点である Main
+メソッドをジェネリックな型の中に置くことはできない。</p>
+<p>静的コンストラクタ (Java の静的初期化子に相当) もそれぞれの構築された型ごとにそれぞれ実行される。</p>
+<pre><code class="csharp">class MyClass&lt;<var>T</var>> {
+    static MyClass() {
+        System.Console.WriteLine("Initialized: {0}", typeof(<var>T</var>));
+    }
+}
+class Program {
+    public static void Main() {
+        new MyClass&lt;object>();
+        new MyClass&lt;string>();
+    }
+}</code></pre>
+<p>このプログラムを実行すると、次の出力が得られる。異なる型アーギュメントごとに静的コンストラクタが実行されていることと、
+静的コンストラクタ内で型アーギュメントの Type オブジェクトを typeof 演算子で取得できる点に注意。</p>
+<pre><samp>Initialized: System.Object
+Initialized: System.String</samp></pre>
+
+<h2 id="accessibility">ジェネリックな型のメンバへのアクセス制御</h2>
+<p>どちらの言語も、ジェネリックな型のメンバへのアクセス制御は、
+ジェネリックでない型のメンバへのアクセス制御と同様に扱われる。
+型アーギュメントはアクセス制御に影響しない。</p>
+
+<h2 id="type-parameter-constraints">型パラメータの制約</h2>
+<p>型パラメータを宣言する際に<dfn>制約 <span lang="en">(constraint)</span></dfn>
+を加えることによって、型パラメータに型アーギュメントとして当てはめることが出来る型を制限できる。
+(Java 言語仕様書では「制約」という言葉を用いず、専ら<dfn>境界
+<span lang="en">(bound)</span></dfn> と呼んでいる。)
+どちらの言語も、型パラメータに対して型アーギュメントが継承すべきクラスまたは実装すべきインタフェースを指定できる。</p>
+<p>Java では、型パラメータの境界を extends 句によって表す。
+C# では、型パラメータの制約を where 句によって表す。</p>
+<p>以下の例では、どちらも MyGenericClass クラスの型パラメータ <var>T</var> に対して、<var>T</var>
+に当てはめられる型アーギュメントが MyClass であるか、MyClass の子孫クラスであることを指定している。</p>
+<dl>
+<dt>Java</dt>
+<dd><pre><code class="java">class MyClass { }
+class MyGenericClass&lt;<var>T</var> <em>extends MyClass</em>> extends Object { }</code></pre></dd>
+<dt>C#</dt>
+<dd><pre><code class="csharp">class MyClass { }
+class MyGenericClass&lt;<var>T</var>> : object <em>where <var>T</var> : MyClass</em> { }</code></pre></dd>
+</dl>
+<p>Java でも C# でもクラスの多重継承はできないので
+一つの型パラメータに対して複数のクラスの制約をかける事はできないが、複数のインタフェースの制約をかける事は可能である。
+また、クラスとインタフェースの両方の制約をかけることもできる (クラスの制約を最初に指定しなければならない)。</p>
+<dl>
+<dt>Java</dt>
+<dd><pre><code class="java">class MyClass { }
+interface MyInterface1 { }
+interface MyInterface2 { }
+class MyGenericClass
+    &lt;<var>T</var> <em>extends MyClass & MyInterface1 & MyInterface2</em>> { }
+// インタフェースの制約でも implements ではなく extends と書く</code></pre></dd>
+<dt>C#</dt>
+<dd><pre><code class="csharp">class MyClass { }
+interface MyInterface1 { }
+interface MyInterface2 { }
+class MyGenericClass&lt;<var>T</var>>
+    <em>where <var>T</var> : MyClass, MyInterface1, MyInterface2</em> { }</code></pre></dd>
+</dl>
+<p>また、複数の型パラメータに対して制約をかける場合は以下のようになる。</p>
+<dl>
+<dt>Java</dt>
+<dd><pre><code class="java">class MyGenericClass
+    &lt;<var>T</var> extends MyClass, <var>U</var> extends <var>T</var>> { }</code></pre></dd>
+<dt>C#</dt>
+<dd><pre><code class="csharp">class MyGenericClass&lt;<var>T</var>, <var>U</var>>
+    where <var>T</var> : MyClass
+    where <var>U</var> : <var>T</var> { }</code></pre></dd>
+</dl>
+<p>ジェネリックなメソッドの型パラメータに対する制約は、以下のように指定する。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">&lt;<var>T</var> extends MyClass> <var>T</var> method() { }</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp"><var>T</var> Method&lt;<var>T</var>>() where <var>T</var> : MyClass { }</code></dd>
+</dl>
+<p>C# では、型は<dfn>参照型 <span lang="en">(reference type)</span></dfn>と<dfn>値型
+<span lang="en">(value type)</span></dfn>の二つに大別される。C# で型パラメータに一切制約をかけない場合、
+型アーギュメントは参照型でも値型でもよい。しかし型アーギュメントを参照型または値型に限定する制約をかけることもできる。</p>
+<pre><code class="csharp">class MyClass1&lt;<var>T</var>> where <var>T</var> : class { }
+class MyClass2&lt;<var>T</var>> where <var>T</var> : struct { }</code></pre>
+<p>Java では、型は参照型と<dfn>原始型 <span lang="en">(primitive type)</span></dfn>
+の二つに大別される。Java では、型パラメータに一切制約がない場合でも
+型アーギュメントに指定できるのは参照型のみであり、int や double などの原始型はそのままでは扱えないので
+Integer や Double などのラッパークラスを使う必要がある。</p>
+<p>Java にはない C# の機能として、型パラメータにコンストラクタに関する制約を加えることが出来る。
+これは、型アーギュメントに指定した型が引数なしのパブリックなコンストラクタを持っていることを要求するものである。</p>
+<pre><code class="csharp">void Init&lt;<var>T</var>>(<var>T</var>[] <var>array</var>) where <var>T</var> : new() {
+    for (int <var>i</var> = 0; <var>i</var> &lt; <var>array</var>.Length; <var>i</var>++)
+        <var>array</var>[<var>i</var>] = new <var>T</var>();
+}</code></pre>
+
+<h2 id="generic-type-locals">ジェネリックな型のローカル変数と変性</h2>
+<p>List&lt;String> のように、型アーギュメントを具体的に指定した型 (C# では閉じた構築型という)
+の変数はどちらの言語でも使用できる。</p>
+<dl>
+<dt>Java</dt>
+<dd><code class="java">List&lt;String> <var>list</var> = null;</code></dd>
+<dt>C#</dt>
+<dd><code class="csharp">List&lt;string> <var>list</var> = null;</code></dd>
+</dl>
+<p>ジェネリックなクラスやメソッドの中では、そのクラスやメソッドの型パラメータを実在する型に見立てて使用できる。</p>
+
+<!--
+<h3 id="covariance">ジェネリックな型の共変性</h3>
+<p>どちらの言語も、型アーギュメントの継承関係に伴うジェネリックな型の共変性はない。
+例えば、文字列の配列はオブジェクトの配列として振舞うことができるが、ジェネリックな型ではそれはできない。</p>
+<dl>
+<dt>Java</dt>
+<dd><pre><code class="java">Object[] <var>ary</var> = new String[0];  // OK
+ArrayList&lt;Object> <var>list</var> = new ArrayList&lt;String>();  // 不可</code></pre></dd>
+<dt>C#</dt>
+<dd><pre><code class="csharp">object[] <var>ary</var> = new string[0];  // OK
+List&lt;object> <var>list</var> = new List&lt;string>();  // 不可</code></pre></dd>
+</dl>
+-->
+
+<h3 id="wildcard">ワイルドカード型アーギュメント</h3>
+<p>Java では、型アーギュメントにおいて ? 記号をワイルドカードとして使用できる。例えば、以下のような具合である。</p>
+<pre><code class="java">List&lt;?> <var>list</var> = new ArrayList&lt;String>();</code></pre>
+<p>型アーギュメントとしてワイルドカードを指定すると、任意の型アーギュメントのオブジェクトを受け入れることが出来る。
+上の例では、変数 <var>list</var> には ArrayList&lt;Object> も LinkedList&lt;Number>
+も ArrayList&lt;ArrayList&lt;Object>> も代入できる。これにより、任意の型アーギュメントの
+List を同じように扱うことが出来る。</p>
+<p>ワイルドカードに対しても境界 (つまり制約) を設定することが出来る。ワイルドカードの境界の指定には、
+extends のほかに super が使える。これは extends とは逆の意味を持ち、実際の型アーギュメントが
+指定した境界と同じであるかそのスーパークラスであることを指定する。</p>
+<pre><code class="java">List&lt;? extends Number> <var>list1</var> = new ArrayList&lt;Integer>();
+List&lt;? super Number> <var>list2</var> = new ArrayList&lt;Object>();</code></pre>
+<!--
+<p>C# では、Java のようにワイルドカードを型アーギュメントとして使用することはできない。これにより、Java
+とはいくらか異なる実装を求められることになる。例えば、以下の Java の二つのメソッドは
+どちらもリストの内容を全て出力するものであるが、
+前者はジェネリックなメソッドであるのに対し、後者は (ジェネリックな型の変数を使ってはいるが)
+ジェネリックなメソッドではない。</p>
+<pre><code class="java">&lt;<var>T</var>> void printAll(List&lt;<var>T</var>> <var>list</var>) {
+    for (<var>T</var> <var>t</var> : <var>list</var>)
+        System.out.println(<var>t</var>);
+}
+void printAll(List&lt;?> <var>list</var>) {
+    for (Object <var>o</var> : <var>list</var>)
+        System.out.println(<var>o</var>);
+}</code></pre>
+<p>これと同じような動作をするメソッドを C# で書く場合、
+ワイルドカードは使えないため、メソッドをジェネリックにせずに済ますことはできない。つまり、選択肢は一つしかない。</p>
+<pre><code class="csharp">void PrintAll&lt;<var>T</var>>(List&lt;<var>T</var>> <var>list</var>) {
+    foreach (<var>T</var> <var>t</var> in <var>list</var>)
+        System.Console.PrintLine(<var>t</var>);
+}</code></pre>
+<p>ここで問題となるのは、Java の <code class="java">? super X</code> に相当する制約が
+C# では使えないことである。例えば次の Java のクラスを考えてみよう。メソッド copy
+は、<var>list</var> に含まれる内容を <var>list2</var> にコピーするものである。</p>
+-->
+<p>制約として super を用いる例を見てみよう。以下の Java のクラスは、インスタンス変数 <var>list</var>
+の内容を引数 <var>list2</var> に追加するメソッド copy を備えている。</p>
+<pre><code class="java">class MyClass1&lt;<var>T</var>> {
+    List&lt;<var>T</var>> <var>list</var>;
+    void copy(List&lt;? <em>super</em> <var>T</var>> <var>list2</var>) {
+        for (<var>T</var> <var>t</var> : <var>list</var>)
+            <var>list2</var>.add(<var>t</var>);
+    }
+}</code></pre>
+<p>ここで、<var>list</var> と <var>list2</var> の型アーギュメントは同じである必要はないことに注意する。
+<var>list</var> の要素の型が (明示的なキャストなしで) <var>list2</var> の要素の型に変換可能でさえ
+あればよいので、<var>list2</var> の型は List&lt;<var>T</var>> でなくとも
+List&lt;? super <var>T</var>> でよいのである。これにより、例えば <var>T</var> = Number
+のとき、copy メソッドに List&lt;Object> 型のリストを渡すことができる。</p>
+<!--
+<p>C# でこれと同じことをするためには、
+メソッドの引数の型のワイルドカードをジェネリックなメソッドの型パラメータに置き換えなくてはならない。
+ところが、C# には Java の super に相当する制約の設定はできないのである。
+従って、List&lt;<var>T</var>> の内容を List&lt;<var>T</var>> にコピーすることしかできない。</p>
+<pre><code class="csharp">class MyClass1&lt;<var>T</var>> {
+    List&lt;<var>T</var>> <var>list</var>;
+    void Copy(List&lt;<var>T</var>> <var>list2</var>) {
+        foreach (<var>T</var> <var>t</var> in <var>list</var>)
+            <var>list2</var>.Add(<var>t</var>);
+    }
+}</code></pre>
+<p>なお、<code class="csharp">void Copy&lt;<var>U</var>>(List&lt;<var>U</var>>
+<var>list2</var>) where <var>T</var> : <var>U</var> { ... }</code>
+と書けばうまく出来るように思うかもしれないが、これは出来ない。というのも、ここで制約を課すことができるのは
+メソッドの型パラメータ <var>U</var> だけだからだ。この場合はクラスの型パラメータ <var>T</var>
+に対してメソッド宣言内で制約をかけようとしているのでコンパイル時エラーになる。</p>
+<p>この問題に関しては C# プログラミングガイドの<cite><a
+href="//msdn.microsoft.com/ja-jp/library/ms228359.aspx">ジェネリック型の分散</a
+></cite>が詳しい。</p>
+-->
+<p>制約として extends を用いる例も挙げておく。こちらの copy メソッドは引数 <var>list2</var>
+の内容をインスタンス変数 <var>list</var> に追加する。</p>
+<pre><code class="java">class MyClass2&lt;<var>T</var>> {
+    List&lt;<var>T</var>> <var>list</var>;
+    void copy(Iterable&lt;? <em>extends</em> <var>T</var>> <var>list2</var>) {
+        for (<var>T</var> <var>t</var> : <var>list2</var>)
+            <var>list</var>.add(<var>t</var>);
+    }
+}</code></pre>
+
+<h3 id="interface-delegate-variance">インタフェースとデリゲートの変性</h3>
+<p>C# 4.0 では、インタフェースとデリゲートの型パラメータに対して変性を指定することができるようになった。
+例えば、System.Collections.Generic.IEnumerable&lt;<var>T</var>> インタフェースでは、型パラメータ
+<var>T</var> は out キーワードの指定により共変なパラメータとなっている。</p>
+<pre><code class="csharp">public interface IEnumerable&lt;<em>out</em> <var>T</var>> : IEnumerable { ... }</code></pre>
+<p>これにより、型 <var>T</var> から型 <var>U</var> へ暗黙的にキャスト可能ならば、IEnumerable&lt;<var>T</var>>
+から IEnumerable&lt;<var>U</var>> に暗黙的にキャストできる。</p>
+<pre><code class="csharp">IEnumerable&lt;string> s = new List&lt;string>();
+IEnumerable&lt;object> o = s;</code></pre>
+<p>また System.IComparable&lt;<var>T</var>> インタフェースでは、型パラメータ <var>T</var> は
+in キーワードの指定により反変なパラメータとなっている。</p>
+<pre><code class="csharp">public interface IComparable&lt;<em>in</em> <var>T</var>> { ... }</code></pre>
+<p>これにより、型 <var>T</var> から型 <var>U</var> へ暗黙的にキャスト可能ならば、IComparable&lt;<var>U</var>>
+から IComparable&lt;<var>T</var>> に暗黙的にキャストできる。</p>
+<pre><code class="csharp">IComparable&lt;object> c = ...;
+IComparable&lt;string> s = c;</code></pre>
+<p>ただし、型パラメータの変性が使えるのは型アーギュメントが参照型の場合に限られる。
+型アーギュメントが値型の場合はデータ構造が異なるので変性は使えない。
+また C# 4.0 ではクラスやメソッドの型パラメータに対して変性を指定することはできない。
+これはおそらく実行環境の実装上の都合によるものであろう。</p>
+<p>型チェックの安全性を保証するため、変性を持つ型パラメータは使用できる場面が限られる。
+共変な型パラメータはメソッドの戻り値の型としては使えるが引数の型としては使えない。
+反変な型パラメータはメソッドの引数の型としては使えるが戻り値の型としては使えない。
+この条件に反する場合はコンパイル時エラーとなる。</p>
+<p>この条件は、型パラメータがメソッドの引数にも戻り値にも現れる場合は
+その型パラメータを共変にも反変にもできないことを意味する。そのため
+System.Collections.Generic.IList&lt;<var>T</var>> インタフェースの型パラメータ <var>T</var>
+は共変でも反変でもない。従って、上の<a href="wildcard">ワイルドカード型アーギュメント</a>に挙げた
+MyClass1 クラスの例と同じことを C# 4.0 でそのまま実現することはできない。</p>
+<pre><code class="csharp">class MyClass1&lt;<var>T</var>> {
+    IEnumerable&lt;<var>T</var>> <var>list</var>;
+    public void Copy(IList&lt;<var>T</var>> <var>list2</var>) {
+        foreach (<var>T</var> <var>t</var> in <var>list</var>)
+            <var>list2</var>.Add(<var>t</var>);
+    }
+}</code></pre>
+<p>この例では、このクラス自体はコンパイル時エラーにはならないが、IList&lt;<var>T</var>>
+インタフェースの型アーギュメント <var>T</var> は反変ではないため、MyClass1&lt;<var>T</var>>
+の型アーギュメントと異なる型アーギュメントの IList&lt;<var>T</var>>
+のインスタンスを渡すことができない。</p>
+<pre><code class="csharp">MyClass1&lt;string> o = new MyClass1&lt;string>();
+IList&lt;object> l = new List&lt;object>();
+o.Copy(l);  // 不可</code></pre>
+<p>一方で MyClass2 の例は C# 4.0 でも書ける。</p>
+<pre><code class="csharp">class MyClass2&lt;<var>T</var>> {
+    IList&lt;T> <var>list</var>;
+    public void Copy(IEnumerable&lt;<var>T</var>> <var>list2</var>) {
+        foreach (<var>T</var> <var>t</var> in <var>list2</var>)
+            <var>list</var>.Add(<var>t</var>);
+    }
+}</code></pre>
+<p>IEnumerable&lt;<var>T</var>> インタフェースの型パラメータ <var>T</var>
+は共変な型パラメータなので、MyClass2&lt;<var>T</var>> クラスの型アーギュメント <var>T</var>
+の子孫クラスの型アーギュメントを持つ IEnumerable&lt;<var>T</var>> のインスタンスを
+Copy メソッドに渡すことができる。</p>
+<pre><code class="csharp">MyClass2&lt;object> o = new MyClass2&lt;object>();
+IEnumerable&lt;string> l = new List&lt;string>();
+o.Copy(l);  // OK</code></pre>
+
+<h3 id="array-of-generic-type">ジェネリックな型の配列</h3>
+<p>ジェネリックな型の配列はどうだろうか。</p>
+<p>Java では、型アーギュメントとしてワイルドカードを指定した型の配列のインスタンス化 (例: <code
+class="java">new List&lt;?>[3]</code>) は可能であるが、
+型アーギュメントとして具体的な型を指定した型の配列のインスタンス化 (例: <code class="java"
+>new List&lt;String>[3]</code>) は出来ない。
+型アーギュメントの情報を配列のインスタンスに保持できないからである。(詳細は後述)</p>
+<pre><code class="java">List[] a1 = new List[3];                  // OK (非推奨)
+List[] a2 = new List&lt;?>[3];               // OK (非推奨)
+List[] a3 = new List&lt;String>[3];          // エラー
+List&lt;?>[] a4 = new List[3];               // OK (非推奨)
+List&lt;?>[] a5 = new List&lt;?>[3];            // OK
+List&lt;?>[] a6 = new List&lt;String>[3];       // エラー
+List&lt;String>[] a7 = new List[3];          // 警告 (非推奨)
+List&lt;String>[] a8 = new List&lt;?>[3];       // エラー
+List&lt;String>[] a9 = new List&lt;String>[3];  // エラー
+
+List&lt;String>[] a10 = (List&lt;String>[]) new List&lt;?>[3]; // 警告
+
+@SuppressWarnings("unchecked")
+List&lt;String>[] a11 = (List&lt;String>[]) new List&lt;?>[3]; // OK
+</code></pre>
+<p>List&lt;String>[] のような具体的な型アーギュメントを指定した配列を用意したいときは、
+上の最後の例のようにワイルドカードを使用して配列をインスタンス化した後にキャストしなければならない。
+(このとき @SuppressWarnings 注釈を付けないと、警告が出る)</p>
+<p>C# ではワイルドカードは使えないので、常に具体的な型アーギュメントを指定する必要がある。</p>
+<pre><code class="csharp">List&lt;string>[] a = new List&lt;string>[3];  // OK</code></pre>
+
+<h2 id="runtime">実行時のジェネリック</h2>
+<p>プログラムが実際に実行されるとき、実行環境はジェネリックな型をどのように扱うのか。</p>
+
+<h3 id="java-syntactical-sugar">Java のジェネリックは単なる糖衣構文である</h3>
+<p>Java では、ジェネリックはコンパイル時に型をより厳密に取り扱うための構文でしかない。
+すなわち、実行時にはジェネリックに関する特別な処理は特に行われていない。</p>
+<p>端的にいえば、Java においてジェネリックとはコンパイラがより厳密な型チェックを行うための糖衣構文
+(文法的な置き換え) に過ぎない。例えば、次の二つのメソッドはコンパイルすると全く同一のバイトコードに変換される。
+(Sun のコンパイラ javac 1.5.0 の場合)</p>
+<pre><code class="java">void method1() {
+    List&lt;String> <var>list</var> = new ArrayList&lt;String>();
+    <var>list</var>.add("string");
+    String <var>string</var> = <var>list</var>.get(0);
+}
+void method2() {
+    List <var>list</var> = new ArrayList();
+    <var>list</var>.add("string");
+    String <var>string</var> = (String) <var>list</var>.get(0);
+}</code></pre>
+<p>List&lt;Object> も List&lt;String> も List&lt;Integer>
+も結局は単なる List として扱われることになる。
+ジェネリックによって文法上はリストから文字列オブジェクトを取り出す際に明示的なキャストが不要となったが、
+実行時には (ジェネリックによって不要となったはずの) 型のチェックが行われている。</p>
+<p>実行時には型アーギュメントに関する情報は一切扱われていないため、
+リフレクションにおいて実際のオブジェクトの型アーギュメントを扱うことはできない。
+また instanceof 演算子で型アーギュメントを判別することも出来ない。</p>
+<p>配列は、<code class="java">new <var>T</var>[10]</code> のように型パラメータを
+使用して作成することはできない。<code class="java">(<var>T</var>[]) new Object[10]</code>
+のようにキャストすることは可能だが、コンパイル時に厳密な型のチェックが行えないため実行時に例外が発生する要因になる。</p>
+
+<h3 id="csharp-runtime">C# は型アーギュメントの情報を実行時に反映</h3>
+<p>C# では、ジェネリックはコンパイル時のみならず実行時にも意味を持つ。
+型アーギュメントに応じて、List&lt;object> や List&lt;string> や List&lt;int>
+などのクラスが実行時に動的に作られると考えてもよい。
+例えば、型パラメータ <var>T</var> に対して <code class="csharp">new
+<var>T</var>[10]</code> で配列を作成する場合でも、実際の
+<var>T</var> に応じて string の配列や int の配列など異なる型の配列が作成される。</p>
+<p>リフレクションでジェネリックな型を扱うときには、型アーギュメントの違いは厳密にチェックされる。
+また is 演算子や as 演算子で型アーギュメントを判別したり、型パラメータに対して typeof
+演算子を適用して型アーギュメントの Type オブジェクトを取得したり出来る。</p>
+<pre><code class="csharp">Type GetListTypeArgument&lt;<var>T</var>>(object <var>obj</var>) {
+    if (<var>obj</var> is List&lt;<var>T</var>>) {
+        return typeof(<var>T</var>);
+    } else {
+        return null;
+    }
+}</code></pre>
+<p>なお、is 演算子・as 演算子では型アーギュメントは常に指定しなければならない。例えば
+<code class="csharp">(<var>obj</var> is List&lt;?>)</code>
+のようなワイルドカードを使用して、オブジェクトが「任意の型アーギュメントの List」であるかを調べることはできない。また
+try-catch 文でジェネリックなクラスの例外をキャッチする場合も、同様に型アーギュメントを指定しなければならない。</p>
+
+<h2 id="conclusion">まとめ</h2>
+<p>静的な型付けを行う言語においてより厳密な型のチェックを行うための手段としては、Java も C#
+もほぼ十分なジェネリック機能を備えている。しかし両者のジェネリック機能に細かな差異が見られるのは、
+ジェネリックによるプログラムをどのように実行するかについて両者が異なる方針を採ったからである。</p>
+<p>C# は、ジェネリックの導入による言語仕様の変更と共に実行環境も合わせて変更した。
+そのため、コンパイル時だけでなく実行時にもジェネリックの機能を使用できる。</p>
+<p>一方の Java は、言語仕様を変更しても実行環境には手を加えなかった。
+マイクロソフトは、これを次のように批判している。</p>
+<blockquote title="C# プログラミング言語の将来の機能"
+cite="//www.microsoft.com/japan/msdn/vs/vcsharp/vbconCProgrammingLanguageFutureFeatures.asp">
+<p>Sun Microsystems® では、次のバージョンの Java 言語 (コード ネームは "Tiger")
+でジェネリクスを追加する予定です。Sun は、Java 仮想マシンの変更を必要としない実装を選択しました。
+このため、変更されていない仮想マシン上にジェネリクスを実装するという問題に直面しています。</p>
+<p>計画されている Java の実装は、型パラメータや制約も含め、C++ のテンプレートや C#
+のジェネリクスに似た構文を使用しています。しかし、値型の扱いが参照型と異なるため、変更されていない Java
+仮想マシンでは、値型のジェネリクスをサポートすることはできないでしょう。このため、Java
+のジェネリクスでは、実行効率の向上は得られません。実際 Java コンパイラは、データを返す必要が生じるたびに、
+指定された制約から自動的にダウンキャストを挿入するか (制約が宣言されている場合)、Object 型を挿入します
+(制約が宣言されていない場合)。さらに、Java コンパイラは、コンパイル時に特殊化された型を 1
+つ生成し、構築されるすべての型をそれを使ってインスタンス化します。最後に、Java
+仮想マシンはジェネリクスをネイティブでサポートしていないため、ジェネリック型のインスタンスの型パラメータを
+実行時に確認する手段はなく、リフレクションのその他の利用も大きく制限されます。</p>
+</blockquote>
+<p>実行時にジェネリックの情報を扱えない点で、Java は C# より実行時のパフォーマンスの面でたしかに不利である。</p>
+<p>一方 C# では型アーギュメントにワイルドカードを使用できないため、
+型アーギュメントの汎用的な扱いが求められる場面では Java よりも実装が困難になることがあるかもしれない。</p>
+<p>また、どちらの言語も配列の扱いはほぼ従来どおりであることに注意したい。コレクションモデルとしては、配列は
+固定長のリストとして見做すことができ、実際に C# では配列は IList インタフェースを実装している。
+しかし文字列の配列をオブジェクトの配列として扱うというような共変性は依然として残っている。
+そのため配列における型のチェックはジェネリックなリストほどには厳密でないということになる。</p>
+<p>全体としては、両者共に有利な点と不利な点があるが、実際にジェネリックを活用したプログラミングを行う際には、
+どちらの言語が優れているかということはほとんど問題にならないと思われる。</p>
+
+<h2 id="related">関連情報</h2>
+<ul>
+<li lang="en"><a href="//www.osl.iu.edu/publications/prints/2003/comparing_generic_programming03.pdf"
+>A Comparative Study of Language Support for Generic Programming</a></li>
+</ul>
+
+<h2 id="bibliography">参考文献</h2>
+<ul>
+<li lang="en"><a href="//www.ecma-international.org/publications/standards/Ecma-334.htm">ECMA-334</a>
+3<sup>rd</sup> edition, <cite>C# Language Specification</cite>. 2005.</li>
+<li lang="en">James Gosling, Bill Joy, Guy Steele, and Gilad Bracha.
+<a href="//java.sun.com/docs/books/jls/third_edition/html/j3TOC.html"><cite lang="en">The
+Java Language Specification, Third Edition</cite></a>. 2005.</li>
+<li><span lang="en">Sridharan, Prashant.</span>
+<a href="//www.microsoft.com/japan/msdn/vs/vcsharp/vbconCProgrammingLanguageFutureFeatures.asp"
+><cite>C# プログラミング言語の将来の機能</cite></a>. Microsoft Corporation, 2003 年 7 月 8 日</li>
+</ul>
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2006-2007, 2010 Magicant / 更新 2010-08-01 / 初出 2006-04-07
+</address>
+
+</body>
+</html>

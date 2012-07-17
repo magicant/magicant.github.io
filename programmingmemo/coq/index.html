@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq に関するメモ">
+<link rel="start" href="/magicant/">
+<link rel="up" href="../">
+<link rel="contents" href="../">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq クィックリファレンス</title>
+</head>
+
+<body>
+<h1 id="title">Coq クィックリファレンス</h1>
+
+<p>書きかけだけれど、たぶん永遠に書きかけなので、とりあえず書いたところだけ公開。</p>
+
+<h2 id="basic">基礎知識</h2>
+<ul>
+<li><a href="syntax.html">Gallina の構文と Vernacular コマンド</a></li>
+<li><a>オプション</a></li>
+<li><a>モジュール</a></li>
+<li><a href="propset.html">Prop vs. Set vs. Type</a></li>
+</ul>
+
+<h2 id="tactics">タクティク リファレンス</h2>
+<ul>
+<li><a>証明の補助</a>: <code>idtac</code>, <code>fail</code>, <code>move</code>, <code>clear</code>, <code>set</code>, <code>remember</code>, <code>pose</code>, <code>rename</code>, <code>intro</code>, <code>assert</code>, <code>cut</code>, <code>lapply</code>, <code>specialize</code>, <code>generalize</code></li>
+<li><a href="t-apply.html">項による証明</a>: <code><a href="t-apply.html#exact">exact</a></code>, <code><a href="t-apply.html#refine">refine</a></code>, <code><a href="t-apply.html#apply">apply</a></code></li>
+<li><a href="t-constr.html">コンストラクタの適用</a>: <code><a href="t-constr.html#constructor">constructor</a></code>, <code><a href="t-constr.html#split">split</a></code>, <code><a href="t-constr.html#exists">exists</a></code>, <code><a href="t-constr.html#left">left</a></code>, <code><a href="t-constr.html#right">right</a></code></li>
+<li><a href="t-contra.html">否定と矛盾</a>: <code><a href="t-contra.html#absurd">absurd</a></code>, <code><a href="t-contra.html#contradict">contradict</a></code>, <code><a href="t-contra.html#contradiction">contradiction</a></code>, <code><a href="t-contra.html#exfalso">exfalso</a></code></li>
+<li><a href="t-induct.html">帰納法と場合分け</a>: <code><a href="t-induct.html#fix">fix</a></code>, <code><a href="t-induct.html#cofix">cofix</a></code>, <code><a href="t-induct.html#elim">elim</a></code>, <code><a href="t-induct.html#induction">induction</a></code>, <code><a href="t-induct.html#case">case</a></code> (<code><a href="t-induct.html#case_eq">case_eq</a></code>), <code><a href="t-induct.html#destruct">destruct</a></code>, <code><a href="t-induct.html#intros">intros</a></code>, <code><a href="t-induct.html#decompose">decompose</a></code>, <code><a href="t-induct.html#inversion">inversion</a></code></li>
+<li><a>等式</a>: <code>reflexivity</code>, <code>symmetry</code>, <code>transitivity</code>, <code>decide equality</code>, <code>compare</code>, <code>discriminate</code>, <code>injection</code>, <code>congruence</code>, <code>f_equal</code>, <code>simplify_eq</code></li>
+<li><a>存在変数の扱い</a>: <code>evar</code>, <code>instantiate</code>, …</li>
+<li><a>式の変形・書き換え</a>: <code>cbv</code>, <code>lazy</code>, <code>compute</code>, <code>red</code>, <code>hnf</code>, <code>simpl</code>, <code>pattern</code>, <code>unfold</code>, <code>fold</code>, <code>rewrite</code>, <code>replace</code>, <code>subst</code>, <code>change</code></li>
+<li><a>証明の自動化</a>: <code>assumption</code>, <code>auto</code>, <code>trivial</code>, <code>tauto</code>, <code>intuition</code>, <code>rtauto</code>, <code>firstorder</code>, <code>omega</code>, <code>ring</code>, <code>ring_simplify</code>, <code>field</code>, <code>field_simplify</code>, <code>fourier</code>, <code>autorewrite</code></li>
+<!-- admit, stepl, stepr, quote -->
+</ul>
+
+<h2 id="casestudy">事例集</h2>
+<ul>
+<li><a href="byhyp.html">前提が……のとき</a></li>
+<li><a href="bygoal.html">ゴールが……のとき</a></li>
+<li><a href="maninv.html">自前で <code>inversion</code> を行う</a></li>
+</ul>
+
+<h2 id="others">その他・参考文献</h2>
+<ul>
+<li><a href="//coq.inria.fr/">Coq ホームページ</a></li>
+<li><a href="//coq.inria.fr/doc/">Coq リファレンスマニュアル</a> (<a href="//coq.inria.fr/doc/toc.html">目次</a>, <a href="//coq.inria.fr/doc/general-index.html">インデックス</a>, <a href="//coq.inria.fr/doc/command-index.html">コマンドのインデックス</a>, <a href="//coq.inria.fr/doc/tactic-index.html">タクティクのインデックス</a>, <a href="//coq.inria.fr/doc/error-index.html">エラーのインデックス</a>)</li>
+<li><a href="//coq.inria.fr/stdlib/">Coq 標準ライブラリマニュアル</a></li>
+</ul>
+
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / 更新 2010-11-30 / 初出 2010-06-20
+</address>
+
+</body>
+</html>

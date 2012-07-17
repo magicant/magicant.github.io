@@ -1,0 +1,1468 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-06-21T22:55:00+09:00">
+<title>数値計算 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="contexts.html" title="実行コンテクスト">
+<link rel="next" href="tokens.html" title="トークン">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+
+<h1 id="title">数値計算</h1>
+<p>この章では #Script で行われる数値計算処理の手順を定義する。</p>
+
+<h2 id="primitive-operations">原始型数値の演算</h2>
+<h3 id="primitive-integer-operations">原始整数型の演算</h3>
+<p><a href="primitives.html#type-primitive-integer">原子整数型</a
+>の値に対して数学的な意味での整数と同じように加算、減算、乗算、絶対値、反数
+(加法における逆元)、および大小の比較を定義する。</p>
+<p>二つの原始整数型の値 <var>a</var>, <var>b</var>
+に対して、<var>b</var> ≠ 0 のとき、<var>a</var> を <var>b</var>
+で割った<dfn>整数商</dfn>を次のように定義する:</p>
+<ol>
+<li>有理数 <var>q</var> = <var>a</var> / <var>b</var> に対して、
+次の性質をすべて満たす整数 <var>n</var> を整数商とする。(このような整数
+<var>n</var> はちょうど一つだけ存在する)
+	<ul>
+	<li>|<var>n</var>| ≤ |<var>q</var>| &lt; |<var>n</var>| + 1</li>
+	<li><var>n</var> × <var>q</var> ≥ 0</li>
+	</ul>
+</li>
+</ol>
+<p class="informative">注意: この整数商の定義は、<code>\</code>
+演算子による商演算では用いられていない。</p>
+<p>二つの原始整数型の値 <var>a</var>, <var>b</var> について、<var>b</var> ≥ 0
+のとき、<var>a</var> の <var>b</var> 乗を求める冪演算は次のように定義する:</p>
+<ol>
+<li>原始整数型の値 1 に <var>a</var> の値を <var>b</var>
+回乗じ、それを結果とする。<var>b</var> が 0 の時の結果は 1 である。</li>
+</ol>
+<p>原始整数型の値に対して、二進法表記におけるビットごとの論理積、包括的論理和、
+排他的論理和、ビットシフトを一般的な計算機科学での定義と同じように定義する。
+ただし、負数は 2 の補数によって表されるものとし、無限個の上位ビット '1'
+を持つものとする。</p>
+
+<h3 id="primitive-limited-real-operations">原始制限実数型の演算</h3>
+<p><a href="primitives.html#type-primitive-limited-real">原始制限実数型</a
+>の値に対して、数学的な意味での実数と同じように加算、減算、乗算、除算、絶対値、
+反数 (加法における逆元)、大きさの比較を定義する。
+これらの演算の結果もまた原始制限実数型の値となる。</p>
+
+<h3 id="primitive-real-operations">原始実数型の演算</h3>
+<p><a href="primitives.html#type-primitive-real">原始実数型</a
+>の値に対して、数学的な意味での実数と同じように加算、減算、乗算、除算、絶対値、
+反数 (加法における逆元)、大きさの比較を定義する。これらの演算の結果は、
+大きさの比較を除いて、元の値の精度にかかわらず数学的に正確な実数であり、
+原始実数型の値として表せなくともよい。</p>
+<p>実数または原始実数型の値 <var>a</var>, <var>b</var> について、<var>b</var>
+≠ 0 のとき、<var>a</var> を <var>b</var> で割った<dfn>整数商</dfn
+>を次のように定義する:</p>
+<ol>
+<li>次の性質をすべて満たす整数 <var>n</var> を整数商とする。(このような整数
+<var>n</var> は唯一つしか存在しない)
+	<ul>
+	<li>|<var>n</var>| ≤ |<var>a</var> / <var>b</var>|
+		&lt; |<var>n</var>| + 1</li>
+	<li><var>n</var> × <var>a</var> / <var>b</var> ≥ 0</li>
+	</ul>
+</li>
+</ol>
+<p class="informative">注意: この整数商の定義は、<code>\</code>
+演算子による商演算では用いられていない。</p>
+
+<h3 id="overflow-error">オーバーフローエラー</h3>
+<p>原始整数型および原始実数型によって表せる値の範囲は無制限であるが、
+現実に存在する計算機の処理能力は有限であり、その限界を超えてスクリプトを
+実行し続けることは不可能である。
+スクリプトを実行する実行環境は、計算機の性能の限界その他の原因のために
+原始型数値の演算や処理を完了することができない場合 (<dfn
+>オーバーフローエラー</dfn>)、スクリプトの実行を中止するか、
+あるいは演算や処理の結果として新しい
+<a href="b-error.html"><code>OverflowError</code></a>
+のインスタンスを投げてもよい。</p>
+
+<h2 id="number-objects"><code>Number</code> オブジェクト</h2>
+<p>スクリプトで扱われる数値は、初期の <a href="b-number.html"><code
+>Number</code></a> の特殊なインスタンスによって表される。
+このような特殊なインスタンスは、<code>Number</code> オブジェクトと呼ぶ。</p>
+<p>オブジェクト <var>O</var> が <dfn><code>Number</code> オブジェクト</dfn
+>であるとは、<var>O</var> が以下の条件のいづれかを満たすことである:</p>
+<ul>
+<li><var>O</var> が <code>Real</code> オブジェクトである。</li>
+<li><var>O</var> が <code>Complex</code> オブジェクトである。</li>
+<li><var>O</var> が <code>Infinity</code> オブジェクトである。</li>
+<li><var>O</var> が <code>NaN</code> オブジェクトである。</li>
+</ul>
+<p>後述の定義により、<code>Number</code> オブジェクトが表す値は不変となる。</p>
+<p><code>Real</code> オブジェクトと <code>Complex</code>
+オブジェクトを合わせて<dfn>有限数オブジェクト</dfn>といい、<code>Infinity</code>
+オブジェクトと <code>NaN</code> オブジェクトを合わせて<dfn
+>非有限数オブジェクト</dfn>という。</p>
+
+<h3 id="real-objects"><code>Real</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-real.html"><code>Real</code></a>
+オブジェクト</dfn>であるとは、<var>O</var> が <code>Integer</code>
+オブジェクト、<code>Rational</code> オブジェクトまたは <code>Float</code>
+オブジェクトであることである。<code>Real</code> オブジェクトは、実数を表す。</p>
+
+<h3 id="integer-objects"><code>Integer</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-integer.html"><code
+>Integer</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>Integer</code> のインスタンスであるか、初期の
+<code>Integer.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+<li><var>O</var> は <code>value</code> という名前の内部メンバを持ち、
+その値は<a href="primitives.html#type-primitive-integer">原子整数型</a
+>の値である。</li>
+</ul>
+<p><code>Integer</code> オブジェクトは、その <code>value</code>
+内部メンバの値に等しい整数を表している。</p>
+
+<h3 id="rational-objects"><code>Rational</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-rational.html"><code
+>Rational</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>Rational</code> のインスタンスであるか、初期の
+<code>Rational.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+<li><var>O</var> は <code>nu</code> および <code>de</code> という名前の不変の
+プロパティを持ち、その値はそれぞれ <code>Integer</code> オブジェクトである。
+</li>
+</ul>
+<p><code>Rational</code> オブジェクトは、有理数を表している。<code>nu</code>
+プロパティの表す整数がその分子を、<code>de</code>
+プロパティの表す整数がその分母を表す。
+この値は既約分数であり、分母は常に正でなければならない。</p>
+
+<h3 id="float-objects"><code>Float</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-float.html"><code
+>Float</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>Float</code> のインスタンスであるか、初期の
+<code>Float.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+<li><var>O</var> は <code>value</code> という名前の内部メンバを持ち、
+その値は<a href="primitives.html#type-primitive-real">原子実数型</a
+>の値である。</li>
+<li><var>O</var> は <code>absolutePrecision</code> という名前の内部メンバを
+持ち、その値は<a href="primitives.html#type-primitive-limited-real"
+>原子制限実数型</a>の値である。</li>
+</ul>
+<p><code>Float</code> オブジェクトは、その <code>value</code>
+内部メンバの値に等しい実数を表している。また <code>absolutePrecision</code>
+内部メンバの値は、<code>Float</code> オブジェクトが表す実数の精度を表している。
+(<a href="#precision"><code>Float</code> オブジェクトの精度</a>も参照)</p>
+
+<h3 id="complex-objects"><code>Complex</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-complex.html"><code
+>Complex</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>Complex</code> のインスタンスであるか、初期の
+<code>Complex.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+<li><var>O</var> は <code>re</code> および <code>im</code> という名前の不変の
+プロパティを持ち、その値はそれぞれ <code>Real</code> オブジェクトである。
+</li>
+</ul>
+<p><code>Complex</code> オブジェクトは、複素数を表している。<code>re</code>
+プロパティの表す実数がその実部を、<code>im</code>
+プロパティの表す実数がその虚部を表す。
+</p>
+
+<h3 id="infinity-objects"><code>Infinity</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-infinity.html"><code
+>Infinity</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>Infinity</code> のインスタンスであるか、初期の
+<code>Infinity.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+<li><var>O</var> は <code>sign</code> という名前の不変のプロパティを持つ。
+その値は次のいづれかである:
+	<ul>
+	<li>整数 1 を表す <code>Integer</code> オブジェクト</li>
+	<li>整数 −1 を表す <code>Integer</code> オブジェクト</li>
+	<li><code>NaN</code> オブジェクト</li>
+	</ul>
+</li>
+</ul>
+<p><code>Infinity</code> オブジェクトは、無限大を表している。<code>sign</code>
+プロパティの値が整数 1 を表す <code>Integer</code>
+オブジェクトならば正の無限大を、整数 −1 を表す <code>Integer</code>
+オブジェクトならば負の無限大を、<code>NaN</code>
+オブジェクトならば複素無限大 (符号が定まらない無限大) を表す。</p>
+
+<h3 id="nan-object"><code>NaN</code> オブジェクト</h3>
+<p>オブジェクト <var>O</var> が <dfn><a href="b-nan.html"><code
+>NaN</code></a> オブジェクト</dfn>であるとは、<var>O</var>
+が次の条件を全て満たすことである:</p>
+<ul>
+<li><var>O</var> は初期の <code>NaN</code> のインスタンスであるか、初期の
+<code>NaN.prototype</code> と同じオブジェクトである。</li>
+<li><var>O</var> の全てのメンバ・内部メンバは不変である。</li>
+<li><var>O</var> は関数として呼出し可能でない。</li>
+<li><var>O</var> は <code>$isImmutable</code> という名前の内部メンバを持ち、
+その値は初期の <a href="b-boolean.html#m-true"><code>Boolean.true</code></a>
+である。</li>
+</ul>
+<p><code>NaN</code> オブジェクトは、計算結果が一つの通常の数値として
+表せないことを示す特殊なオブジェクトである。</p>
+
+<h2 id="precision"><code>Float</code> オブジェクトの精度</h2>
+<p><a href="b-float.html"><code>Float</code></a>
+オブジェクトは、値そのものとは別に、精度の情報を持つ。<code>Float</code>
+オブジェクトに対する計算結果の桁数は、元の値の精度で決まる。</p>
+<p>精度には、絶対精度と相対精度がある。ある <code>Float</code>
+オブジェクトが表す実数 <var>x</var> について、
+その真の値との誤差の絶対値が多くとも <var>d</var> であると見積もられるとき、
+<var>x</var> に対する<dfn>絶対精度</dfn>は −log<sub>10</sub>(2 <var>d</var>)
+である。また、さらに <var>x</var> が 0 でないとき、<var>x</var> に対する<dfn
+>相対精度</dfn>は −log<sub>10</sub>(2 <var>d</var> / |<var>x</var>|) である。
+ただし、<var>d</var> = 0 のとき、<var>x</var> に対する絶対精度は無限大であり、
+またさらに <var>x</var> が 0 でないとき、<var>x</var>
+に対する相対精度も無限大である。<var>x</var> が 0
+のときは、相対精度は <var>d</var> にかかわらず未定義である。</p>
+<p>従って、0 でない実数 <var>x</var> に対して、絶対精度 <var>a</var> と相対精度
+<var>r</var> との関係は以下のようになる:</p>
+<ul>
+<li><var>a</var> が無限大であることと <var>r</var>
+が無限大であることは同値である。</li>
+<li><var>a</var> = <var>r</var> − log<sub>10</sub>|<var>x</var>|</li>
+</ul>
+<p>実数に関する計算結果が <code>Float</code> オブジェクトとして表されるとき、
+その <code>value</code> 内部メンバの値 <var>v</var>、および <code
+>absolutePrecision</code> 内部メンバの値 <var>a</var>
+は原則として以下の規則により決定する:</p>
+<ol>
+<li>その計算の定義で定められた方法により絶対精度の値を算出し、それを <var
+>a</var> の値とする。ただし、精度に関する情報が与えられていなければ、<var>a</var
+> の値は無限大とする。</li>
+<li><var>a</var> が無限大であり、かつ計算結果の実数値を一つの<a
+href="primitives.html#type-primitive-real">原子実数型</a
+>の値によって正確に表すことができないならば、現在の実行コンテクストの<a
+href="contexts.html#default-precision">デフォルトの精度</a
+>が計算結果の相対精度であると見なして、計算結果の絶対精度 <var>a</var>
+を再計算する。</li>
+<li>計算結果の真の値に十分近い実数を表す原子実数型の値を用意し、それを
+<var>v</var> とする。このとき、計算結果の真の値と <var
+>v</var> の値との差の絶対値は 10<sup>−<var>a</var></sup> / 2
+以下でなければならない (<var>a</var> が無限大ならば、結果の真の値と <var>v</var>
+の値は完全に一致しなければならない)。この条件を満たす原始実数型の値を
+用意できないならば、<a href="#overflow-error">オーバーフローエラー</a
+>とする。</li>
+</ol>
+
+<h3 id="float-result-exception"
+	>結果が <code>Float</code> オブジェクトとなる場合の値の特例</h3>
+<p>一つの演算や計算が複数の別の演算や計算の組合せによって定義されていて、
+かつその結果が <code>Float</code> オブジェクトとなるとき、
+複数の演算・計算を個別に行うかわりに演算・計算を一度にまとめて行っても良い。
+これは、この仕様書における演算・計算の定義が厳密に一致する場合でも、
+実行時に異なる結果が得られることを許容するものである。</p>
+<div class="informative">
+<p>例えばある実行環境において、原始実数型の取りうる値として十進有限小数のみが
+サポートされている場合、値 3.0 に対する逆数演算の結果は有限小数でないため、
+結果の精度は無限大にはなりえない。従って式 <code>0.3x * /3.0x</code>
+の結果の精度も、無限大とはならない。しかしこのような実行環境であっても、
+除算を逆数演算を使わずに直接計算するように実装していれば、式
+<code>0.3x / 3.0x</code> によって有限小数 0.1
+を表す精度が無限大の結果を得ることができるかもしれない。</p>
+</div>
+
+<h2 id="conversion">値の変換</h2>
+<p>有限数オブジェクトに関する値の変換を以下のように定める。</p>
+
+<h3 id="identity-conversion">恒等変換</h3>
+<p>任意の有限数オブジェクトについて、
+変換前と変換後の種類が等しい<dfn>恒等変換</dfn>が存在する。
+恒等変換では、変換の結果は変換前の値そのものである。</p>
+
+<h3 id="widening-conversion">拡大変換</h3>
+<p>有限数オブジェクトに関する値の<dfn>拡大変換</dfn>を次のように定める。</p>
+
+<h4 id="integer-to-rational-conversion"><code>Integer</code> から
+<code>Rational</code> への拡大変換</h4>
+<p><code>Integer</code> オブジェクト <var>I</var> から <code>Rational</code>
+オブジェクトへの拡大変換の結果は、以下の条件を満たす <code>Rational</code>
+オブジェクトである:</p>
+<ul>
+<li>変換後のオブジェクトの <a href="b-rational.html#p-nu"><code>nu</code>
+プロパティ</a>の値は <var>I</var> と同じ整数を表す <code>Integer</code>
+オブジェクトである。(もちろん <var>I</var> そのものであっても良い)</li>
+<li>変換後のオブジェクトの <a href="b-rational.html#p-de"><code>de</code>
+プロパティ</a>の値は整数 1 を表す <code>Integer</code> オブジェクトである。</li>
+</ul>
+
+<h4 id="integer-to-float-conversion"><code>Integer</code> から
+<code>Float</code> への拡大変換</h4>
+<p><code>Integer</code> オブジェクトから <code>Float</code>
+オブジェクトへの拡大変換の結果は、元の <code>Integer</code> オブジェクトが
+表す整数に等しい実数を表す <code>Float</code> オブジェクトであり、
+その絶対精度は無限大である。</p>
+
+<h4 id="rational-to-float-conversion"><code>Rational</code> から
+<code>Float</code> への拡大変換</h4>
+<p><code>Rational</code> オブジェクト <var>R</var> から <code>Float</code>
+オブジェクト <var>F</var> への拡大変換は、以下のように行う:</p>
+<ol>
+<li><var>R</var> の <a href="b-rational.html#p-de"><code>de</code>
+プロパティ</a>の値が表す整数が 1 ならば、<var>R</var> の <a
+href="b-rational.html#p-nu"><code>nu</code> プロパティ</a>の値を <code
+>Integer</code> から <code>Float</code> に変換し、その結果を <code
+>Rational</code> から <code>Float</code> への変換結果 <var>F</var> とする。</li>
+<li>さもなくば、<var>R</var> の表している有理数を実数とみなし、
+その実数の値を表す <code>Float</code> オブジェクトを変換結果　<var>F</var> とする。
+(この <code>Float</code> オブジェクトの各内部メンバの値に関する制約は、<a
+href="#precision"><code>Float</code> オブジェクトの精度</a>の規定の通りである。
+この拡大変換に関して結果の精度が指定されている場合は、
+<var>F</var> の精度はその指定された精度を反映する。)</li>
+</ol>
+
+<h4 id="real-to-complex-conversion"><code>Real</code> から
+<code>Complex</code> への拡大変換</h4>
+<p><code>Real</code> オブジェクト <var>R</var> から <code>Complex</code>
+オブジェクトへの拡大変換の結果は、以下の条件を満たす <code>Complex</code>
+オブジェクトである:</p>
+<ul>
+<li>そのオブジェクトの <a href="b-complex.html#p-re"><code>re</code>
+プロパティ</a>の値は <var>R</var> である。</li>
+<li>そのオブジェクトの <a href="b-complex.html#p-im"><code>im</code>
+プロパティ</a>の値は整数 0 を表す <code>Integer</code> オブジェクトである。</li>
+</ul>
+
+<h3 id="narrowing-conversion">縮小変換</h3>
+<p>有限数オブジェクトに関する値の<dfn>縮小変換</dfn>を次のように定める。</p>
+
+<h4 id="rational-to-integer-conversion"><code>Rational</code> から
+<code>Integer</code> への縮小変換</h4>
+<p><code>Rational</code> オブジェクト <var>R</var> から <code>Integer</code>
+オブジェクト <var>I</var> への縮小変換は、以下のように行う:</p>
+<ol>
+<li><var>R</var> の <a href="b-rational.html#p-nu"><code>nu</code>
+プロパティ</a>の値が表す整数を <var>n</var> とし、<var>R</var> の
+<a href="b-rational.html#p-de"><code>de</code>
+プロパティ</a>の値が表す整数を <var>d</var> とする。</li>
+<li><var>n</var> を <var>d</var> で割った整数商を <var>v</var> とする
+(→<a href="#primitive-integer-operations">原始整数型の演算</a>)。</li>
+<li>整数 <var>v</var> を表す <code>Integer</code> オブジェクトを変換結果
+<var>I</var> とする。</li>
+</ol>
+
+<h4 id="float-to-integer-conversion"><code>Float</code> から
+<code>Integer</code> への縮小変換</h4>
+<p><code>Float</code> オブジェクト <var>F</var> から <code>Integer</code>
+オブジェクト <var>I</var> への縮小変換は、以下のように行う:</p>
+<ol>
+<li><var>F</var> の表す実数値を 1 で割った整数商 (→<a
+href="calculations.html#primitive-real-operations">原始実数型の演算</a
+>) を求め、その結果を <var>q</var> とする。</li>
+<li>整数 <var>q</var> を表す <code>Integer</code>
+オブジェクトを変換結果 <var>I</var> とする。</li>
+</ol>
+
+<h4 id="float-to-rational-conversion"><code>Float</code> から
+<code>Rational</code> への縮小変換</h4>
+<p><code>Float</code> オブジェクト <var>F</var> から <code>Rational</code>
+オブジェクト <var>R</var> への縮小変換は、以下のように行う:</p>
+<dl>
+<dt><var>F</var> の絶対精度が無限大であり、かつ <var>F</var>
+の表す値が有理数である場合</dt>
+<dd><var>F</var> の表す実数に等しい有理数を表す <code>Rational</code>
+オブジェクトを変換結果 <var>R</var> とする。</dd>
+<dt><var>F</var> の絶対精度が無限大でないか、または <var>F</var>
+の表す値が無理数である場合</dt>
+<dd><ol>
+	<li><var>F</var> の表す値が無理数で、かつ <var>F</var>
+	の絶対精度が無限大ならば、<var>F</var> と同じ値を表し、
+	相対精度が現在の実行コンテクストの<a href="contexts.html#default-precision"
+	>デフォルトの精度</a>であるような <code>Float</code> オブジェクトを改めて
+	<var>F</var> とする。</li>
+	<li><var>F</var> を <code>Integer</code> に縮小変換し、その結果を
+	<var>q</var> とする。</li>
+	<li><var>F</var> を左辺値、<var>q</var> を右辺値として<a href="#subtract"
+	>減算</a>を行い、その結果を <var>r</var> とする。(<var>r</var> は <code
+	>Float</code> オブジェクトとなるはずである。)</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>r</var> = 0
+	ならば、<var>q</var> を <code>Rational</code> に拡大変換したものを変換結果
+	<var>R</var> とする。</li>
+	<li>さもなくば <var>r</var> に対して<a href="#reciprocal">逆数演算</a
+	>を行い、その結果を <var>s</var> とする。</li>
+	<li><var>s</var> は <code>Float</code> オブジェクトであるはずである。<var
+	>s</var> を <code>Rational</code> に縮小変換し、その結果を <var>t</var>
+	とする。</li>
+	<li><var>t</var> に対して<a href="#reciprocal">逆数演算</a>を行い、その結果を
+	<var>u</var> とする。</li>
+	<li><var>q</var> と <var>u</var> に対して<a href="#add">加算</a
+	>を行う。その結果は <code>Rational</code> オブジェクトとなるはずなので、
+	それを変換結果 <var>R</var> とする。</li>
+</ol></dd>
+</dl>
+
+<h4 id="complex-to-real-conversion"><code>Complex</code> から
+<code>Real</code> への縮小変換</h4>
+<p><code>Complex</code> オブジェクト <var>C</var> から <code>Real</code>
+オブジェクトへの縮小変換の結果は、<var>C</var> の <a
+href="b-complex.html#p-re"><code>re</code> プロパティ</a>の値である。</p>
+
+<h2 id="operation">演算</h2>
+<p><code>Number</code> オブジェクトに対する演算は、<code>Number</code>
+オブジェクトの<a href="objects.html#property">メソッド</a>によって行う。</p>
+<p class="informative">例えば、<a href="expressions.html">式</a>
+<code>1 + 2</code> は式 <code>(1).$add[2]</code> と等価であって、これは 1 を表す
+<code>Integer</code> オブジェクトの <code>$add</code> メソッドを、2 を表す
+<code>Integer</code> オブジェクトを引数として、関数として呼出すことを表している。
+<code>$add</code> メソッドは、関数として呼出されると渡された @this
+値と引数とを足し合わせてその結果を返す。</p>
+<p>このようなメソッドが実際にどのように定義されるかについて、実行環境は
+ある程度の選択の余地がある。<code>$add</code> メソッドは、<code>Integer</code>
+オブジェクト自身のメンバであるかもしれないし、もしくは初期の
+<code>Integer.prototype</code> のメンバであるかもしれないし、あるいは
+<code>Integer</code> オブジェクト自身が持つ <code>$get$$add</code>
+ゲッターにより返されるオブジェクトであっても良い。</p>
+
+<h3 id="operation-method">演算を行うメソッド</h3>
+<p>演算のために使われるメソッドが満たすべき条件は以下の通り:</p>
+<ul>
+<li>全ての <code>Number</code> オブジェクトは、そのオブジェクトの種類に対して
+定義されている演算を行うためのメソッドを持たなければならない。
+ただし、初期の <a href="b-number.html#m-prototype"><code
+>Number.prototype</code></a> や初期の <a href="b-integer.html#m-prototype"
+><code>Integer.prototype</code></a> などのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</li>
+<li>(前置演算子または後置演算子による) 単項演算のために使われる
+メソッドは、0 個のオブジェクトを引数として関数として呼出されると、
+渡された @this 値に対して演算を行い、結果を返す。引数が一つ以上渡されたときの
+動作は規定しない。</li>
+<li>二項演算のために使われるメソッドは、一つのオブジェクトを引数として
+関数として呼出されると、渡された @this 値を左辺値、引数を右辺値として
+演算を行い、結果を返す。引数が一つも渡されなかったときもしくは二つ以上の引数が
+渡されたときの動作は規定しない。</li>
+<li>演算が問題なく行われた場合、演算の結果を正常終了の<a
+href="primitives.html#type-primitive-result">結果</a
+>として返さなければならない。</li>
+<li><code>Integer</code> オブジェクトのプロパティとして提供される
+演算のためのメソッドは、関数として呼び出されたときに @this 値が
+<code>Integer</code> オブジェクトでなければ、エラーとしても良い。
+エラーとする場合、新しい <a href="b-error.html"><code>TypeError</code></a>
+のインスタンスを投げなければならない。
+他の型の数値オブジェクトについても同様とする。</li>
+<li>単項演算のためのメソッドの <a href="b-function.html#p-arity"
+><code>arity</code> プロパティ</a>の初期値は、0 を表す <code>Integer</code>
+オブジェクトでなければならない。二項演算のためのメソッドの
+<code>arity</code> プロパティの初期値は、1 を表す <code>Integer</code>
+オブジェクトでなければならない。</li>
+</ul>
+
+<h3 id="notation">省略記法</h3>
+<p>以下、<code>Float</code> オブジェクト <var>f</var> に対して、
+ap(<var>f</var>) はその絶対精度を、rp(<var>f</var>)
+はその相対精度を表すものとする。</p>
+<p>非有限数オブジェクトに関する演算結果を定義する表において、
+次の省略記法を使用する:</p>
+<table>
+<caption>省略記法の定義</caption>
+<thead><tr><th>省略記法</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td>任意</td>
+<td><code>Number</code> オブジェクト</td></tr>
+<tr><td>+∞</td>
+<td>正の無限大を表す <code>Infinity</code> オブジェクト</td></tr>
+<tr><td>−∞</td>
+<td>負の無限大を表す <code>Infinity</code> オブジェクト</td></tr>
+<tr><td>∞</td>
+<td>複素無限大を表す <code>Infinity</code> オブジェクト</td></tr>
+<tr><td>NaN</td>
+<td><code>NaN</code> オブジェクト</td></tr>
+<tr><td>有限数</td>
+<td>有限数オブジェクト</td></tr>
+<tr><td>零 Complex</td>
+<td>実部と虚部が共に<a href="#compare-real">実数の比較</a>において
+0 と等しい <code>Complex</code> オブジェクト</td></tr>
+<tr><td>非零 Complex</td>
+<td>零 Complex ではない <code>Complex</code> オブジェクト</td></tr>
+<tr><td>Real</td>
+<td><code>Real</code> オブジェクト</td></tr>
+<tr><td>零 Real</td>
+<td><a href="#compare-real">実数の比較</a>において 0 と等しい
+<code>Real</code> オブジェクト</td></tr>
+<tr><td>正 Real</td>
+<td><a href="#compare-real">実数の比較</a>において 0 より大きい
+<code>Real</code> オブジェクト</td></tr>
+<tr><td>負 Real</td>
+<td><a href="#compare-real">実数の比較</a>において 0 より小さい
+<code>Real</code> オブジェクト</td></tr>
+</tbody>
+</table>
+
+<h3 id="float-operation"><code>Float</code> オブジェクトに関する演算</h3>
+<p>演算結果が <code>Float</code> オブジェクトとなるとき、そのオブジェクトの
+<code>value</code> および <code>absolutePrecision</code>
+内部メンバの具体的な値は別項で定める通りとする (→<a href="#precision"><code
+>Float</code> オブジェクトの精度</a>)。</p>
+
+<h3 id="plus">恒等演算 <code>$plus</code></h3>
+<p>恒等演算 <code>$plus</code> は<a href="expressions.html#prefix"
+>前置単項演算子 <code>+</code></a> に対応する。</p>
+<p>任意の <code>Number</code> オブジェクトに対する恒等演算の結果は、
+そのオブジェクトそのものである。</p>
+
+<h3 id="add">加算 <code>$add</code></h3>
+<p>加算 <code>$add</code> は<a href="expressions.html#addition"
+>二項演算子 <code>+</code></a> に対応する。</p>
+<p>左辺値または右辺値が非有限数オブジェクトであるときの加算結果は下表の通り:</p>
+<table>
+<caption>非有限数の加算</caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>NaN</td><td>任意</td><td>NaN</td></tr>
+<tr><td>任意</td><td>NaN</td><td>NaN</td></tr>
+<tr><td>∞</td><td>∞/+∞/−∞</td><td>NaN</td></tr>
+<tr><td>∞/+∞/−∞</td><td>∞</td><td>NaN</td></tr>
+<tr><td>+∞</td><td>+∞</td><td>+∞</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>−∞</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>NaN</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>NaN</td></tr>
+<tr><td>∞/+∞/−∞</td><td>Complex</td><td>∞</td></tr>
+<tr><td>∞</td><td>Real</td><td>∞</td></tr>
+<tr><td>+∞</td><td>Real</td><td>+∞</td></tr>
+<tr><td>−∞</td><td>Real</td><td>−∞</td></tr>
+<tr><td>Complex</td><td>∞/+∞/−∞</td><td>∞</td></tr>
+<tr><td>Real</td><td>∞</td><td>∞</td></tr>
+<tr><td>Real</td><td>+∞</td><td>+∞</td></tr>
+<tr><td>Real</td><td>−∞</td><td>−∞</td></tr>
+</tbody>
+</table>
+<p>左辺値と右辺値が共に <code>Integer</code> オブジェクトのときの加算結果は、
+左辺値の表す値を <var>v</var>、右辺値の表す値を <var>w</var> として、整数
+<var>v</var> + <var>w</var> の値を表す <code>Integer</code>
+オブジェクトである。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Rational</code>
+オブジェクトのときの加算結果は、<code><a href="b-rational.html#call">Rational</a
+>[<var>a</var>.nu * <var>b</var>.de + <var>a</var>.de * <var>b</var>.nu,
+<var>a</var>.de * <var>b</var>.de]</code> の結果に等しい。ただし、結果の <code
+>Rational</code> オブジェクトの表す有理数の分母が 1 ならば、代わりに
+その有理数の分子の値を表す <code>Integer</code>
+オブジェクトを結果としてもよい。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> オブジェクトでもう片方が
+<code>Rational</code> オブジェクトのときの加算は、<code>Integer</code>
+オブジェクトを <code>Rational</code> に拡大変換した上で、<code>Rational</code>
+どうしの加算を行う。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Float</code>
+オブジェクトのときの加算結果は、<var>a</var> と <var>b</var> の表す実数を
+それぞれ <var>v</var>, <var>w</var> として、実数 <var>v</var> + <var>w</var>
+を表す <code>Float</code> オブジェクトである。結果の絶対精度は
+−log<sub>10</sub>(10<sup>−ap(<var>a</var>)</sup> +
+10<sup>−ap(<var>b</var>)</sup>) とする。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> または <code>Rational</code>
+オブジェクト <var>a</var> でもう片方が <code>Float</code> オブジェクト
+<var>b</var> のときの加算結果は、<var>a</var> が表す整数または有理数を
+<var>v</var>、<var>b</var> の表す実数を <var>w</var> として、実数 <var
+>v</var> + <var>w</var> を表す <code>Float</code> オブジェクトである。
+結果の絶対精度は <var>b</var> の絶対精度に等しい。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Complex</code>
+オブジェクトのときの加算結果は、<code><a href="b-complex.html#call">Complex</a
+>[<var>a</var>.re + <var>b</var>.re, <var>a</var>.im + <var>b</var>.im]</code>
+の結果に等しい。</p>
+<p>左辺値と右辺値の片方が <code>Real</code> オブジェクトでもう片方が
+<code>Complex</code> オブジェクトのときの加算は、<code>Real</code>
+オブジェクトを <code>Complex</code> に拡大変換した上で、<code>Complex</code>
+どうしの加算を行う。</p>
+
+<h3 id="increment">インクリメント演算 <code>$increment</code></h3>
+<p>インクリメント演算 <code>$increment</code> は<a
+href="expressions.html#prefix">前置単項演算子 <code>++</code></a> および<a
+href="expressions.html#postfix">後置単項演算子 <code>++</code></a>
+で使われる。</p>
+<p><code>Number</code> オブジェクト <var>a</var> に対するインクリメント
+演算の結果は、<code><var>a</var> + 1</code> の結果に等しい。</p>
+
+<h3 id="minus">反数演算 <code>$minus</code></h3>
+<p>反数演算 <code>$minus</code> は<a href="expressions.html#prefix"
+>前置単項演算子 <code>-</code></a> に対応する。</p>
+<p><code>Integer</code> オブジェクト <var>a</var> に対する反数演算の結果は、
+<var>a</var> の表す整数を <var>v</var> とすると、整数
+−<var>v</var> を表す <code>Integer</code> オブジェクトである。</p>
+<p><code>Rational</code> オブジェクト <var>a</var> に対する反数演算の結果は、
+<code><a href="b-rational.html#call">Rational</a>[-<var>a</var>.nu,
+<var>a</var>.de]</code> の結果に等しい。
+ただし、結果の <code>Rational</code> オブジェクトの表す有理数の分母が 1
+ならば、代わりにその有理数の分子の値を表す <code>Integer</code>
+オブジェクトを結果としてもよい。</p>
+<p><code>Float</code> オブジェクト <var>a</var> に対する反数演算の結果は、
+<var>a</var> の表す実数を <var>v</var> として、
+実数 −<var>v</var> を表す <code>Float</code> オブジェクトである。
+結果の絶対精度は、<var>a</var> のそれに等しい。</p>
+<p><code>Complex</code> オブジェクト <var>a</var> に対する反数演算の結果は、
+<code><a href="b-complex.html#call">Complex</a
+>[-<var>a</var>.re, -<var>a</var>.im]</code> の結果に等しい。</p>
+<p>正の無限大を表す <code>Infinity</code> オブジェクトに対する反数演算の結果は、
+負の無限大を表す <code>Infinity</code> オブジェクトである。負の無限大を表す
+<code>Infinity</code> オブジェクトに対する反数演算の結果は、正の無限大を表す
+<code>Infinity</code> オブジェクトである。複素無限大を表す <code>Infinity</code>
+オブジェクトに対する反数演算の結果は、複素無限大を表す <code>Infinity</code>
+オブジェクトである。</p>
+<p><code>NaN</code> オブジェクトに対する反数演算の結果は、<code>NaN</code>
+オブジェクトである。</p>
+
+<h3 id="subtract">減算 <code>$subtract</code></h3>
+<p>減算 <code>$subtract</code> は<a href="expressions.html#addition"
+>二項演算子 <code>-</code></a> に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Number</code>
+オブジェクトであるときの減算の結果は、<code><var>a</var>
++ (-<var>b</var>)</code> の結果に等しい。</p>
+
+<h3 id="decrement">デクリメント演算 <code>$decrement</code></h3>
+<p>デクリメント演算 <code>$decrement</code> は<a
+href="expressions.html#prefix">前置単項演算子 <code>--</code></a> および<a
+href="expressions.html#postfix">後置単項演算子 <code>--</code></a>
+で使われる。</p>
+<p><code>Number</code> オブジェクト <var>a</var> に対するデクリメント
+演算の結果は、<code><var>a</var> - 1</code> の結果に等しい。</p>
+
+<h3 id="multiply">乗算 <code>$multiply</code></h3>
+<p>乗算 <code>$multiply</code> は<a href="expressions.html#multiplication"
+>二項演算子 <code>*</code></a> に対応する。</p>
+<p>左辺値または右辺値が非有限数オブジェクトであるときの乗算結果は下表の通り:</p>
+<table>
+<caption>非有限数の乗算</caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>NaN</td><td>任意</td><td>NaN</td></tr>
+<tr><td>任意</td><td>NaN</td><td>NaN</td></tr>
+<tr><td>∞</td><td>∞/+∞/−∞</td><td>∞</td></tr>
+<tr><td>∞/+∞/−∞</td><td>∞</td><td>∞</td></tr>
+<tr><td>+∞</td><td>+∞</td><td>+∞</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>+∞</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>−∞</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>−∞</td></tr>
+<tr><td>∞/+∞/−∞</td><td>零 Complex</td><td>NaN</td></tr>
+<tr><td>零 Complex</td><td>∞/+∞/−∞</td><td>NaN</td></tr>
+<tr><td>∞/+∞/−∞</td><td>非零 Complex</td><td>∞</td></tr>
+<tr><td>非零 Complex</td><td>∞/+∞/−∞</td><td>∞</td></tr>
+<tr><td>∞/+∞/−∞</td><td>零 Real</td><td>NaN</td></tr>
+<tr><td>零 Real</td><td>∞/+∞/−∞</td><td>NaN</td></tr>
+<tr><td>∞</td><td>非零 Real</td><td>∞</td></tr>
+<tr><td>非零 Real</td><td>∞</td><td>∞</td></tr>
+<tr><td>+∞</td><td>正 Real</td><td>+∞</td></tr>
+<tr><td>+∞</td><td>負 Real</td><td>−∞</td></tr>
+<tr><td>正 Real</td><td>+∞</td><td>+∞</td></tr>
+<tr><td>負 Real</td><td>+∞</td><td>−∞</td></tr>
+<tr><td>−∞</td><td>正 Real</td><td>−∞</td></tr>
+<tr><td>−∞</td><td>負 Real</td><td>+∞</td></tr>
+<tr><td>正 Real</td><td>−∞</td><td>−∞</td></tr>
+<tr><td>負 Real</td><td>−∞</td><td>+∞</td></tr>
+</tbody>
+</table>
+<p>左辺値と右辺値が共に <code>Integer</code> オブジェクトのときの乗算結果は、
+左辺値の表す値を <var>v</var>、右辺値の表す値を <var>w</var> として、整数
+<var>v</var> × <var>w</var> を表す <code>Integer</code>
+オブジェクトである。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Rational</code>
+オブジェクトのときの乗算結果は、<code><a href="b-rational.html#call"
+>Rational</a>[<var>a</var>.nu * <var>b</var>.nu,
+<var>a</var>.de * <var>b</var>.de]</code> の結果に等しい。
+ただし、結果の <code>Rational</code> オブジェクトの表す有理数の分母が 1
+ならば、代わりにその有理数の分子の値を表す <code>Integer</code>
+オブジェクトを結果としてもよい。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> オブジェクトでもう片方が
+<code>Rational</code> オブジェクトのときの乗算は、<code>Integer</code>
+オブジェクトを <code>Rational</code> に拡大変換した上で、<code>Rational</code>
+どうしの乗算を行う。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Float</code>
+オブジェクトのときの乗算結果は、<var>a</var> と <var>b</var> の表す値を
+それぞれ <var>v</var>, <var>w</var> として、実数 <var>v</var> × <var>w</var>
+を表す <code>Float</code> オブジェクトである。
+結果の精度は次のように算出する:</p>
+<dl>
+<dt><var>v</var> ≠ 0 かつ <var>w</var> ≠ 0 のとき</dt>
+<dd>結果の相対精度は −log<sub>10</sub>(10<sup>−rp(<var>a</var>)</sup> +
+10<sup>−rp(<var>b</var>)</sup>)</dd>
+<dt><var>v</var> = 0 かつ <var>w</var> ≠ 0 のとき</dt>
+<dd>結果の絶対精度は ap(<var>a</var>) − log<sub>10</sub>|<var>w</var>|</dd>
+<dt><var>w</var> = 0 かつ <var>v</var> ≠ 0 のとき</dt>
+<dd>結果の絶対精度は ap(<var>b</var>) − log<sub>10</sub>|<var>v</var>|</dd>
+<dt><var>v</var> = <var>w</var> = 0 のとき</dt>
+<dd>結果の絶対精度は
+ap(<var>a</var>) + ap(<var>b</var>) + log<sub>10</sub>2</dd>
+</dl>
+<p>ただし、上記の場合分けにおける 0 との比較は、<a href="#compare-real"
+>実数の比較</a>によって行う。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> または <code>Rational</code>
+オブジェクト <var>a</var> でもう片方が <code>Float</code> オブジェクト
+<var>b</var> のときの乗算結果は、<var>a</var> の表す整数または有理数を
+<var>v</var>、<var>b</var> の表す実数を <var>w</var> とすると、</p>
+<dl>
+<dt><var>v</var> ≠ 0 かつ <var>w</var> ≠ 0 のとき</dt>
+<dd><var>v</var> × <var>w</var> を表す <code>Float</code> オブジェクト。
+相対精度は <var>a</var> の相対精度に等しい。</dd>
+<dt><var>w</var> = 0 かつ <var>v</var> ≠ 0 のとき</dt>
+<dd><var>v</var> × <var>w</var> を表す <code>Float</code> オブジェクト。
+絶対精度は ap(<var>b</var>) − log<sub>10</sub>|<var>v</var>| とする。</dd>
+<dt><var>a</var> が <code>Integer</code> オブジェクトで、<var>v</var>
+= 0 のとき</dt>
+<dd>整数 0 を表す <code>Integer</code> オブジェクト。</dd>
+<dt><var>a</var> が <code>Rational</code> オブジェクトで、<var>v</var>
+= 0 のとき</dt>
+<dd>整数 0 を表す <code>Integer</code> オブジェクトまたは
+<code>Rational</code> オブジェクト。</dd>
+</dl>
+<p>ただし、上記の場合分けにおける 0 との比較は、<a href="#compare-real"
+>実数の比較</a>によって行う。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Complex</code>
+オブジェクトのときの乗算結果は、<code><a href="b-complex.html#call"
+>Complex</a>[<var>a</var>.re * <var>b</var>.re - <var>a</var>.im *
+<var>b</var>.im, <var>a</var>.re * <var>b</var>.im + <var>a</var>.im *
+<var>b</var>.re]</code> の結果に等しい。</p>
+<p>左辺値と右辺値の片方が <code>Real</code> オブジェクトでもう片方が
+<code>Complex</code> オブジェクトのときの乗算は、<code>Real</code>
+オブジェクトを <code>Complex</code> に拡大変換した上で、<code>Complex</code>
+どうしの乗算を行う。</p>
+
+<h3 id="juxtapose">結合演算 <code>$juxtapose</code></h3>
+<p>結合演算 <code>$juxtapose</code> は<a href="expressions.html#juxtaposition"
+>結合演算子</a>に対応する。</p>
+<p>左辺値と右辺値が共に <code>Number</code>
+オブジェクトであるときの結合演算は、同じ左辺値・右辺値に対する<a
+href="#multiply">乗算</a>に等しい。</p>
+<p>左辺値 <var>a</var> が <code>Number</code> オブジェクトで右辺値
+<var>b</var> が<a href="functions.html">関数オブジェクト</a
+>であるときの結合演算の結果は、以下のような新しい関数オブジェクトである:</p>
+<ul>
+<li>このオブジェクトのプロトタイプは <var>b</var> である。</li>
+<li>このオブジェクトは、<code>$prototype</code>
+内部メンバ以外にメンバ・内部メンバを持たない。</li>
+<li>このオブジェクトが関数として呼出されると、以下の処理を行う:
+	<ol>
+	<li>この呼出しで渡されたのと同じ @this 値と引数で <var>b</var>
+	を関数として呼出し、その結果に対して <a
+	href="primitives.html#get-reference-value">get-reference-value</a>
+	を行い、その結果を <var>r</var> とする。</li>
+	<li><var>r</var> が正常終了でなければ、それを返す。</li>
+	<li><var>a</var> を左辺値、<var>r</var> の値を右辺値として、結合演算を行い、
+	その結果を返す。</li>
+	</ol>
+</li>
+</ul>
+
+<h3 id="reciprocal">逆数演算 <code>$reciprocal</code></h3>
+<p>逆数演算 <code>$reciprocal</code> は<a href="expressions.html#prefix"
+>前置単項演算子 <code>/</code></a> に対応する。</p>
+<p><code>Rational</code> オブジェクト <var>a</var> に対する逆数演算の結果は、
+<code><var>a</var>.nu</code> の表す値が 0 でなければ、
+<code><a href="b-rational.html#call">Rational</a>[<var>a</var>.de,
+<var>a</var>.nu]</code> の結果に等しい。
+ただし、結果の <code>Rational</code> オブジェクトの表す有理数の分母が 1
+ならば、代わりにその有理数の分子の値を表す <code>Integer</code>
+オブジェクトを結果としてもよい。<code><var>a</var>.nu</code> の表す値が 0
+ならば、結果は複素無限大を表す <code>Infinity</code> オブジェクトである。</p>
+<p><code>Integer</code> オブジェクトに対する逆数演算は、そのオブジェクトを
+<code>Rational</code> に拡大変換し、その結果に対して上記の逆数演算を行う。</p>
+<p><code>Float</code> オブジェクト <var>a</var>
+に対する逆数演算の結果は次のように定める:</p>
+<ol>
+<li><a href="#compare-real">実数の比較</a>によって <var>a</var> = 0
+ならば、結果は複素無限大を表す <code>Infinity</code> オブジェクトである。</li>
+<li>さもなくば結果は、<var>a</var> の表す実数を <var>v</var> として、1 /
+<var>v</var> を表す <code>Float</code> オブジェクトである。
+結果の相対精度は <var>a</var> のそれに等しい。</li>
+</ol>
+<p><code>Complex</code> オブジェクト <var>a</var>
+に対する逆数演算の結果は、<code><a href="b-complex.html#m-conj">Complex.conj</a
+>[<var>a</var>] / <a href="b-math.html#m-abs2">Math.abs2</a>[<var>a</var>]</code>
+の結果に等しい。</p>
+<p><code>Infinity</code> オブジェクトに対する逆数演算の結果は、整数 0 を表す
+<code>Integer</code> オブジェクトである。</p>
+<p><code>NaN</code> オブジェクトに対する逆数演算の結果は、<code>NaN</code>
+オブジェクトである。</p>
+
+<h3 id="divide">除算 <code>$divide</code></h3>
+<p>除算 <code>$divide</code> は<a href="expressions.html#multiplication"
+>二項演算子 <code>/</code></a> に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Number</code>
+オブジェクトであるときの除算の結果は、<code><var>a</var>
+* (/<var>b</var>)</code> の結果に等しい。</p>
+
+<h3 id="quotient">商演算 <code>$quotient</code></h3>
+<p>商演算 <code>$quotient</code> は<a href="expressions.html#multiplication"
+>二項演算子 <code>\</code></a> に対応する。</p>
+<p>左辺値と右辺値の少なくとも一方が <code>NaN</code> オブジェクトであるときの
+冪算結果は、<code>NaN</code> オブジェクトである。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの商演算の結果は、<code><a href="b-math.html#m-floor"
+>Math.floor</a>[<var>a</var> / <var>b</var>]</code> の結果に等しい。</p>
+
+<h3 id="mod">剰余演算 <code>$mod</code></h3>
+<p>剰余演算 <code>$mod</code> は<a href="expressions.html#multiplication"
+>二項演算子 <code>%</code></a> に対応する。</p>
+<p>左辺値と右辺値の少なくとも一方が <code>NaN</code> オブジェクトであるときの
+冪算結果は、<code>NaN</code> オブジェクトである。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの剰余演算の結果は、<code><var>a</var> -
+<var>b</var> * (<var>a</var> \ <var>b</var>)</code> の結果に等しい。</p>
+
+<h3 id="power">冪算 <code>$power</code></h3>
+<p>冪算 <code>$power</code> は<a href="expressions.html#power"
+>二項演算子 <code>^</code>/<code>**</code></a> に対応する。</p>
+<p>左辺値と右辺値が共に <code>Number</code> オブジェクトであり、
+それらの少なくとも一方が <code>NaN</code> オブジェクトであるときの
+冪算結果は、<code>NaN</code> オブジェクトである。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Integer</code>
+オブジェクトであるときの冪算は、次のように定める:</p>
+<ul>
+<li><var>b</var> > 0 ならば、<var>a</var><sup><var>b</var></sup> の値を表す
+<code>Integer</code> オブジェクトをこの冪算の結果とする。</li>
+<li><var>b</var> &lt; 0 ならば、<code>/(<var>a</var> ^ -<var>b</var>)</code>
+の結果をこの冪算の結果とする。</li>
+<li><var>b</var> = 0 かつ <var>a</var> ≠ 0 ならば、冪算結果は整数 1 を表す
+<code>Integer</code> オブジェクトである。</li>
+<li><var>b</var> = <var>a</var> = 0 ならば、冪算結果は <code>NaN</code>
+オブジェクトである。</li>
+</ul>
+<p>左辺値 <var>a</var> が <code>Integer</code> オブジェクトで右辺値
+<var>b</var> が <code>Rational</code> オブジェクトであるときの冪算は、
+次のように定める:</p>
+<ol>
+<li><code><var>b</var>.de</code> 乗して <var>a</var> になるような整数が
+存在するならば、そのような整数を表す <code>Integer</code> オブジェクトを
+<var>r</var> として、<code><var>r</var> ^ <var>b</var>.nu</code>
+の結果をこの冪算の結果とする。ただし、このような整数が複数存在する場合は、
+それらのうちもっとも大きいものを選択する。</li>
+<li>さもなくば、<var>a</var> を <code>Float</code> に拡大変換し、
+<code>Float</code> オブジェクトを左辺値、<code>Rational</code>
+オブジェクトを右辺値とする冪算を行う。</li>
+</ol>
+<p>左辺値 <var>a</var> が <code>Rational</code> オブジェクトで右辺値
+<var>b</var> が <code>Integer</code> オブジェクトであるときの冪算結果は、
+<code><var>a</var>.nu ^ <var>b</var> / <var>a</var>.de ^ <var>b</var></code>
+の結果に等しい。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Rational</code>
+オブジェクトであるときの冪算は、次のように定める:</p>
+<ol>
+<li><var>a</var> = <var>b</var> = 0 ならば、冪算結果は
+<code>NaN</code> オブジェクトである。</li>
+<li><code><var>a</var>.nu ^ <var>b</var></code> と <code><var>a</var>.de ^
+<var>b</var></code> の結果がどちらも <code>Integer</code> オブジェクトまたは
+<code>Rational</code> オブジェクトならば、<code><var>a</var>.nu ^ <var>b</var>
+/ <var>a</var>.de ^ <var>b</var></code> の結果をこの冪算の結果とする。</li>
+<li>さもなくば、<var>a</var> を <code>Float</code> に拡大変換し、
+<code>Float</code> オブジェクトを左辺値、<code>Rational</code>
+オブジェクトを右辺値とする冪算を行う。</li>
+</ol>
+<p>左辺値 <var>a</var> が <code>Integer</code> オブジェクトまたは
+<code>Rational</code> オブジェクトで右辺値 <var>b</var> が <code>Float</code>
+オブジェクトのときの冪算は、次のように定める:</p>
+<ol>
+<li><var>a</var> = 0 かつ <var>b</var> > 0 ならば、冪算結果は 0 を表す
+<code>Integer</code> オブジェクトまたは <code>Rational</code>
+オブジェクトである。ただし、このとき <var>a</var> が <code>Integer</code>
+オブジェクトならば結果も <code>Integer</code> オブジェクトとする。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す実数が整数であり、
+かつ <var>b</var> の絶対精度が無限大ならば、<code>(-1)^<a
+href="b-integer.html#call">Integer</a>[<var>b</var>] *
+(-<var>a</var>)^<var>b</var></code>
+の結果をこの冪算の結果としてもよい。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す実数が有理数であり、
+その有理数の分母が奇数であってかつ <var>b</var> の絶対精度が無限大ならば、
+<code>-(-<var>a</var>)^<var>b</var></code>
+の結果をこの冪算の結果としてもよい。</li>
+<li><var>a</var> = 0 かつ <var>b</var> &lt; 0 ならば、冪算結果は複素無限大を表す
+<code>Infinity</code> オブジェクトである。</li>
+<li><var>a</var> = <var>b</var> = 0 であるか、または <var>a</var> &lt; 0
+で上記に当てはまらない場合は、冪算結果は
+<code>NaN</code> オブジェクトである。</li>
+<li>さもなくば、<code><a href="b-math.html#m-exp">Math.exp</a>[<var>b</var> *
+<a href="b-math.html#m-log">Math.log</a>[<var>a</var>]]</code>
+の結果をこの冪算の結果とする。ただし、<var>b</var>
+の絶対精度が現在の実行コンテクストのデフォルトの精度よりも大きく
+かつ無限大でないときは、この冪算においてのみ
+現在の実行コンテクストのデフォルトの精度を <var>b</var>
+の絶対精度に変更して計算を行う。</li>
+</ol>
+<p>ただし、上記の場合分けにおける 0 との比較は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p>左辺値 <var>a</var> が <code>Float</code> オブジェクトで右辺値
+<var>b</var> が <code>Integer</code> または <code>Rational</code>
+オブジェクトのときの冪算は、次のように定める:</p>
+<ol>
+<li><var>a</var> = 0 かつ <var>b</var> > 0 ならば、冪算結果は 0 を表す
+<code>Float</code> オブジェクトである。ただし、結果の絶対精度は
+<var>b</var> * ap(<var>a</var>) + (<var>b</var> − 1) log<sub>10</sub>2
+とする。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す値が整数ならば、
+<code>(-1)^<var>b</var> * (-<var>a</var>)^<var>b</var></code>
+の結果をこの冪算の結果とする。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す有理数の分母が奇数ならば、
+<code>-(-<var>a</var>)^<var>b</var></code> の結果をこの冪算の結果とする。</li>
+<li><var>a</var> = 0 かつ <var>b</var> &lt; 0 ならば、冪算結果は複素無限大を表す
+<code>Infinity</code> オブジェクトである。</li>
+<li><var>a</var> = <var>b</var> = 0 であるか、または <var>a</var> &lt; 0
+で上記に当てはまらない場合は、冪算結果は
+<code>NaN</code> オブジェクトである。</li>
+<li>さもなくば、<code><a href="b-math.html#m-exp">Math.exp</a>[<var>b</var> *
+<a href="b-math.html#m-log">Math.log</a>[<var>a</var>]]</code>
+の結果をこの冪算の結果とする。</li>
+</ol>
+<p>ただし、上記の場合分けにおける 0 との比較は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p class="informative">実装上の注意: 右辺値が整数のときは、左辺値の<a
+href="#multiply">乗算</a>の繰り返しおよび<a href="#reciprocal">逆数演算</a
+>によって左辺値の右辺値乗を求め、それを結果としてもよい。例えば、<code
+>1.25^-3</code> を <code>/(1.25 * 1.25 * 1.25)</code>
+によって計算してもよい。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Float</code>
+オブジェクトであるときの冪算は、次のように定める:</p>
+<ol>
+<li><var>a</var> = 0 かつ <var>b</var> > 0 ならば、冪算結果は 0 を表す
+<code>Float</code> オブジェクトである。ただし、結果の絶対精度は
+<var>b</var> * ap(<var>a</var>) + (<var>b</var> − 1) log<sub>10</sub>2
+とする。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す実数が整数であり、
+かつ <var>b</var> の絶対精度が無限大ならば、<code>(-1)^<a
+href="b-integer.html#call">Integer</a>[<var>b</var>] *
+(-<var>a</var>)^<var>b</var></code>
+の結果をこの冪算の結果としてもよい。</li>
+<li><var>a</var> &lt; 0 であって、<var>b</var> の表す実数が有理数であり、
+その有理数の分母が奇数であってかつ <var>b</var> の絶対精度が無限大ならば、
+<code>-(-<var>a</var>)^<var>b</var></code>
+の結果をこの冪算の結果としてもよい。</li>
+<li><var>a</var> = 0 かつ <var>b</var> &lt; 0 ならば、冪算結果は複素無限大を表す
+<code>Infinity</code> オブジェクトである。</li>
+<li><var>a</var> = <var>b</var> = 0 であるか、または <var>a</var> &lt; 0
+で上記に当てはまらない場合は、冪算結果は
+<code>NaN</code> オブジェクトである。</li>
+<li>さもなくば、<code><a href="b-math.html#m-exp">Math.exp</a>[<var>b</var> *
+<a href="b-math.html#m-log">Math.log</a>[<var>a</var>]]</code>
+の結果をこの冪算の結果とする。ただし、<var>a</var> の絶対精度が無限大であって、
+<var>b</var> の絶対精度が現在の実行コンテクストのデフォルトの精度よりも大きく
+かつ無限大でないときは、この冪算においてのみ
+現在の実行コンテクストのデフォルトの精度を <var>b</var>
+の絶対精度に変更して計算を行う。</li>
+</ol>
+<p>ただし、上記の場合分けにおける 0 との比較は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p class="informative">左辺値と右辺値が共に <code>Real</code> オブジェクトである
+冪算では、左辺値と右辺値が共に 0 ならば結果は常に <code>NaN</code>、
+左辺値が 0 で右辺値が負ならば結果は常に複素無限大となる。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Complex</code>
+オブジェクトであるときの冪算は、次のように定める:</p>
+<ol>
+<li><code><var>a</var>.re</code> = 0 かつ <code><var>a</var>.im</code> = 0
+ならば、
+<ol>
+<li><code><var>b</var>.im</code> が 0 を表す <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトならば、
+	<ol>
+	<li><code><var>b</var>.re</code> > 0 ならば、
+		<ol>
+		<li><code><var>a</var>.re</code> と <code><var>a</var>.im</code>
+		がどちらも <code>Integer</code> オブジェクトならば、
+		冪算の結果は、実部・虚部が共に 0 を表す <code>Integer</code> オブジェクト
+		であるような <code>Complex</code> オブジェクトである。</li>
+		<li><code><var>a</var>.re</code> と <code><var>a</var>.im</code>
+		がどちらも <code>Integer</code> オブジェクトまたは <code>Rational</code>
+		オブジェクトならば、冪算の結果は、実部・虚部が共に 0 を表す
+		<code>Integer</code> オブジェクトまたは <code>Rational</code>
+		オブジェクトであるような <code>Complex</code> オブジェクトである。</li>
+		<li>さもなくば、冪算の結果は、実部・虚部が共に 0 を表す <code>Float</code>
+		オブジェクトであるような <code>Complex</code> オブジェクトである。
+		ただし、<code>Float</code> オブジェクトの絶対精度は実部・虚部どちらも
+		<var>b</var> * ap(<var>a</var>) + (<var>b</var> − 1) log<sub>10</sub>2
+		とする (ここで、ap(<var>a</var>) は <var>a</var> の実部の絶対精度と虚部の
+		絶対精度の最小値である。<code>Integer</code> オブジェクトまたは
+		<code>Rational</code> オブジェクトの絶対精度は無限大と見なす)。また、
+		ここでさらに <code><var>b</var>.re</code> が正の整数を表す
+		<code>Integer</code> オブジェクトまたは <code>Rational</code>
+		オブジェクトならば、代わりに<a href="#multiply">乗算</a>の繰り返しによって
+		<var>a</var> の <var>b</var> 乗を求め、それを冪算の結果としても良い。</li>
+		</ol>
+	</li>
+	<li><code><var>b</var>.re</code> = 0 ならば、冪算の結果は <code>NaN</code>
+	オブジェクトである。</li>
+	<li><code><var>b</var>.re</code> &lt; 0 ならば、冪算の結果は複素無限大を表す
+	<code>Infinity</code> オブジェクトである。</li>
+	</ol>
+</li>
+<li>さもなくば、<code><var>a</var> ^ <var>b</var>.re *
+<a href="b-complex.html#call">Complex</a>[<a
+href="b-math.html#m-cos">cos</a>[<var>b</var>.im],
+<a href="b-math.html#m-sin">sin</a>[<var>b</var>.im]]</code>
+の結果を冪算の結果とする。</li><!--xxx: fromPolar-->
+</ol>
+</li>
+<li>さもなくば、冪算の結果は
+<code><a href="b-math.html#m-exp">Math.exp</a>[<var>b</var> *
+<a href="b-math.html#m-log">Math.log</a>[<var>a</var>]]</code>
+の結果に等しい。
+ただし、以下に挙げる特別な場合に当てはまるときは、上記の定義の代わりに
+以下の定義を用いても良い:
+<dl>
+<dt><code><var>a</var>.re</code> の表す値が負、<code><var>b</var>.re</code> が
+1/2 を表す <code>Rational</code> オブジェクトで、<code><var>a</var>.im</code
+> および <code><var>b</var>.im</code> が 0 に等しい <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトのとき</dt>
+<dd>結果は <code>1i * (-<var>a</var>.re) ^ /2</code></dd>
+<dt><code><var>a</var>.re</code> の表す値が負、<code><var>b</var>.re</code> が
+1/4 を表す <code>Rational</code> オブジェクトで、<code><var>a</var>.im</code
+> および <code><var>b</var>.im</code> が 0 に等しい <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトのとき</dt>
+<dd>結果は <code>(1 + 1i) * (-<var>a</var>.re / 4) ^ /4</code></dd>
+<dt><code><var>a</var>.im</code> の表す値が正、<code><var>b</var>.re</code> が
+1/2 を表す <code>Rational</code> オブジェクトで、<code><var>a</var>.re</code
+> および <code><var>b</var>.im</code> が 0 に等しい <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトのとき</dt>
+<dd>結果は <code>(1 + 1i) * (<var>a</var>.im / 2) ^ /2</code></dd>
+<dt><code><var>a</var>.im</code> の表す値が負、<code><var>b</var>.re</code> が
+1/2 を表す <code>Rational</code> オブジェクトで、<code><var>a</var>.re</code
+> および <code><var>b</var>.im</code> が 0 に等しい <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトのとき</dt>
+<dd>結果は <code>(1 - 1i) * (-<var>a</var>.im / 2) ^ /2</code></dd>
+<dt><code><var>a</var>.re</code>、<code><var>a</var>.im</code>、<code><var
+>b</var>.re</code>、<code><var>b</var>.im</code> がどれも <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトで、かつ
+<code><var>a</var>.re</code> の表す値が負で、<code><var>a</var>.re</code> と
+<code>-<var>a</var>.im</code> の値が等しく、<code><var>b</var>.re</code> は 1/3
+に、<code><var>b</var>.im</code> は 0 に等しいとき</dt>
+<dd>結果は <code>(1 + 1i) * (-<var>a</var>.re / 2) ^ /3</code></dd>
+<dt><code><var>a</var>.re</code>、<code><var>a</var>.im</code>、<code><var
+>b</var>.re</code>、<code><var>b</var>.im</code> がどれも <code>Integer</code>
+オブジェクトまたは <code>Rational</code> オブジェクトで、かつ
+<code><var>a</var>.re</code> の表す値が負で、<code><var>a</var>.re</code> と
+<code><var>a</var>.im</code> の値が等しく、<code><var>b</var>.re</code> は 1/3
+に、<code><var>b</var>.im</code> は 0 に等しいとき</dt>
+<dd>結果は <code>(1 - 1i) * (-<var>a</var>.re / 2) ^ /3</code></dd>
+<dt><code><var>b</var>.re</code> と <code><var>b</var>.im</code> が共に
+<code>Integer</code> オブジェクトまたは <code>Rational</code>
+オブジェクトであって、かつ <code><var>b</var>.re</code> の表す値が整数であり、
+<code><var>b</var>.im</code> の表す値が 0 に等しいとき
+(ただし、<code><var>a</var>.re</code>、<code><var>a</var>.im</code>、
+<code><var>b</var>.re</code> の値が全て 0 である場合を除く)
+</dt>
+<dd><var>a</var> の<a href="#multiply">乗算</a>の繰り返しおよび<a
+href="#reciprocal">逆数演算</a>によって <var>a</var> の <var>b</var>
+乗を求めたもの。</dd>
+<dt><code><var>b</var>.re</code> が <code>Rational</code> オブジェクトであり、
+かつ <code><var>b</var>.im</code> が 0 を表す <code>Integer</code> オブジェクト
+または <code>Rational</code> オブジェクトであるとき</dt>
+<dd>結果は
+<code>(<var>a</var> ^ /<var>b</var>.re.de) ^ <var>b</var>.re.nu</code></dd>
+</dl>
+</li>
+</ol>
+<p>ただし、上記の場合分けにおける 0 との比較および符号の判定は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p>左辺値と右辺値の片方が <code>Real</code> オブジェクトでもう片方が
+<code>Complex</code> オブジェクトのときの冪算は、<code>Real</code>
+オブジェクトを <code>Complex</code> に拡大変換した上で、<code>Complex</code>
+どうしの冪算を行う。</p>
+<p>左辺値が正の無限大を表す <code>Infinity</code> オブジェクトであるときの冪算は
+次のように定める:</p>
+<ul>
+<li>右辺値が正の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は正の無限大を表す <code>Infinity</code> オブジェクトである。</li>
+<li>右辺値が負の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は整数 0 を表す <code>Integer</code> オブジェクトである。</li>
+<li>右辺値が複素無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は <code>NaN</code> オブジェクトである。</li>
+<li>右辺値が <code>Real</code> オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の値が 0 に等しいならば、結果は <code>NaN</code>
+	オブジェクトである。</li>
+	<li><var>b</var> の値が正ならば、結果は正の無限大を表す
+	<code>Infinity</code> オブジェクトである。</li>
+	<li><var>b</var> の値が負ならば、結果は整数 0 を表す
+	<code>Integer</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li>右辺値が <code>Complex</code> オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の実部の値が 0 に等しいならば、結果は <code>NaN</code>
+	オブジェクトである。</li>
+	<li><var>b</var> の実部の値が正ならば、結果は複素無限大を表す
+	<code>Infinity</code> オブジェクトである。</li>
+	<li><var>b</var> の実部の値が負ならば、結果は整数 0 を表す
+	<code>Integer</code> オブジェクトである。</li>
+	</ul>
+</li>
+</ul>
+<p>ただし、上記の場合分けにおける 0 との比較および符号の判定は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p>左辺値が負の無限大を表す <code>Infinity</code> オブジェクトであるときの冪算は
+次のように定める:</p>
+<ul>
+<li>右辺値が正の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は複素無限大を表す <code>Infinity</code> オブジェクトである。</li>
+<li>右辺値が負の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は整数 0 を表す <code>Integer</code> オブジェクトである。</li>
+<li>右辺値が複素無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は <code>NaN</code> オブジェクトである。</li>
+<li>右辺値が <code>Integer</code> オブジェクトまたは <code>Rational</code>
+オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の表す値が整数ならば、結果は <code>(-1)^<var>b</var> *
+	@inf^<var>b</var></code> の結果に等しい。</li>
+	<li><var>b</var> の表す有理数の分母が奇数ならば、結果は
+	<code>-@inf^<var>b</var></code> の結果に等しい。</li>
+	<li>これ以外の場合は、結果は <code>NaN</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li>右辺値が <code>Float</code> オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の表す値が整数であり、かつ <var>b</var> の絶対精度が
+	無限大ならば、<code>(-1)^<var>b</var> *
+	@inf^<var>b</var></code> の結果をこの冪算の結果としても良い。</li>
+	<li><var>b</var> の表す値が有理数でその分母が奇数であり、かつ <var>b</var>
+	の絶対精度が無限大ならば、<code>-@inf^<var>b</var></code>
+	の結果をこの冪算の結果としても良い。</li>
+	<li>これ以外の場合は、結果は <code>NaN</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li>右辺値が <code>Complex</code> オブジェクト <var>b</var> ならば、結果は
+<code>NaN</code> オブジェクトである。</li>
+</ul>
+<p>ただし、上記の場合分けにおける 0 との比較および符号の判定は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p>左辺値が複素無限大を表す <code>Infinity</code> オブジェクトであるときの冪算は
+次のように定める:</p>
+<ul>
+<li>右辺値が正の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は複素無限大を表す <code>Infinity</code> オブジェクトである。</li>
+<li>右辺値が負の無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は整数 0 を表す <code>Integer</code> オブジェクトである。</li>
+<li>右辺値が複素無限大を表す <code>Infinity</code> オブジェクトならば、
+結果は <code>NaN</code> オブジェクトである。</li>
+<li>右辺値が <code>Real</code> オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の値が 0 に等しいならば、結果は <code>NaN</code>
+	オブジェクトである。</li>
+	<li><var>b</var> の値が正ならば、結果は複素無限大を表す
+	<code>Infinity</code> オブジェクトである。</li>
+	<li><var>b</var> の値が負ならば、結果は整数 0 を表す
+	<code>Integer</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li>右辺値が <code>Complex</code> オブジェクト <var>b</var> ならば、
+	<ul>
+	<li><var>b</var> の実部の値が 0 に等しいならば、結果は <code>NaN</code>
+	オブジェクトである。</li>
+	<li><var>b</var> の実部の値が正ならば、結果は複素無限大を表す
+	<code>Infinity</code> オブジェクトである。</li>
+	<li><var>b</var> の実部の値が負ならば、結果は整数 0 を表す
+	<code>Integer</code> オブジェクトである。</li>
+	</ul>
+</li>
+</ul>
+<p>ただし、上記の場合分けにおける 0 との比較および符号の判定は、<a
+href="#compare-real">実数の比較</a>によって行う。</p>
+<p>左辺値 <var>a</var> が有限数オブジェクトで、右辺値が正の無限大を表す
+<code>Infinity</code> オブジェクトであるときの冪算は次のように定める:</p>
+<ul>
+<li><var>a</var> が <code>Real</code> オブジェクトならば、
+	<ul>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> > 1 ならば、
+	結果は正の無限大を表す <code>Infinity</code> オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> > −1 かつ
+	<var>a</var> &lt; 1 ならば、結果は整数 0 を表す <code>Integer</code>
+	オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> &lt; −1
+	ならば、結果は複素無限大を表す <code>Infinity</code> オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> = 1 または
+	<var>a</var> = −1 ならば、結果は <code>NaN</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li><var>a</var> が <code>Complex</code> オブジェクトならば、
+<code>(-<a href="b-math.html#m-abs">Math.abs</a>[<var>a</var>])^@inf</code>
+の結果を冪算結果とする。
+</ul>
+<p>左辺値 <var>a</var> が有限数オブジェクトで、右辺値が負の無限大を表す
+<code>Infinity</code> オブジェクトであるときの冪算は次のように定める:</p>
+<ul>
+<li><var>a</var> が <code>Real</code> オブジェクトならば、
+	<ul>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> > 1 または
+	<var>a</var> &lt; −1 ならば、結果は整数 0 を表す <code>Integer</code>
+	オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> > 0 かつ
+	<var>a</var> &lt; 1 ならば、結果は正の無限大を表す <code>Infinity</code>
+	オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> ≤ 0 かつ
+	<var>a</var> > −1 ならば、結果は複素無限大を表す <code>Infinity</code>
+	オブジェクトである。</li>
+	<li><a href="#compare-real">実数の比較</a>によって <var>a</var> = 1 または
+	<var>a</var> = −1 ならば、結果は <code>NaN</code> オブジェクトである。</li>
+	</ul>
+</li>
+<li><var>a</var> が <code>Complex</code> オブジェクトならば、
+<code>(-<a href="b-math.html#m-abs">Math.abs</a>[<var>a</var>])^(-@inf)</code>
+の結果を冪算結果とする。
+</ul>
+<p>左辺値 <var>a</var> が有限数オブジェクトで、右辺値が複素無限大を表す
+<code>Infinity</code> オブジェクトであるときの冪算結果は、<code>NaN</code>
+オブジェクトである。</p>
+
+<h3 id="less">比較演算 <code>$less</code></h3>
+<p>比較演算 <code>$less</code> は<a href="expressions.html#chainable-relation"
+>二項演算子 <code>&lt;</code></a> に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの比較演算 <code>$less</code> の結果は、<var
+>a</var> と <var>b</var> に対して<a href="#compare-real">実数の比較</a
+>を行い、その結果が「&lt;」ならば初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> を結果とする。</p>
+<p>正および負の無限大を表す <code>Infinity</code> オブジェクトに関する比較演算
+<code>$less</code> の結果は下表の通り:</p>
+<table>
+<caption>非有限数の比較 <code>$less</code></caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>+∞</td><td>+∞</td><td>false</td></tr>
+<tr><td>+∞</td><td>Real</td><td>false</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>false</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>true</td></tr>
+<tr><td>−∞</td><td>Real</td><td>true</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>false</td></tr>
+<tr><td>Real</td><td>+∞</td><td>true</td></tr>
+<tr><td>Real</td><td>−∞</td><td>false</td></tr>
+</tbody>
+</table>
+
+<h3 id="greater">比較演算 <code>$greater</code></h3>
+<p>比較演算 <code>$greater</code> は<a
+href="expressions.html#chainable-relation">二項演算子 <code>></code></a>
+に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの比較演算 <code>$greater</code> の結果は、<var
+>a</var> と <var>b</var> に対して<a href="#compare-real">実数の比較</a
+>を行い、その結果が「>」ならば初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> を結果とする。</p>
+<p>正および負の無限大を表す <code>Infinity</code> オブジェクトに関する比較演算
+<code>$greater</code> の結果は下表の通り:</p>
+<table>
+<caption>非有限数の比較 <code>$greater</code></caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>+∞</td><td>+∞</td><td>false</td></tr>
+<tr><td>+∞</td><td>Real</td><td>true</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>true</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>false</td></tr>
+<tr><td>−∞</td><td>Real</td><td>false</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>false</td></tr>
+<tr><td>Real</td><td>+∞</td><td>false</td></tr>
+<tr><td>Real</td><td>−∞</td><td>true</td></tr>
+</tbody>
+</table>
+
+<h3 id="lessequal">比較演算 <code>$lessEqual</code></h3>
+<p>比較演算 <code>$lessEqual</code> は<a
+href="expressions.html#chainable-relation">二項演算子 <code>&lt;=</code></a>
+に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの比較演算 <code>$lessEqual</code> の結果は、<var
+>a</var> と <var>b</var> に対して<a href="#compare-real">実数の比較</a
+>を行い、その結果が「&lt;」または「=」ならば初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> を結果とする。</p>
+<p>正および負の無限大を表す <code>Infinity</code> オブジェクトに関する比較演算
+<code>$lessEqual</code> の結果は下表の通り:</p>
+<table>
+<caption>非有限数の比較 <code>$lessEqual</code></caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>+∞</td><td>+∞</td><td>true</td></tr>
+<tr><td>+∞</td><td>Real</td><td>false</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>false</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>true</td></tr>
+<tr><td>−∞</td><td>Real</td><td>true</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>true</td></tr>
+<tr><td>Real</td><td>+∞</td><td>true</td></tr>
+<tr><td>Real</td><td>−∞</td><td>false</td></tr>
+</tbody>
+</table>
+
+<h3 id="greaterequal">比較演算 <code>$greaterEqual</code></h3>
+<p>比較演算 <code>$greaterEqual</code> は<a
+href="expressions.html#chainable-relation">二項演算子 <code>>=</code></a>
+に対応する。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの比較演算 <code>$greaterEqual</code> の結果は、<var
+>a</var> と <var>b</var> に対して<a href="#compare-real">実数の比較</a
+>を行い、その結果が「>」または「=」ならば初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> を結果とする。</p>
+<p>正および負の無限大を表す <code>Infinity</code> オブジェクトに関する比較演算
+<code>$greaterEqual</code> の結果は下表の通り:</p>
+<table>
+<caption>非有限数の比較 <code>$greaterEqual</code></caption>
+<thead><tr><th>左辺値</th><th>右辺値</th><th>結果</th></tr></thead>
+<tbody>
+<tr><td>+∞</td><td>+∞</td><td>true</td></tr>
+<tr><td>+∞</td><td>Real</td><td>true</td></tr>
+<tr><td>+∞</td><td>−∞</td><td>true</td></tr>
+<tr><td>−∞</td><td>+∞</td><td>false</td></tr>
+<tr><td>−∞</td><td>Real</td><td>false</td></tr>
+<tr><td>−∞</td><td>−∞</td><td>true</td></tr>
+<tr><td>Real</td><td>+∞</td><td>false</td></tr>
+<tr><td>Real</td><td>−∞</td><td>true</td></tr>
+</tbody>
+</table>
+<p class="informative">この仕様では、複素無限大を表す <code>Infinity</code>
+オブジェクトおよび <code>NaN</code> オブジェクトに関する比較演算
+<code>$less</code>/<code>$greater</code>/<code>$lessEqual</code>/<code
+>$greaterEqual</code> は定義しない。</p>
+
+<h3 id="equal">比較演算 <code>$equal</code></h3>
+<p>比較演算 <code>$equal</code> は<a href="expressions.html#chainable-relation"
+>二項演算子 <code>==</code></a> に対応する。</p>
+<p>左辺値または右辺値が非有限数オブジェクトであるときの比較演算
+<code>$equal</code> の結果は、次の条件のどれかが満たされるならば初期の <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば初期の <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> である。</p>
+<ul>
+<li>左辺値および右辺値がどちらも <code>NaN</code> オブジェクトである。</li>
+<li>左辺値および右辺値がどちらも正の無限大を表す <code>Infinity</code>
+オブジェクトである。</li>
+<li>左辺値および右辺値がどちらも負の無限大を表す <code>Infinity</code>
+オブジェクトである。</li>
+<li>左辺値および右辺値がどちらも複素無限大を表す <code>Infinity</code>
+オブジェクトである。</li>
+</ul>
+<div class="informative">
+<p>#Script では、NaN どうしの比較は等しいと判断される。これは IEEE 754
+浮動小数点演算規則による NaN の扱いとは異なる。またこの仕様では、演算子
+<code>==</code> による NaN どうしの比較は定義されているが演算子
+<code>&lt;=</code> や <code>>=</code> による NaN の比較は定義していない。</p>
+</div>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Real</code>
+オブジェクトであるときの比較演算 <code>$equal</code> の結果は、<var
+>a</var> と <var>b</var> に対して<a href="#compare-real">実数の比較</a
+>を行い、その結果が「=」ならば <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> を結果とする。</p>
+<p>左辺値と右辺値が共に <code>Complex</code> オブジェクトであるときの比較演算
+<code>$equal</code> の結果は、左辺値と右辺値の <code>re</code> プロパティどうし
+および <code>im</code> プロパティどうしの比較演算 <code>$equal</code> を行い、
+その結果が共に <code>Boolean.true</code> ならば <code>Boolean.true</code>、
+さもなくば <code>Boolean.false</code> を結果とする。</p>
+<p>左辺値と右辺値の片方が <code>Real</code> オブジェクトでもう片方が
+<code>Complex</code> オブジェクトのときの比較演算 <code>$equal</code>
+は、<code>Real</code> オブジェクトを <code>Complex</code> に拡大変換した上で
+<code>Complex</code> どうしの比較演算 <code>$equal</code> を行う。</p>
+
+<h3 id="unequal">比較演算 <code>$unequal</code></h3>
+<p>比較演算 <code>$unequal</code> は<a
+href="expressions.html#chainable-relation">二項演算子 <code>!=</code></a>
+に対応する。</p>
+<p>左辺値と右辺値が共に <code>Number</code> オブジェクトであるときの比較演算
+<code>$unequal</code> の結果は、それらの値に対して比較演算 <code>$equal</code>
+を行い、その結果が <a
+href="b-boolean.html#m-false"><code>Boolean.false</code></a> ならば <a
+href="b-boolean.html#m-true"><code>Boolean.true</code></a>、さもなくば
+<code>Boolean.false</code> を結果とする。</p>
+
+<h3 id="compare-real">実数の比較</h3>
+<p><code>Real</code> オブジェクトどうしの比較は次のように行い、
+「&lt;」「=」「>」のうちのどれかを結果として返す:</p>
+<p>左辺値と右辺値が共に <code>Integer</code> オブジェクトのときの比較は、
+左辺値の表す整数を <var>v</var>、右辺値の表す整数を <var>w</var> として、
+<var>v</var> &lt; <var>w</var> ならば「&lt;」、
+<var>v</var> = <var>w</var> ならば「=」、<var>v</var> > <var>w</var>
+ならば「>」を返す。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Rational</code>
+オブジェクトのときの比較は、<code><var>a</var>.nu * <var>b</var>.de</code>
+を左辺値、<code><var>b</var>.nu * <var>a</var>.de</code> を右辺値とする
+<code>Integer</code> どうしの比較に等しい。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> オブジェクトでもう片方が
+<code>Rational</code> オブジェクトのときの比較は、<code>Integer</code>
+オブジェクトを <code>Rational</code> に拡大変換した上で、<code>Rational</code>
+どうしの比較を行う。</p>
+<p>左辺値 <var>a</var> と右辺値 <var>b</var> が共に <code>Float</code>
+オブジェクトのときの比較は、次のように行う:</p>
+<ol>
+<li><var>a</var> の絶対精度と <var>b</var> の絶対精度との最小値を
+<var>p</var> とする。</li>
+<li><var>a</var> と <var>b</var> の <code>value</code> 内部メンバの値をそれぞれ
+<var>v</var>, <var>w</var> とする。</li>
+<li>|<var>v</var> − <var>w</var>| ≤ 10<sup>−<var>p</var></sup> / 2
+ならば、「=」を返す。(<var>p</var> が無限大ならば、<var>v</var> = <var>w</var>
+のときのみ「=」を返す)</li>
+<li><var>v</var> &lt; <var>w</var> ならば「&lt;」、
+<var>v</var> > <var>w</var> ならば「>」を返す。</li>
+</ol>
+<p>左辺値 <var>a</var> が <code>Rational</code> オブジェクトで右辺値
+<var>b</var> が <code>Float</code> オブジェクトのときの比較は、
+次のように行う:</p>
+<ul>
+<li>ap(<var>b</var>) が無限大なら、<var>a</var> の表す有理数を <var>v</var>、
+<var>b</var> の表す実数を <var>w</var> として、
+<var>v</var> &lt; <var>w</var> ならば「&lt;」、
+<var>v</var> = <var>w</var> ならば「=」、<var>v</var> > <var>w</var>
+ならば「>」を返す。</li>
+<li>ap(<var>b</var>) が無限大でなければ、<var>a</var> を <code>Float</code>
+オブジェクトに拡大変換し、<code>Float</code> どうしの比較を行う。
+ただし拡大変換の際には、変換結果の絶対精度が <var>b</var>
+のそれに等しくなるようにする。</li>
+</ul>
+<p>左辺値が <code>Float</code> オブジェクトで右辺値が <code>Rational</code>
+オブジェクトのときの比較は、左辺値と右辺値を入れ替えて比較を行い、その結果が
+「&lt;」ならば「>」を、「=」ならば「=」を、「>」ならば「&lt;」を結果とする。</p>
+<p>左辺値と右辺値の片方が <code>Integer</code> オブジェクトでもう片方が
+<code>Float</code> オブジェクトのときの比較は、<code>Integer</code>
+オブジェクトを <code>Rational</code> オブジェクトに拡大変換した上で、
+<code>Rational</code> オブジェクトと <code>Float</code>
+オブジェクトとの比較を行う。</p>
+
+<p>実数の比較は <code>Real</code> オブジェクトの符号の判定に
+用いられることがある。<code>Real</code> オブジェクト <var>a</var>
+が実数の比較によって <var>a</var> = 0 であるとは、<var>a</var> を左辺値とし、0
+を表す <code>Integer</code> オブジェクトを右辺値として実数の比較を行い、
+その結果が「=」となることである。<var>a</var> ≠ 0
+等の場合も同様である (下表参照)。</p>
+<table>
+<caption>実数の比較による符号の判定</caption>
+<thead><tr><th>条件</th><th>比較結果</th></tr></thead>
+<tbody>
+<tr><td><var>a</var> = 0</td><td>「=」</td></tr>
+<tr><td><var>a</var> ≠ 0</td><td>「&lt;」または「>」</td></tr>
+<tr><td><var>a</var> &lt; 0</td><td>「&lt;」</td></tr>
+<tr><td><var>a</var> > 0</td><td>「>」</td></tr>
+<tr><td><var>a</var> ≤ 0</td><td>「=」または「&lt;」</td></tr>
+<tr><td><var>a</var> ≥ 0</td><td>「=」または「>」</td></tr>
+</tbody>
+</table>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

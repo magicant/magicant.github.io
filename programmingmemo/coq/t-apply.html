@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="定理証明支援系 Coq の apply, exact, refine タクティクのクィックリファレンス">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="/magicant/defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>Coq タクティクリファレンス: 項による証明</title>
+</head>
+
+<body>
+<h1 id="title">タクティクリファレンス: 項による証明</h1>
+
+<h2 id="exact"><code>exact</code> タクティク</h2>
+<dl>
+<dt><code>exact <var>term</var></code></dt>
+<dd>
+<p>ゴールの型を持つ項 <var>term</var> を直接証明として与える。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal True.
+</kbd><samp>1 subgoal
+
+  ============================
+   True
+
+Unnamed_thm < </samp><kbd>exact I.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+</dl>
+
+<h2 id="refine"><code>refine</code> タクティク</h2>
+<dl>
+<dt><code>refine <var>term</var></code></dt>
+<dd>
+<p>ゴールの型を持つ項 <var>term</var> を直接証明として与える。ただし <var>term</var> はプレースホルダ <code>_</code> を含んでいてもよく、各プレースホルダに対してそれを与えるためのサブゴールが生成される。</p>
+<pre><code><samp>Coq < </samp><kbd>Definition pred (n : nat) : n &lt;> 0 -> nat.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall n : nat, n &lt;> 0 -> nat
+
+pred < </samp><kbd>intro n.
+</kbd><samp>1 subgoal
+
+  n : nat
+  ============================
+   n &lt;> 0 -> nat
+
+pred < </samp><kbd>refine (match n with 0 => _ | S n' => (fun _ => n') end).
+</kbd><samp>1 subgoal
+
+  n : nat
+  ============================
+   0 &lt;> 0 -> nat
+
+pred < </samp><kbd>congruence.
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+</dl>
+
+<h2 id="apply"><code>apply</code> タクティク</h2>
+<dl>
+<dt><code>apply <var>term</var></code></dt>
+<dd>
+<p>項 <var>term</var> を現在のゴールに適用する。<var>term</var> の型(の結論部分)はゴールと単一化可能でなければならない。成功すると現在のゴールは削除され、<var>term</var> の型の前提部分が新たなゴールとなる (前提部分がなければ新たなゴールは生成されない)。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q) -> Q.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q) -> Q
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>apply H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd>apply H1.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><var>term</var> の型(の結論部分)が積になっている場合は、自動的に分解を試みる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q /\ R) -> Q.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q /\ R) -> Q
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q /\ R
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>apply H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q /\ R
+  ============================
+   P</samp></code></pre>
+<p><var>term</var> の型が依存型の場合、ゴールとの単一化によって前提の推論を試みる。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal forall (P : nat -> Prop), (forall n : nat, P n) -> P 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   forall P : nat -> Prop, (forall n : nat, P n) -> P 0
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> P H.
+</kbd><samp>1 subgoal
+
+  P : nat -> Prop
+  H : forall n : nat, P n
+  ============================
+   P 0
+
+Unnamed_thm < </samp><kbd>apply H.  (* apply (H 0). でなくともよい *)
+</kbd><samp>Proof completed.</samp></code></pre>
+</dd>
+<dt><code>apply <var>term</var> with <var>term</var><sub>1</sub> … <var>term</var><sub><var>n</var></sub></code></dt>
+<dd>
+<p><code>apply <var>term</var></code> において推論に失敗した <var>term</var> への引数として <var>term</var><sub>1</sub> … <var>term</var><sub><var>n</var></sub> を使う。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd>apply ex_intro.
+</kbd><samp>Error: Unable to find an instance for the variable x.
+
+Unnamed_thm < </samp><kbd>apply ex_intro with 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 0</samp></code></pre>
+</dd>
+<dt><code>apply <var>term</var> with (<var>ref</var><sub>1</sub> := <var>term</var><sub>1</sub>) … (<var>ref</var><sub><var>n</var></sub> := <var>term</var><sub><var>n</var></sub>)</code></dt>
+<dd>
+<p><code>apply <var>term</var></code> において推論に失敗した <var>term</var> への引数として <var>term</var><sub>1</sub> … <var>term</var><sub><var>n</var></sub> を使う。<var>ref</var><sub><var>i</var></sub> は引数の名前または名前のない引数の番号。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd>apply ex_intro with (x := 0).
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 0</samp></code></pre>
+</dd>
+<dt><code>apply <var>term</var><sub>1</sub>, …, <var>term</var><sub><var>n</var></sub></code></dt>
+<dd>
+<p><code>apply <var>term</var><sub>1</sub>; [ … | | apply <var>term</var><sub>2</sub>, …, <var>term</var><sub><var>n</var></sub> ]</code> に同じ。すなわち、まず <var>term</var><sub>1</sub> を適用し、残った最後のサブゴールに <var>term</var><sub>2</sub> を適用し、さらに残った最後のサブゴールに <var>term</var><sub>3</sub> を適用し……というように繰り返す。</p>
+</dd>
+<dt><code>apply <var>term</var> in <var>ident</var></code></dt>
+<dt><code>apply <var>term</var> with … in <var>ident</var></code></dt>
+<dd>
+<p>普通の <code>apply</code> に似ているが、<var>term</var> をゴールではなく前提 <var>ident</var> に適用する。このタクティクは <var>ident</var> を置き換えるので、<var>ident</var> が他の前提やゴールで使われているときは使えない (そういう時は <code>apply</code> で前提を置き換えるのではなく <code>pose</code> などで前提を追加するとよい)。</p>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q) -> Q.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q) -> Q
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  ============================
+   Q
+
+Unnamed_thm < </samp><kbd>apply H2 in H1.
+</kbd><samp>1 subgoal
+
+  H1 : Q
+  H2 : P -> Q
+  ============================
+   Q</samp></code></pre>
+<pre><code><samp>Coq < </samp><kbd>Goal P -> (P -> Q) -> (Q -> R) -> R.
+</kbd><samp>1 subgoal
+
+  ============================
+   P -> (P -> Q) -> (Q -> R) -> R
+
+Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a> H1 H2 H3.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  H3 : Q -> R
+  ============================
+   R
+
+Unnamed_thm < </samp><kbd>apply H3 in H2.
+</kbd><samp>2 subgoals
+
+  H1 : P
+  H2 : R
+  H3 : Q -> R
+  ============================
+   R
+
+subgoal 2 is:
+ P
+
+Unnamed_thm < </samp><kbd>apply H2.
+</kbd><samp>1 subgoal
+
+  H1 : P
+  H2 : P -> Q
+  H3 : Q -> R
+  ============================
+   P
+
+Unnamed_thm < </samp><kbd>apply H1.
+</kbd><samp>Proof completed.</samp></code></pre>
+<p><code>with</code> を使う例:</p>
+<pre><code><samp>Coq < </samp><kbd>Goal 0 = 0 -> exists n : nat, n = 0.
+</kbd><samp>1 subgoal
+
+  ============================
+   0 = 0 -> exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd>intro H.
+</kbd><samp>1 subgoal
+
+  H : 0 = 0
+  ============================
+   exists n : nat, n = 0
+
+Unnamed_thm < </samp><kbd>apply ex_intro with nat (fun n => n = 0) 0 in H.
+</kbd><samp>1 subgoal
+
+  H : exists n : nat, n = 0
+  ============================
+   exists n : nat, n = 0</samp></code></pre>
+</dd>
+<dt><code>apply <var>term</var> in <var>ident</var> as <var>intropattern</var></code> (Coq 8.2 以降)</dt>
+<dt><code>apply <var>term</var> with … in <var>ident</var> as <var>intropattern</var></code> (Coq 8.2 以降)</dt>
+<dd>
+<p><code>apply <var>term</var> (with …) in <var>ident</var>; <a href="t-induct.html#destruct">destruct</a> <var>ident</var> as <var>intropattern</var></code> に同じ。</p>
+</dd>
+<dt><code>simple apply …</code></dt>
+<dd>
+<p><code>apply</code> に似ているが、推論すべき変数を含む部分項については自動的な項の変換を試みない。また、<var>term</var> の型(の結論部分)が積になっていても自動的な分解を試みない。</p>
+</dd>
+</dl>
+<!-- TODO: apply <-, apply -> -->
+
+<script type="text/javascript" src="/magicant/makenav.js" charset="UTF-8"></script>
+<address id="about_this_document">
+© 2010 Magicant / 更新 2010-11-27 / 初出 2010-06-21
+</address>
+
+</body>
+</html>

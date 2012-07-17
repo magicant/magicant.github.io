@@ -1,0 +1,130 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-10-14T21:59:50+09:00">
+<title>Function 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-string.html" title="String 組込みオブジェクト">
+<link rel="next" href="b-enum.html" title="Enum 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Function</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Function</code> 組込みオブジェクトを定義する。</p>
+<p><code>Function</code> は<a href="functions.html#callable-objects"
+>関数オブジェクト</a>に対応する <a href="b-type.html"><code>Type</code></a>
+のインスタンスである。</p>
+
+<h2 id="members"><code>Function</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Function"</code></dd>
+<dt id="m-id"><code>id</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、[[一つ目の引数]] を返す。
+引数が一つも渡されなかった場合の動作は規定しない。</dd>
+<dt id="m-compose"><code>compose</code> メソッド</dt>
+<dd>関数として呼出されると、以下の動作を行う:
+	<ol>
+	<li>渡された引数の個数が 0 ならば、[[初期の <code>Function.id</code> または
+	関数として呼出されると初期の <code>Function.id</code> と同じ動作を行う新しい
+	関数オブジェクト]] を返す。</li>
+	<li>渡された引数の全てを <var>f</var><sub>1</sub>, <var>f</var><sub>2</sub>,
+	…, <var>f</var><sub><var>n</var></sub> とする。これらのうち一つでも関数として
+	呼出し可能でなければ、新しい <a href="b-error.html"><code
+	>NotCallableError</code></a> のインスタンスを投げる。</li>
+	<li>[[新しい関数オブジェクト]] を返す。このオブジェクトは、<code
+	>$prototype</code> 内部メンバ以外にメンバ・内部メンバを持たないものとする。
+	この関数オブジェクトが関数として呼び出されたときの動作は、以下の通りとする:
+		<ol>
+		<li>この呼出しと同じ @this 値と引数で、<var>f</var><sub><var>n</var></sub>
+		を関数として呼出し、その結果を <var>r</var><sub><var>n</var></sub>
+		とする。</li>
+		<li><var>i</var> = <var>n</var> − 1, <var>n</var> − 2, …, 2, 1 について、
+		<var>i</var> = <var>n</var> − 1 から <var>i</var> = 1
+		まで順番に以下の動作を行う:
+		<var>r</var><sub><var>i</var>+1</sub> に対して<a
+		href="primitives.html#get-reference-value">get-reference-value</a>
+		を行い、その結果が正常終了でなければ、直ちにそれを返す。
+		正常終了ならば、その値を唯一の引数とし、この呼出しと同じ @this 値で
+		<var>f</var><sub><var>i</var></sub> を関数として呼出し、その結果を
+		<var>r</var><sub><var>i</var></sub> とする。</li>
+		<li><var>r</var><sub>1</sub> を返す。</li>
+		</ol>
+	</li>
+	</ol>
+</dd>
+</dl>
+
+<h2 id="internal-members"><code>Function</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Function</code> の関数としての呼出し</h2>
+<p><code>Function</code>
+は関数として呼出し可能であり、関数として呼出されると新しい
+<a href="b-error.html"><code>UnsupportedOperationError</code></a>
+のインスタンスを投げる。</p>
+
+<!--h2 id="prototype-members"><code>Function.prototype</code>
+のプロパティ</h2-->
+<h2 id="instance-members"><code>Function</code> のインスタンスのプロパティ</h2>
+<p><code>Function</code> のインスタンスは以下のプロパティを持つ。ただし、
+<code>Function.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p--juxtapose"><code>$juxtapose</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出されると、次の処理を行う:
+	<ol>
+	<li>渡された @this 値を <var>f</var> とする。</li>
+	<li><var>f</var> が関数オブジェクトでなければ新しい
+	<a href="b-error.html"><code>TypeError</code></a>
+	のインスタンスを投げる。</li>
+	<li>渡された引数を <var>g</var><sub>1</sub>, <var>g</var><sub>2</sub>, …,
+	<var>g</var><sub><var>n</var></sub> とする。ただし <var>n</var>
+	は引数の個数である。</li>
+	<li><var>n</var> = 1 でありかつ <var>g</var><sub>1</sub> が
+	関数オブジェクトならば、初期の <a href="b-void.html#m-void"><code
+	>Void.void</code></a> を @this 値とし、<var>f</var> と
+	<var>g</var><sub>1</sub> の二つの引数で <code>Function.compose</code>
+	を関数として呼出し、その結果を返す。</li>
+	<li>初期の <a href="b-void.html#m-void"><code>Void.void</code></a> を @this
+	値、<var>g</var><sub>1</sub>, <var>g</var><sub>2</sub>, …,
+	<var>g</var><sub><var>n</var></sub> を引数として、<var>f</var>
+	を関数として呼出し、その結果を返す。</li>
+	</ol>
+</dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。関数オブジェクトを @this 値として関数として呼び出されると、
+渡された @this 値を文字列に変換し、その文字列を内容とする<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>を値とする正常終了の結果を返す。文字列への変換の方法は実行環境に任せる。</dd>
+</dl>
+
+<h2 id="instance-members-s"><code>Function</code>
+オブジェクトの標準的なプロパティ</h2>
+<dl class="member-def">
+<dt id="p-arity"><code>arity</code></dt>
+<dd><a href="b-integer.html"><code>Integer</code></a>
+オブジェクト。この値は 0 以上であり、<code>Function</code>
+オブジェクトが関数として呼出されるときの標準的な引数の個数を表す。
+<a href="expressions.html#function">関数生成式</a
+>によって作られた関数オブジェクトでは、
+その関数生成式の IdentifierList に含まれる Identifier の個数を表す。</dd>
+</dl>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

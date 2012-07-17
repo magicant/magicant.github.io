@@ -1,0 +1,667 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-03T20:50:38+09:00">
+<title>文 - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="expressions.html" title="式">
+<link rel="next" href="commands.html" title="コマンド">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title">文</h1>
+<p>この章では、スクリプトを構成する<dfn>文</dfn>
+(ステートメント) について定義する。</p>
+
+<h2 id="statement">文</h2>
+<dl class="definition">
+<dt id="d-statements">Statements</dt>
+<dd>Statement*</dd>
+<dt id="d-statement">Statement</dt>
+<dd><a href="#d-empty-statement">EmptyStatement</a></dd>
+<dd><a href="#d-labeled-statement">LabeledStatement</a></dd>
+<dd><a href="#d-expression-statement">ExpressionStatement</a></dd>
+<dd><a href="#d-variable-statement">VariableStatement</a></dd>
+<dd><a href="#d-print-statement">PrintStatement</a></dd>
+<dd><a href="#d-if-statement">IfStatement</a></dd>
+<dd><a href="#d-while-statement">WhileStatement</a></dd>
+<dd><a href="#d-do-while-statement">DoWhileStatement</a></dd>
+<dd><a href="#d-for-statement">ForStatement</a></dd>
+<!--dd><a href="#d-switch-statement">SwitchStatement</a></dd-->
+<dd><a href="#d-break-statement">BreakStatement</a></dd>
+<dd><a href="#d-continue-statement">ContinueStatement</a></dd>
+<dd><a href="#d-return-statement">ReturnStatement</a></dd>
+<dd><a href="#d-throw-statement">ThrowStatement</a></dd>
+<dd><a href="#d-try-statement">TryStatement</a></dd>
+<!--dd><a href="#d-assert-statement">AssertStatement</a></dd-->
+<dt id="d-inner-statement">InnerStatement</dt>
+<dd><a href="#d-block">Block</a></dd>
+<dd>!<a href="expressions.html#d-left-brace">LeftBrace</a> Statement</dd>
+</dl>
+<p>Statements: Statement* の実行は次のように行う:</p>
+<ol>
+<li>Statements に Statement が一つも含まれない場合は、[[初期の <a
+href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li>Statements に含まれる Statement の数を <var>n</var> とする。</li>
+<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順に以下の処理を行う:
+	<ol>
+	<li><var>i</var> 番目の Statement
+	を実行する。その結果が正常終了でなければ、直ちにそれを返す。</li>
+	</ol>
+</li>
+<li>最後に実行した Statement (<var>n</var> 番目の Statement) の結果を返す。</li>
+</ol>
+<p>Statement の実行は、それを構成する一つの文 <var>s</var>
+を実行し、その結果を返す。Statement の実行において名前が与えられている場合は、
+<var>s</var> を実行する際にも同じ名前を与える。</p>
+<p>InnerStatement の実行は、それを構成する Block または Statement
+を実行し、その結果を返す。InnerStatement の実行において
+名前が与えられている場合は、Block または Statement
+を実行する際にも同じ名前を与える。</p>
+
+<h2 id="end-of-statement">文の終わり</h2>
+<dl class="definition">
+<dt id="d-eos">EOS</dt>
+<dd><a href="#d-semicolon">Semicolon</a></dd>
+<dd>&amp;<a href="expressions.html#d-right-brace">RightBrace</a></dd>
+<dd><a href="tokens.html#d-eoc">EOC</a></dd>
+</dl>
+<div class="informative">
+<p>一部の例外を除いて、#Script の全ての文およびコマンドは EOS で終わる。EOS
+は原則として一つのセミコロントークンで構成されるが、次の場合には
+これを省略できる:</p>
+<ul>
+<li>EOS の直後に括弧 <code>}</code> が続くとき</li>
+<li>EOS がソースコードの末尾に位置するとき</li>
+</ul>
+</div>
+
+<h2 id="block">ブロック</h2>
+<dl class="definition">
+<dt id="d-block">Block</dt>
+<dd><a href="expressions.html#d-left-brace">LeftBrace</a>
+	<a href="#d-statements">Statements</a>
+	<a href="expressions.html#d-right-brace">RightBrace</a></dd>
+</dl>
+<p><dfn>ブロック</dfn>は複数の文をまとめて一つの文として扱うことができるように
+するものである。</p>
+<!--p>Block: LeftBrace RightBrace の実行結果は、[[初期の <a
+href="b-void.html#m-void">Void.void</a>]] である。</p-->
+<p>Block: LeftBrace Statements RightBrace の実行は、Statements
+を実行し、その結果を返す。</p>
+
+<h2 id="empty-statement">空文</h2>
+<dl class="definition">
+<dt id="d-empty-statement">EmptyStatement</dt>
+<dd>Semicolon</dd>
+<dt id="d-semicolon">Semicolon</dt>
+<dd><code>;</code> <a href="tokens.html#d-d">D</a></dd>
+</dl>
+<p><dfn>空文</dfn>は何の処理も行わない文である。</p>
+<p>EmptyStatement: Semicolon の実行結果は、[[初期の <a
+href="b-void.html#m-void"><code>Void.void</code></a>]] である。</p>
+
+<h2 id="labeled-statement">ラベル文</h2>
+<dl class="definition">
+<dt id="d-labeled-statement">LabeledStatement</dt>
+<dd>LabelKeyword <a href="tokens.html#d-identifier">Identifier</a>
+	<a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a></dd>
+<dt id="d-label-keyword">LabelKeyword</dt>
+<dd><code>@label</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p><dfn>ラベル文</dfn>は、文に名前を与えるものである。
+名前は、反復文の実行に影響する。</p>
+<p>LabeledStatement: LabelKeyword Identifier Colon InnerStatement
+の実行は次のように行う:</p>
+<ol>
+<li>Identifier トークンを構成する <a href="grammar.html#unicode-string">Unicode
+文字列</a>を <var>n</var> とする。</li>
+<li>文の名前として <var>n</var> を与えて InnerStatement を実行し、その結果を
+<var>r</var> とする。</li>
+<li><var>r</var> が break 終了であり、その移動先が <var>n</var> に等しければ、
+[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li><var>r</var> が continue 終了であり、その移動先が <var>n</var>
+に等しければ、この LabeledStatement の実行の初めに戻る。
+<li><var>r</var> を返す。</li>
+</ol>
+<p>名前を与えて文を実行することは、特に明示しない限り、
+通常の方法で文を実行することと同じである。
+一部の文は、名前を与えて実行した際に通常とは異なる振る舞いをする。</p>
+<p>一つの文に与えることの出来る名前は一つまでである。
+ラベル文を入れ子にすることは可能であるが、
+最も内側のラベル文で指定された名前のみが文に与えられる。</p>
+<p class="informative">ラベルの識別子は変数のスコープとは無関係なため、
+複数のラベル文で同じ名前を指定することは可能であるが、避けるのが望ましい。</p>
+
+<h2 id="expression-statement">式文</h2>
+<dl class="definition">
+<dt id="d-expression-statement">ExpressionStatement</dt>
+<dd><a href="expressions.html#d-expression">Expression</a>
+<a href="#d-eos">EOS</a></dd>
+</dl>
+<p><dfn>式文</dfn>は、一つの<a href="expressions.html">式</a
+>によって構成される文である。</p>
+<p>ExpressionStatement: Expression EOS の実行は、Expression
+を評価し、その結果に対して <a href="primitives.html#get-reference-value"
+>get-reference-value</a> を実行し、その結果を返す。</p>
+
+<h2 id="variable-statement">変数宣言文</h2>
+<dl class="definition">
+<dt id="d-variable-statement">VariableStatement</dt>
+<dd>VarKeyword Variables <a href="#d-eos">EOS</a></dd>
+<dt id="d-var-keyword">VarKeyword</dt>
+<dd><code>@var</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-variables">Variables</dt>
+<dd>Variable (<a href="expressions.html#d-comma">Comma</a> Variable)*</dd>
+<dt id="d-variable">Variable</dt>
+<dd>VariableInit</dd>
+<dd>VariableIdentifier</dd>
+<dt id="d-variable-init">VariableInit</dt>
+<dd>(VariableIdentifier <a href="expressions.html#d-equal">Equal</a>)+
+	<a href="expressions.html#d-condition">Condition</a></dd>
+<dt id="d-variable-identifier">VariableIdentifier</dt>
+<dd><a href="tokens.html#identifier">Identifier</a></dd>
+</dl>
+<p><dfn>変数宣言文</dfn>は、現在の変数領域に変数を定義するための文である。</p>
+<p>VariableStatement: VarKeyword Variables EOS
+の実行は、Variables を実行し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を返す。</p>
+<p>Variables: Variable (Comma Variable)* の実行は次のように行う:</p>
+<ol>
+<li>Variables に含まれる Variable の数を <var>n</var> とする。</li>
+<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+<var>i</var> = <var>n</var> まで順に以下の処理を行う:
+	<ol>
+	<li><var>i</var> 番目の Variable を実行する。
+	その結果が正常終了でなければ、直ちにそれを返す。</li>
+	</ol>
+</li>
+<li>最後に実行した Variable (<var>n</var> 番目の Variable) の結果を返す。</li>
+</ol>
+<p>Variable: VariableInit の実行は、VariableInit を実行し、その結果を返す。</p>
+<p>Variable: VariableIdentifier の実行は、VariableIdentifier
+を実行し、その結果を返す。</p>
+<p>VariableInit: (VariableIdentifier Equal)+ Condition
+の実行は次のように行う:</p>
+<ol>
+<li>Condition を実行し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければ、それを返す。</li>
+<li>VariableInit に含まれる VariableIdentifier の数を <var>n</var> とする。</li>
+<li><var>i</var> = <var>n</var>, <var>n</var> − 1, …, 2, 1 について、<var
+>i</var> = <var>n</var> から <var>i</var> = 1 まで順に以下の処理を行う:
+	<ol>
+	<li><var>i</var> 番目の VariableIdentifier を実行し、その結果を
+	<var>v</var> とする。</li>
+	<li><var>v</var> の値と <var>c</var> の値に対して<a
+	href="primitives.html#set-reference-value">set-reference-value</a>
+	を実行する。その結果が正常終了でなければ、直ちにそれを返す。</li>
+	</ol>
+</li>
+<li>最後に実行した set-reference-value の結果を返す。</li>
+</ol>
+<p>VariableIdentifier: Identifier の実行は次のように行う:</p>
+<ol>
+<li>Identifier トークンを構成する <a href="grammar.html#unicode-string">Unicode
+文字列</a>を <var>n</var> とする。</li>
+<li>現在の<a href="contexts.html">実行コンテクスト</a>の<a
+href="contexts.html#vd">変数領域</a>を <var>d</var> とする。</li>
+<li><var>d</var> に <var>n</var> を名前とするメンバが存在しないならば、初期の
+<a href="b-void.html#m-void"><code>Void.void</code></a>
+を値としてそのメンバを作成する。既にメンバが存在するならば、何もしない。</li>
+<li>[[<var>d</var> を参照先オブジェクトとし <var>n</var>
+を参照先メンバ名とする<a href="primitives.html#type-member-reference"
+>メンバ参照</a>]] を返す。</li>
+</ol>
+<div class="informative">
+<p>最も簡単な変数宣言文の例である:</p>
+<pre><code>@var a;</code></pre>
+<p>変数をカンマで区切ることで、複数の変数を宣言できる:</p>
+<pre><code>@var a, b, c;</code></pre>
+<p>変数を宣言すると同時に初期値を代入できる:</p>
+<pre><code>@var a = 1, b = 2, c = 3;</code></pre>
+<p>複数の変数を同じ値で初期化するには、変数を等号でつなげて書くことができる:</p>
+<pre><code>@var a = b = c = 0;</code></pre>
+<p>変数を初期化しない場合、その変数は
+<a href="b-void.html#m-void"><code>Void.void</code></a> で初期化される。
+既に存在している変数に対して変数宣言文を実行した場合、等号による代入が
+あれば改めて新たな値が代入されるが、変数名が書かれているだけの場合は
+何も起こらない。</p>
+<p>ECMAScript とは異なり、変数は実行コンテクストが作成されるときではなく
+変数宣言文が実行されるときに作成される。</p>
+</div>
+
+<h2 id="print-statement">Print 文</h2>
+<dl class="definition">
+<dt id="d-print-statement">PrintStatement</dt>
+<dd>PrintKeyword <a href="expressions.html#d-expressions">Expressions</a>?
+	<a href="#d-eos">EOS</a></dd>
+<dt id="d-print-keyword">PrintKeyword</dt>
+<dd><code>@print</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dd><code>@printline</code> KD</dd>
+<dd><code>@p</code> KD</dd>
+<dd><code>@pl</code> KD</dd>
+</dl>
+<p>Print 文は、文字列データを出力する。
+文字列データを出力することの具体的な処理内容は、実行環境に依存する。</p>
+<p>PrintStatement: PrintKeyword Expression? EOS の実行は次のように行う:</p>
+<ol>
+<li>PrintStatement に Expressions が含まれるならば、それを評価し、
+その結果が正常終了でなければそれを結果として返す。
+正常終了ならばその結果の値を実行環境の定める方法により出力する。</li>
+<li>PrintStatement の PrintKeyword に <code>@printline</code> または <code
+>@pl</code> が含まれるならば、実行環境の定める方法により改行を出力する。</li>
+<li>[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]]
+を返す。</li>
+</ol>
+<p class="informative"><code>@p</code> と <code>@pl</code> はそれぞれ
+<code>@print</code> と <code>@printline</code> の略記である。</p>
+
+<h2 id="selection-statement">選択文</h2>
+<h3 id="if-statement">If 文</h3>
+<dl class="definition">
+<dt id="d-if-statement">IfStatement</dt>
+<dd>IfKeyword <a href="expressions.html#d-expression">Expression</a>
+	<a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a> TrailingElse</dd>
+<dt id="d-trailing-else">TrailingElse</dt>
+<dd>ElseIf* Else?</dd>
+<dt id="d-else-if">ElseIf</dt>
+<dd>ElseIfKeyword Expression Colon InnerStatement</dd>
+<dt id="d-else">Else</dt>
+<dd>ElseKeyword Colon InnerStatement</dd>
+<dt id="d-if-keyword">IfKeyword</dt>
+<dd><code>@if</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-else-if-keyword">ElseIfKeyword</dt>
+<dd><code>@elseif</code> KD</dd>
+<dd><code>@elsif</code> KD</dd>
+<dd><code>@elif</code> KD</dd>
+<dt id="d-else-keyword">ElseKeyword</dt>
+<dd><code>@else</code> KD</dd>
+</dl>
+<p>If 文は、条件式を評価し、それが真ならばその直後の文を、偽ならば else
+節の文を (それがある場合)、実行する。</p>
+<p>IfStatement の実行は、次のように行う:</p>
+<ol>
+<li>Expression を評価し、その結果に対し
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを返す。</li>
+<li><var>c</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が true ならば InnerStatement
+を実行しその結果を返す。</li>
+<li>TrailingElse を実行し、その結果を返す。</li>
+</ol>
+<p>TrailingElse の実行は、次のように行う:</p>
+<ol>
+<li>TrailingElse に ElseIf が一つ以上含まれるならば、それらを
+<var>E</var><sub>1</sub>, <var>E</var><sub>2</sub>, …,
+<var>E</var><sub><var>m</var></sub> とし、<var>i</var> = 1, 2, …, <var>m</var>
+について <var>i</var> = 1 から <var>i</var> = <var>m</var>
+まで順に以下の処理を行う:
+	<ol>
+	<li><var>E</var><sub><var>i</var></sub> の Expression
+	を評価し、その結果に対し
+	<a href="primitives.html#get-reference-value">get-reference-value</a>
+	を行い、その結果を <var>c</var><sub><var>i</var></sub> とする。</li>
+	<li><var>c</var><sub><var>i</var></sub> が正常終了でなければそれを返す。</li>
+	<li><var>c</var><sub><var>i</var></sub> の値に対して to-boolean
+	を実行し、その結果が true ならば <var>E</var><sub
+	><var>i</var></sub> の InnerStatement を実行しその結果を返す。</li>
+	</ol>
+</li>
+<li>TrailingElse に Else が含まれるならば、Else の InnerStatement
+を実行し、その結果を返す。</li>
+<li>[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]]
+を返す。</li>
+</ol>
+<div class="informative">
+<p>構文規則により、Else または ElseIf は
+それが対応し得る if 文のうち最も近いものに対応する。</p>
+<p>以下は、if 文の例である:</p>
+<pre><code>@if value < min: {
+   @return min;
+} @elseif value > max: {
+   @return max;
+} @else: {
+   @return value;
+}</code></pre>
+<p><code>@else</code> キーワードの直後にもコロンが必要である。</p>
+</div>
+
+<h2 id="iteration-statement">反復文</h2>
+
+<h3 id="while-statement">While 文</h3>
+<dl class="definition">
+<dt id="d-while-statement">WhileStatement</dt>
+<dd>WhileKeyword <a href="expressions.html#d-expression">Expression</a>
+	<a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a>
+	<a href="#d-trailing-else">TrailingElse</a></dd>
+<dt id="d-while-keyword">WhileKeyword</dt>
+<dd><code>@while</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>While 文は条件が真の間、文の実行を繰り返す。
+条件が初めから偽ならば、文は一度も実行されない。</p>
+<p>WhileStatement の実行は、次のように行う:</p>
+<ol>
+<li>Expression を評価し、その結果に対し
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを結果として終了する。</li>
+<li><var>c</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が false ならば TrailingElse
+を実行しその結果を返す。</li>
+<li>InnerStatement を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了ならば、この WhileStatement の実行の初めに戻る。</li>
+<li><var>r</var> が break 終了で、その移動先の Unicode 文字列が 0
+文字の文字列ならば、[[初期の
+<a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li><var>r</var> が continue 終了で、その移動先の Unicode
+文字列が 0 文字の文字列ならばこの WhileStatement の実行の初めに戻る。</li>
+<li><var>r</var> を返す。</li>
+</ol>
+<div class="informative">
+<p>以下は while 文の例である:</p>
+<pre><code>@while !ready:
+   wait[];</code></pre>
+<p>While 文にも if 文同様に else 節を付けることが出来る。While
+文のループ条件が成り立たなくなると、else 節が実行される。しかし break
+文でループから脱出する場合には、else 節は実行されない。</p>
+</div>
+
+<h3 id="do-while-statement">Do-while 文</h3>
+<dl class="definition">
+<dt id="d-do-while-statement">DoWhileStatement</dt>
+<dd>DoKeyword <a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a>
+	<a href="#d-while-keyword">WhileKeyword</a>
+	<a href="expressions.html#d-expression">Expression</a>
+	<a href="#d-eos">EOS</a>
+	</dd>
+<dt id="d-do-keyword">DoKeyword</dt>
+<dd><code>@do</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>Do-while 文は条件が真の間、文の実行を繰り返す。
+条件が評価される前に文が一度実行される。</p>
+<p>DoWhileStatement の実行は、次のように行う:</p>
+<ol>
+<li>InnerStatement を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が break 終了で、その移動先の Unicode 文字列が 0
+文字の文字列ならば、[[初期の <a href="b-void.html#m-void"><code>Void.void</code
+></a>]] を返す。</li>
+<li><var>r</var> が continue 終了で、その移動先の Unicode
+文字列が次のどちらかの条件を満たせば、Expression の評価 (*1) に進む:
+	<ul>
+	<li>0 文字の文字列である</li>
+	<li>この DoWhileStatement の実行において文字列が名前として与えられており、
+	その与えられた名前に等しい文字列である</li>
+	</ul>
+</li>
+<li><var>r</var> が正常終了でなければ、それを返す。</li>
+<li>*1: Expression を評価し、その結果に対し
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを返す。</li>
+<li><var>c</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が false ならば [[初期の <code>Void.void</code>]]
+を返す。</li>
+<li>この DoWhileStatement の実行の初めに戻る。</li>
+</ol>
+<div class="informative">
+<p>以下は do-while 文の例である:</p>
+<pre><code>@do {
+   try[];
+} @while !success;</code></pre>
+<p>Do-while 文には else 節は付けられない。</p>
+</div>
+
+<h3 id="for-statement">For 文</h3>
+<dl class="definition">
+<dt id="d-for-statement">ForStatement</dt>
+<dd>ForKeyword <a href="#d-var-keyword">VarKeyword</a>?
+	<a href="tokens.html#d-identifier">Identifier</a>
+	ForSeparator <a href="expressions.html#d-expression">Expression</a>
+	<a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a>
+	<a href="#d-trailing-else">TrailingElse</a></dd>
+<!--dd>ForKeyword <a href="expressions.html#d-left-paren">LeftParen</a> ForInit
+	ForCondition ForNext <a href="expressions.html#d-right-paren">RightParen</a>
+	<a href="#d-inner-statement">InnerStatement</a></dd-->
+<dt id="d-for-keyword">ForKeyword</dt>
+<dd><code>@for</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-for-separator">ForSeparator</dt>
+<dd><code>@in</code> KD</dd>
+<dd><code>in</code> KD</dd>
+<dd>Colon</dd>
+<!---dt id="d-for-init">ForInit</dt>
+<dd><a href="#d-empty-statement">EmptyStatement</a></dd>
+<dd><a href="#d-expression-statement">ExpressionStatement</a></dd>
+<dd><a href="#d-variable-statement">VariableStatement</a></dd>
+<dt id="d-for-condition">ForCondition</dt>
+<dd>EmptyStatement</dd>
+<dd>ExpressionStatement</dd>
+<dt id="d-for-next">ForNext</dt>
+<dd><a href="expressions.html#d-expressions">Expressions</a>?</dd-->
+</dl>
+<p>For 文は、指定された<a href="b-enum.html#enumeration-object"
+>列挙オブジェクト</a>が列挙する各オブジェクトに対して反復処理を行う。</p>
+<p>ForStatement の実行は、次のように行う:</p>
+<ol>
+<li>Expression を評価し、その結果を <var>e</var> とする。</li>
+<li>*1: 式 <code><var>E</var>.toNext[]</code> を評価し、その結果に対して
+<a href="primitives.html#get-reference-value">get-reference-value</a>
+を行い、その結果を改めて
+<var>e</var> とする。ただし、この評価において部分式 <var>E</var> の評価結果は
+<var>e</var> であるとする。</li>
+<li><var>e</var> が正常終了でなければ、それを返す。</li>
+<li><var>e</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果が false ならば TrailingElse
+を実行しその結果を返す。</li>
+<li>この ForStatement に VarKeyword が含まれていれば、変数宣言文 <code>@var
+<var>I</var> = <var>E</var>.item;</code> を評価し、その結果を <var>v</var>
+とする。この ForStatement に VarKeyword が含まれていなければ、式文
+<code><var>I</var> = <var>E</var>.item;</code> を評価し、その結果を <var>v</var>
+とする。ただし、この評価において部分式 <var>I</var> はこの ForStatement の
+Identifier とし、部分式 <var>E</var> の評価結果は <var>e</var>
+であるとする。</li>
+<li><var>v</var> が正常終了でなければ、それを返す。</li>
+<li>InnerStatement を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が正常終了ならば、式 <code><var>E</var>.toNext[]</code> の評価
+(*1) に戻る。</li>
+<li><var>r</var> が break 終了で、その移動先の Unicode 文字列が 0
+文字の文字列ならば、[[初期の
+<a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li><var>r</var> が continue 終了で、その移動先の Unicode
+文字列が次のどちらかの条件を満たせば、式 <code><var>E</var>.toNext[]</code>
+の評価 (*1) に戻る:
+	<ul>
+	<li>0 文字の文字列である</li>
+	<li>この ForStatement の実行において文字列が名前として与えられており、
+	その与えられた名前に等しい文字列である</li>
+	</ul>
+</li>
+<li><var>r</var> を返す。</li>
+</ol>
+
+<!--ol>
+<li>ForInit を実行し、その結果が正常終了でなければそれを返す。</li>
+<li>ForCondition を実行し、その結果を <var>c</var> とする。</li>
+<li><var>c</var> が正常終了でなければそれを返す。</li>
+<li><var>c</var> の値が false ならば
+[[初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]] を返す。</li>
+<li>InnerStatement を実行し、その結果を <var>r</var> とする。</li>
+<li><var>r</var> が break 終了で、その移動先の Unicode 文字列が 0
+文字の文字列ならば、[[初期の <code>Void.void</code>]] を返す。<var>r</var> が
+break 終了で、その移動先の文字列が 0 文字の文字列でなければ、<var>r</var>
+を返す。</li>
+<li><var>r</var> が continue 終了で、その移動先の Unicode
+文字列が次のどちらの条件も満たさなければ、<var>r</var> を返す:
+	<ul>
+	<li>0 文字の文字列である</li>
+	<li>この ForStatement の実行において文字列が名前として与えられており、
+	その与えられた名前に等しい文字列である</li>
+	</ul>
+</li>
+<li><var>r</var> が正常終了・break 終了・continue 終了のどれでもなければ、
+<var>r</var> を返す。</li>
+<li>ForNext を実行し、その結果が正常終了でなければそれを返す。</li>
+<li>ForCondition の実行に戻る。</li>
+</ol>
+<p>ForInit の実行は、それを構成する EmptyStatement、ExpressionStatement、または
+VariableStatement を実行し、その結果を返す。</p>
+<p>ForCondition: EmptyStatement の実行は、[[true]] を返す。</p>
+<p>ForCondition: ExpressionStatement の実行は次のように行う:</p>
+<ol>
+<li>ExpressionStatement を実行し、その結果を <var>e</var> とする。</li>
+<li><var>e</var> が正常終了でなければそれを返す。</li>
+<li><var>e</var> の値に対して <a href="expressions.html#to-boolean"
+>to-boolean</a> を実行し、その結果を返す。</li>
+</ol>
+<p>ForNext: [空] の実行は、[[初期の <code>Void.void</code>]]
+を結果として返す。</p>
+<p>ForNext: Expressions の実行は、Expressions を評価し、その結果を返す。</p-->
+<div class="informative">
+<p>以下は for 文の例である:</p>
+<pre><code>@var sum = 0;
+@for @var i: 1 ~ 10: {
+   sum += i;
+}</code></pre>
+<p>このコードは、以下のコードと同等の動作をする:</p>
+<pre><code>@var sum = 0;
+@var e = 1 ~ 10;
+@while e = e.toNext[]: {
+   i = e.item;
+   sum += i;
+}</code></pre>
+<p>ただし、変数 <var>e</var> は架空の変数である。</p>
+</div>
+
+<h2 id="jump-statement">跳躍文</h2>
+<h3 id="break-statement">Break 文</h3>
+<dl class="definition">
+<dt id="d-break-statement">BreakStatement</dt>
+<dd>BreakKeyword <a href="tokens.html#d-identifier">Identifier</a>?
+	<a href="#d-eos">EOS</a></dd>
+<dt id="d-break-keyword">BreakKeyword</dt>
+<dd><code>@break</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>Identifier の無い BreakStatement の実行は、0 文字の <a
+href="grammar.html#unicode-string">Unicode 文字列</a> を移動先とする break
+終了の<a href="primitives.html#type-primitive-result">結果</a>を返す。</p>
+<p>Identifier を含む BreakStatement の実行は、Identifier
+トークンを構成する Unicode 文字列を移動先とする break 終了の結果を返す。</p>
+
+<h3 id="continue-statement">Continue 文</h3>
+<dl class="definition">
+<dt id="d-continue-statement">ContinueStatement</dt>
+<dd>ContinueKeyword <a href="tokens.html#d-identifier">Identifier</a>?
+	<a href="#d-eos">EOS</a></dd>
+<dt id="d-continue-keyword">ContinueKeyword</dt>
+<dd><code>@continue</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>Identifier の無い ContinueStatement の実行は、0 文字の <a
+href="grammar.html#unicode-string">Unicode 文字列</a> を移動先とする continue
+終了の<a href="primitives.html#type-primitive-result">結果</a>を返す。</p>
+<p>Identifier を含む ContinueStatement の実行は、Identifier
+トークンを構成する Unicode 文字列を移動先とする continue 終了の結果を返す。</p>
+
+<h3 id="return-statement">復帰文</h3>
+<dl class="definition">
+<dt id="d-return-statement">ReturnStatement</dt>
+<dd>ReturnKeyword <a href="expressions.html#d-expression">Expression</a>?
+	<a href="#d-eos">EOS</a></dd>
+<dt id="d-return-keyword">ReturnKeyword</dt>
+<dd><code>@return</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>復帰文は関数の実行を終了する。</p>
+<p>ReturnStatement: ReturnKeyword EOS の実行は、
+[[復帰: 初期の <a href="b-void.html#m-void"><code>Void.void</code></a>]]
+を返す。</p>
+<p>ReturnStatement: ReturnKeyword Expression EOS の実行は次のように行う:</p>
+<ol>
+<li>Expression を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければそれを返す。</li>
+<li>[[復帰: <var>v</var> の値]] を返す。</li>
+</ol>
+
+<h3 id="throw-statement">投擲文</h3>
+<dl class="definition">
+<dt id="d-throw-statement">ThrowStatement</dt>
+<dd>ThrowKeyword <a href="expressions.html#d-expression">Expression</a>
+	<a href="#d-eos">EOS</a></dd>
+<dt id="d-throw-keyword">ThrowKeyword</dt>
+<dd><code>@throw</code> <a href="tokens.html#d-kd">KD</a></dd>
+</dl>
+<p>投擲文は、エラー終了の結果を発生する。</p>
+<p>ThrowStatement: ThrowStatement Expression EOS の実行は次のように行う:</p>
+<ol>
+<li>Expression を評価し、その結果に対して <a
+href="primitives.html#get-reference-value">get-reference-value</a>
+を実行し、その結果を <var>v</var> とする。</li>
+<li><var>v</var> が正常終了でなければそれを返す。</li>
+<li>[[エラー: <var>v</var> の値]] を返す。</li>
+</ol>
+
+<h2 id="try-statement">Try 文</h2>
+<dl class="definition">
+<dt id="d-try-statement">TryStatement</dt>
+<dd>TryKeyword <a href="expressions.html#d-colon">Colon</a>
+	<a href="#d-inner-statement">InnerStatement</a>
+	&amp;(Catch / <a href="#d-else">Else</a> / Finally)
+	Catch? Else? Finally?</dd>
+<dt id="d-catch">Catch</dt>
+<dd>CatchKeyword <a href="#d-var-keyword">VarKeyword</a>?
+	<a href="tokens.html#d-identifier">Identifier</a> Colon InnerStatement</dd>
+<dt id="d-finally">Finally</dt>
+<dd>FinallyKeyword Colon InnerStatement</dd>
+<dt id="d-try-keyword">TryKeyword</dt>
+<dd><code>@try</code> <a href="tokens.html#d-kd">KD</a></dd>
+<dt id="d-catch-keyword">CatchKeyword</dt>
+<dd><code>@catch</code> KD</dd>
+<dt id="d-finally-keyword">FinallyKeyword</dt>
+<dd><code>@finally</code> KD</dd>
+</dl>
+<p>Try 文は、実行中に発生したエラーに対する処理を行う。</p>
+<p>TryStatement の実行は、次のように行う:</p>
+<ol>
+<li>InnerStatement を実行し、その結果を <var>a</var> とする。</li>
+<li><var>a</var> を <var>r</var> とする。</li>
+<li><var>a</var> が正常終了であり、かつこの TryStatement に Else が存在すれば、
+Else に含まれる InnerStatement を実行し、その結果を改めて <var>r</var>
+とする。</li>
+<li><var>a</var> がエラー終了であり、かつこの TryStatement に Catch
+が存在すれば、次の動作を行う:
+	<ol>
+	<li>この Catch に VarKeyword が含まれていれば、変数宣言文 <code>@var
+	<var>I</var> = <var>E</var>;</code> を評価し、その結果を改めて <var>r</var>
+	とする。この ForStatement に VarKeyword が含まれていなければ、式文
+	<code><var>I</var> = <var>E</var>;</code> を評価し、その結果を改めて
+	<var>r</var> とする。ただし、この評価において部分式 <var>I</var> はこの Catch
+	に含まれる Identifier とし、部分式 <var>E</var> の評価結果は [[<var>a</var>
+	の値]] であるとする。</li>
+	<li><var>r</var> が正常終了ならば、Catch に含まれる InnerStatement
+	を実行し、その結果を改めて <var>r</var> とする。</li>
+	</ol>
+</li>
+<li>この TryStatement に Finally が存在すれば、Finally に含まれる InnerStatement
+を実行する。その結果が正常終了でなければ、それを返す。</li>
+<li><var>r</var> を返す。</li>
+</ol>
+<!--XXX:例-->
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

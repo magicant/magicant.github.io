@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-09-24T21:14:35+09:00">
+<title>Integer 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-real.html" title="Real 組込みオブジェクト">
+<link rel="next" href="b-rational.html" title="Rational 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Integer</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Integer</code> 組込みオブジェクトを定義する。</p>
+<p><a href="calculations.html#integer-objects"><code>Integer</code>
+オブジェクト</a>は、スクリプトで扱われる整数を表すオブジェクトである。</p>
+
+<h2 id="members"><code>Integer</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-real.html#m-prototype"><code>Real.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Integer"</code></dd>
+<dt id="m-zero"><code>zero</code></dt>
+<dd>整数 0 を表す <code>Integer</code> オブジェクト</dd>
+<dt id="m-one"><code>one</code></dt>
+<dd>整数 1 を表す <code>Integer</code> オブジェクト</dd>
+<dt id="m-and"><code>and</code> メソッド</dt>
+<dd>関数として呼出したとき、引数が全て <code>Integer</code> オブジェクトならば
+(引数の個数が 0 の場合を含む)、次の動作を行う:
+	<ol>
+	<li><a href="primitives.html#type-primitive-integer">原始整数型</a>の −1
+	の値を <var>v</var> とする。</li>
+	<li>渡された引数の個数を <var>n</var> とする。</li>
+	<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+	<var>i</var> = <var>n</var> まで順番に次の動作を行う:
+		<ol>
+		<li><var>i</var> 個目の引数の表す整数と <var>v</var>
+		とのビットごとの論理積を取り、その値を改めて <var>v</var> とする。</li>
+		</ol>
+	</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+引数に <code>Integer</code> オブジェクトでないオブジェクトが含まれている場合の
+関数呼出しでの動作は規定しない。</dd>
+<dt id="m-or"><code>or</code> メソッド</dt>
+<dd>関数として呼出したとき、引数が全て <code>Integer</code> オブジェクトならば
+(引数の個数が 0 の場合を含む)、次の動作を行う:
+	<ol>
+	<li><a href="primitives.html#type-primitive-integer">原始整数型</a>の 0
+	の値を <var>v</var> とする。</li>
+	<li>渡された引数の個数を <var>n</var> とする。</li>
+	<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+	<var>i</var> = <var>n</var> まで順番に次の動作を行う:
+		<ol>
+		<li><var>i</var> 個目の引数の表す整数と <var>v</var>
+		とのビットごとの包括的論理和を取り、その値を改めて <var>v</var>
+		とする。</li>
+		</ol>
+	</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+引数に <code>Integer</code> オブジェクトでないオブジェクトが含まれている場合の
+関数呼出しでの動作は規定しない。</dd>
+<dt id="m-xor"><code>xor</code> メソッド</dt>
+<dd>関数として呼出したとき、引数が全て <code>Integer</code> オブジェクトならば
+(引数の個数が 0 の場合を含む)、次の動作を行う:
+	<ol>
+	<li><a href="primitives.html#type-primitive-integer">原始整数型</a>の 0
+	の値を <var>v</var> とする。</li>
+	<li>渡された引数の個数を <var>n</var> とする。</li>
+	<li><var>i</var> = 1, 2, …, <var>n</var> について、<var>i</var> = 1 から
+	<var>i</var> = <var>n</var> まで順番に次の動作を行う:
+		<ol>
+		<li><var>i</var> 個目の引数の表す整数と <var>v</var>
+		とのビットごとの排他的論理和を取り、その値を改めて <var>v</var>
+		とする。</li>
+		</ol>
+	</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+引数に <code>Integer</code> オブジェクトでないオブジェクトが含まれている場合の
+関数呼出しでの動作は規定しない。</dd>
+<dt id="m-not"><code>not</code> メソッド</dt>
+<dd>1-ary メソッド。一つの <code>Integer</code>
+オブジェクトを引数として関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>引数の表す整数値と整数値 −1
+	とのビットごとの排他的論理和を取り、その値を <var>v</var> とする。</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+上記以外の引数における関数としての呼び出しの動作は規定しない。</dd>
+<dt id="m-shiftleft"><code>shiftLeft</code> メソッド</dt>
+<dd>2-ary メソッド。二つの <code>Integer</code>
+オブジェクトを引数として関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>一つ目の引数の表す整数値を <var>p</var>、二つ目の引数の表す整数値を
+	<var>q</var> として、<var>p</var> を <var>q</var>
+	ビット左にシフトした値を <var>v</var> とする。ただし、<var>q</var> &lt; 0
+	のときは、右に −<var>q</var> ビットシフトするものとする。</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+上記以外の引数における関数としての呼び出しの動作は規定しない。</dd>
+<dt id="m-shiftright"><code>shiftRight</code> メソッド</dt>
+<dd>2-ary メソッド。二つの <code>Integer</code>
+オブジェクトを引数として関数として呼出されると、次の動作を行う:
+	<ol>
+	<li>一つ目の引数の表す整数値を <var>p</var>、二つ目の引数の表す整数値を
+	<var>q</var> として、<var>p</var> を <var>q</var>
+	ビット右にシフトした値を <var>v</var> とする。ただし、<var>q</var> &lt; 0
+	のときは、左に −<var>q</var> ビットシフトするものとする。</li>
+	<li>[[整数 <var>v</var> を表す <code>Integer</code> オブジェクト]]
+	を返す。</li>
+	</ol>
+</dd>
+</dl>
+
+<h2 id="internal-members"><code>Integer</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Integer</code> の関数としての呼出し</h2>
+<p><code>Integer</code> は関数として呼出し可能である。一つのオブジェクト
+<var>a</var> を引数として関数として呼出されると次の処理を実行する:</p>
+<ol>
+<li><var>a</var> が <code>Integer</code> オブジェクトならば、[[<var>a</var>]]
+を返す。</li>
+<li><var>a</var> が <a href="b-rational.html"><code>Rational</code></a>
+オブジェクトならば、引数を <code>Integer</code> に<a
+href="calculations.html#rational-to-integer-conversion">縮小変換</a
+>し、その結果を値とする正常終了の結果を返す。</li>
+<li><var>a</var> が <a href="b-float.html"><code>Float</code></a>
+オブジェクトならば、引数を <code>Integer</code> に<a
+href="calculations.html#float-to-integer-conversion">縮小変換</a
+>し、その結果を値とする正常終了の結果を返す。</li>
+<li><var>a</var> が<a href="b-string.html#string-object">文字列オブジェクト</a
+>ならば、その文字列オブジェクトの内容を数値として解釈し、その値を表す
+<code>Integer</code> オブジェクトを <var>r</var> として、[[<var>r</var>]]
+を返す。文字列が数値として解釈できない場合は、新しい <a
+href="b-error.html"><code>ArgumentError</code></a> のインスタンスを投げる。
+文字列の解釈の方法は実行環境に任せる<!--が、<code>Integer</code>
+オブジェクトに対して <a href="b-number.html#m-members.tostring"><code
+>toString</code></a> を呼出して得られる文字列を問題なく解釈できなればならない
+(この場合は、元の <code>Integer</code> オブジェクトと同一の値を表す
+<code>Integer</code> オブジェクトを返す)-->。</li>
+<li>渡された引数が上のどの条件にも当てはまらない場合の動作は規定しない。</li>
+</ol>
+<p>呼出しにおける引数の個数が一つでない場合の動作は規定しない。</p>
+
+<!--h2 id="prototype-members"><code>Integer.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>Integer</code> オブジェクトのプロパティ</h2>
+<p><code>Integer</code> オブジェクトは以下のプロパティを持つ。ただし、
+<code>Integer.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-and"><code>and</code> メソッド</dt>
+<dt id="p-math-and"><code>Math$and</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Integer</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-and"
+><code>Integer.and</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-or"><code>or</code> メソッド</dt>
+<dt id="p-math-or"><code>Math$or</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Integer</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-or"
+><code>Integer.or</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-xor"><code>xor</code> メソッド</dt>
+<dt id="p-math-xor"><code>Math$xor</code> メソッド</dt>
+<dd>関数として呼出したとき、@this 値および全ての引数が <code>Integer</code>
+オブジェクトならば、その @this 値と全ての引数を引数として <a href="#m-xor"
+><code>Integer.xor</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-not"><code>not</code> メソッド</dt>
+<dt id="p-math-not"><code>Math$not</code> メソッド</dt>
+<dd>0-ary メソッド。関数として呼出したとき、@this 値が
+<code>Integer</code> オブジェクトであり、引数の個数が 0 ならば、その @this
+値を引数として <a href="#m-not"><code>Integer.not</code></a>
+を関数として呼出し、その結果を返す。</dd>
+<dt id="p-shiftleft"><code>shiftLeft</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出したとき、
+渡された引数の個数が一つであり、@this 値および引数が共に <code>Integer</code>
+オブジェクトならば、その @this 値と引数を引数として <a href="#m-shiftleft"
+><code>Integer.shiftLeft</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-shiftright"><code>shiftRight</code> メソッド</dt>
+<dd>1-ary メソッド。関数として呼出したとき、
+渡された引数の個数が一つであり、@this 値および引数が共に <code>Integer</code>
+オブジェクトならば、その @this 値と引数を引数として <a href="#m-shiftright"
+><code>Integer.shiftRight</code></a> を関数として呼出し、その結果を返す。</dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。<code>Integer</code> オブジェクトを @this
+値としてこのメソッドを呼出すと、渡された @this 値を<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>に変換したものを結果として返す。
+文字列への変換の方法は実行環境に任せる。</dd>
+</dl>
+
+<!--h2 id="object-internal-members"><code>Integer</code>
+オブジェクトの内部メンバ</h2>
+<dl class="member-def">
+<dt id="ip-value"><code>value</code></dt>
+<dd><a href="primitives.html#type-primitive-integer">原始整数型</a>の値。
+<code>Integer</code> オブジェクトは、この内部メンバの値を表す。</dd>
+<dd>この内部メンバの値は、そのオブジェクトに対して不変である。</dd>
+</dl-->
+
+<h2 id="real-to-int">等価縮小変換</h2>
+<p><a href="calculations.html#real-objects"><code>Real</code> オブジェクト</a
+>を <code>Integer</code> オブジェクトに変換する操作 real-to-int は、一つの
+<code>Real</code> オブジェクト <var>v</var> に対して以下の動作を行い、一つの
+整数または特殊な値 null を結果として返す:</p>
+<ul>
+<li><var>v</var> が <code>Integer</code> オブジェクトならば <var>v</var>
+が表している整数を返す。</li>
+<li><var>v</var> が <code>Rational</code> オブジェクトでその分母が 1 ならば
+その分子の値を返す。分母が 1 でなければ null を返す。</li>
+<li><var>v</var> が <code>Float</code> オブジェクトならば
+	<ul>
+	<li><var>v</var> の絶対精度が 0 以上であり、かつ次の条件を満たす整数
+	<var>i</var> が存在すれば、その整数 <var>i</var> を返す:
+	<code>Integer</code> オブジェクトのうち、<var>v</var>
+	と<a href="calculations.html#equal">比較演算 <code>$equal</code></a>
+	を行って結果が <code>Boolean.true</code> となるものは、整数 <var>i</var>
+	を表しているもののみである。</li>
+	<li>さもなくば、null を返す。</li>
+	</ul>
+</li>
+</ul>
+<p class="informative"><code>Integer</code> への<a
+href="calculations.html#narrowing-conversion">縮小変換</a>では、
+値は必ず整数に変換されるが、real-to-int
+では元の値が整数でない場合には変換は行われない。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

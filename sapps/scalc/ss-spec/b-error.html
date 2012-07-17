@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-03T20:50:38+09:00">
+<title>Error 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-tensor.html" title="Tensor 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Error</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a
+>が初めから備えている <code>Error</code>
+組込みオブジェクトおよびその他のエラー型オブジェクトを定義する。</p>
+
+<h2 id="error-type-object">エラー型オブジェクト</h2>
+<p>次の条件のどちらかを満たすオブジェクト <var>T</var> を、<dfn
+>エラー型オブジェクト</dfn>という:</p>
+<ul>
+<li><var>T</var> は <code>Error</code> 組込みオブジェクトである。</li>
+<li><code>Error.prototype</code> は <var>T</var> の <code>prototype</code>
+メンバの値の準プロトタイプである。</li>
+</ul>
+<p>以下は組込みのエラー型オブジェクトの一覧である。</p>
+<dl>
+<dt><code>Error</code></dt>
+<dd><code>Error</code> のインスタンスは、エラーを表す。</dd>
+<dt><code>TypeError</code></dt>
+<dd><code>TypeError</code> のインスタンスは、
+オブジェクトの型が要求されたものに当てはまらないときに投げられる。</dd>
+<dt><code>NotExistsError</code></dt>
+<dd><code>NotExistsError</code> のインスタンスは、
+存在しないプロパティを参照しようとしたときに投げられる。</dd>
+<dt><code>NotAssignableError</code></dt>
+<dd><code>NotAssignableError</code> のインスタンスは、
+<a href="primitives.html#type-reference">参照型</a
+>以外の値に対して代入を行おうとしたときに投げられる。</dd>
+<dt><code>NotDeletableError</code></dt>
+<dd><code>NotDeletableError</code> のインスタンスは、
+参照型以外の値に対して削除を行おうとしたときに投げられる。</dd>
+<dt><code>NotCallableError</code></dt>
+<dd><code>NotCallableError</code> のインスタンスは、
+関数として呼出し可能でないオブジェクトに対して
+関数としての呼出しを行おうとしたときに投げられる。</dd>
+<dt><code>OutOfRangeError</code></dt>
+<dd><code>OutOfRangeError</code> のインスタンスは、
+値が求められた範囲の外にあるときに投げられる。</dd>
+<dt><code>ArgumentError</code></dt>
+<dd><code>ArgumentError</code> のインスタンスは、
+関数としての呼出しにおいて渡された引数の型や組合せに
+誤りがあるときに投げられる。</dd>
+<dt><code>NumberOfArgumentsError</code></dt>
+<dd><code>NumberOfArgumentsError</code> のインスタンスは、
+関数としての呼出しにおいて渡された引数の個数に誤りがあるときに投げられる。</dd>
+<dt><code>UnsupportedOperationError</code></dt>
+<dd><code>UnsupportedOperationError</code> のインスタンスは、
+要求された処理を実行できないときに投げられる。</dd>
+<dt><code>ReadOnlyError</code></dt>
+<dd><code>ReadOnlyError</code> のインスタンスは、
+読み取り専用の変数などに対して代入や削除を行おうとしたときに投げられる。</dd>
+<dt><code>DimensionError</code></dt>
+<dd><code>DimensionError</code> のインスタンスは、
+与えられたテンソルの型が不適切な場合に投げられる。</dd>
+<dt><code>CalculationError</code></dt>
+<dd><code>CalculationError</code> のインスタンスは、
+数値計算の過程で不具合が生じたときに投げられる。</dd>
+<dt><code>OverflowError</code></dt>
+<dd><code>OverflowError</code> のインスタンスは、
+扱われる数値やデータが大きすぎて処理しきれないときに投げられる。</dd>
+<dt><code>SyntaxError</code></dt>
+<dd><code>SyntaxError</code> のインスタンスは、
+スクリプトの構文にエラーがあるときに投げられる。</dd>
+</dl>
+<p>組込みオブジェクトとして与えられる各エラー型オブジェクトの <code
+>prototype</code> メンバの値は、全て異なるオブジェクトでなければならない。</p>
+<p>エラー型オブジェクトのインスタンスを<dfn>エラーオブジェクト</dfn>という。</p>
+
+<h2 id="members"><code>Error</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd>別途定めるプロパティを持つオブジェクト (→<a
+href="#prototype-members"><code>Error.prototype</code> のプロパティ</a>)。
+このオブジェクトは <a href="b-object.html#m-prototype"><code
+>Object.prototype</code></a> を準プロトタイプとして持たなければならない。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Error"</code></dd>
+</dl>
+
+<h2 id="typeerror-members"><code>TypeError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="typeerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="typeerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"TypeError"</code></dd>
+</dl>
+
+<h2 id="notexistserror-members"><code>NotExistsError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="notexistserror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>TypeError.prototype</code> である。</dd>
+<dt id="notexistserror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NotExistsError"</code></dd>
+</dl>
+
+<h2 id="notassignableerror-members"><code>NotAssignableError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="notassignableerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>TypeError.prototype</code> である。</dd>
+<dt id="notassignableerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NotAssignableError"</code></dd>
+</dl>
+
+<h2 id="notdeletableerror-members"><code>NotDeletableError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="notdeletableerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>TypeError.prototype</code> である。</dd>
+<dt id="notdeletableerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NotDeletableError"</code></dd>
+</dl>
+
+<h2 id="notcallableerror-members"><code>NotCallableError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="notcallableerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>TypeError.prototype</code> である。</dd>
+<dt id="notcallableerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NotCallableError"</code></dd>
+</dl>
+
+<h2 id="outofrangeerror-members"><code>OutOfRangeError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="outofrangeerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="outofrangeerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"OutOfRangeError"</code></dd>
+</dl>
+
+<h2 id="argumenterror-members"><code>ArgumentError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="argumenterror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="argumenterror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"ArgumentError"</code></dd>
+</dl>
+
+<h2 id="numberofargumentserror-members"><code>NumberOfArgumentsError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="numberofargumentserror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>ArgumentError.prototype</code> である。</dd>
+<dt id="numberofargumentserror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"NumberOfArgumentsError"</code></dd>
+</dl>
+
+<h2 id="unsupportedoperationerror-members"><code>UnsupportedOperationError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="unsupportedoperationerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="unsupportedoperationerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"UnsupportedOperationError"</code></dd>
+</dl>
+
+<h2 id="readonlyerror-members"><code>ReadOnlyError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="readonlyerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>UnsupportedOperationError.prototype</code> である。</dd>
+<dt id="readonlyerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"ReadOnlyError"</code></dd>
+</dl>
+
+<h2 id="dimensionerror-members"><code>DimensionError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="dimensionerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="dimensionerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"DimensionError"</code></dd>
+</dl>
+
+<h2 id="calculationerror-members"><code>CalculationError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="calculationerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="calculationerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"CalculationError"</code></dd>
+</dl>
+
+<h2 id="overflowerror-members"><code>OverflowError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="overflowerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="overflowerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"OverflowError"</code></dd>
+</dl>
+
+<h2 id="syntaxerror-members"><code>SyntaxError</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="syntaxerror-m-prototype"><code>prototype</code></dt>
+<dd>オブジェクト。このオブジェクトのプロトタイプは
+<code>Error.prototype</code> である。</dd>
+<dt id="syntaxerror-m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"SyntaxError"</code></dd>
+</dl>
+
+<h2 id="internal-members">各組込みエラー型オブジェクトの内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="prototype-members"><code>Error.prototype</code> のプロパティ</h2>
+<dl class="member-def">
+<dt id="m-prototype.tostring"><code>toString</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.description }</code></dd>
+</dl>
+
+<h2 id="instance-members"
+>各エラー型オブジェクトのインスタンスの標準的なプロパティ</h2>
+<dl class="member-def">
+<dt id="i-description"><code>description</code></dt>
+<dd>エラーオブジェクトが表すエラーについて説明する<a
+href="b-string.html#string-object">文字列オブジェクト</a>。
+文字列の内容は、原則としてユーザが読み理解できるものでなければならない。</dd>
+</dl>
+
+<h2 id="call">各組込みエラー型オブジェクトの関数としての呼出し</h2>
+<p>各組込みエラー型オブジェクトは関数として呼出し可能であり、
+関数として呼出されると、そのエラー型オブジェクトの <code>prototype</code>
+メンバの値をプロトタイプとする新たなオブジェクトを作成し、
+それを値とする正常終了の結果を返す。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

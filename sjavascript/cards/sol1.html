@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	"http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="description" content="JavaScript で動くカードゲームです">
+<meta name="date" content="2006-01-01T20:48:47+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="../">
+<link rel="contents" href="../">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="../defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="cards.css">
+<title>ソリティア 1</title>
+<style type="text/css">
+#mainbody {
+	width: 400px;
+}
+#control-panel, #main-field {
+	position: relative;
+	width: 100%;
+}
+#main-field {
+	margin-top: 10px;
+}
+#time-counter {
+	position: absolute;
+	right: 0px;
+}
+.main-field-col {
+	padding-bottom: 15px;
+	position: absolute;
+	top: 0px;
+	width: 40px;
+}
+#main-field-col0 {
+	left: 0px;
+}
+#main-field-col1 {
+	left: 50px;
+}
+#main-field-col2 {
+	left: 100px;
+}
+#main-field-col3 {
+	left: 150px;
+}
+#main-field-col4 {
+	left: 200px;
+}
+#main-field-col5 {
+	left: 250px;
+}
+#main-field-col6 {
+	left: 300px;
+}
+#main-field-reserve {
+	right: 0px;
+}
+#main-field-info {
+	background: black;
+	color: white;
+	margin: 0 auto;
+	border: solid 2px yellow;
+	padding: 15px;
+	display: none;
+	width: 300px;
+	position: absolute;
+	top: 45px;
+	left: 0px;
+	right: 0px;
+	z-index: +1;
+}
+#congrats {
+	margin: 0;
+	font: italic bold 28px "Tahoma", "Arial", sans-serif;
+	color: yellow;
+	text-align: center;
+}
+#help {
+	padding: 0 0 15px 15px;
+	background: green;
+	display: none;
+	position: absolute;
+	top: 0px;
+	z-index: +2;
+}
+#help h1, #help h2, #help h3 {
+	margin-left: -15px;
+}
+</style>
+<script type="text/javascript" src="cards.js" charset="utf-8" defer></script>
+<script type="text/javascript" src="../mt.js" charset="utf-8" defer></script>
+<script type="text/javascript" src="sol1.js" charset="utf-8" defer></script>
+</head>
+
+<body id="mainbody" onload="init();">
+<h1 id="maintitle">ソリティア 1</h1>
+<address id="copyright-info">
+&copy; 2006 magicant / 1.1.2 (2005-10-24)
+</address>
+<div id="control-panel">
+<span class="control-buttons">
+<input id="start-button" class="control-button"
+	type="button" value="ゲーム開始" onclick="startGame();">
+<input id="restart-button" class="control-button"
+	type="button" value="やり直す" onclick="restartGame();">
+<input id="help-open-button" class="control-button"
+	type="button" value="ヘルプ" onclick='switchHelp();'>
+</span>
+<span id="game-id"></span>
+<span id="time-counter"></span>
+</div>
+<div id="main-field">
+<div id="main-field-col0" class="main-field-col">
+<div class="card spades">&spades; A</div>
+<div class="card spades">&spades; 2</div>
+<div class="card spades">&spades; 3</div>
+<div class="card spades">&spades; 4</div>
+<div class="card spades">&spades; 5</div>
+<div class="card spades">&spades; 6</div>
+<div class="card spades">&spades; 7</div>
+<div class="card spades">&spades; 8</div>
+<div class="card spades">&spades; 9</div>
+<div class="card spades">&spades; 10</div>
+<div class="card spades">&spades; J</div>
+<div class="card spades">&spades; Q</div>
+<div class="card spades">&spades; K</div>
+</div>
+<div id="main-field-col1" class="main-field-col">
+<div class="card hearts">&hearts; A</div>
+<div class="card hearts">&hearts; 2</div>
+<div class="card hearts">&hearts; 3</div>
+<div class="card hearts">&hearts; 4</div>
+<div class="card hearts">&hearts; 5</div>
+<div class="card hearts">&hearts; 6</div>
+<div class="card hearts">&hearts; 7</div>
+<div class="card hearts">&hearts; 8</div>
+<div class="card hearts">&hearts; 9</div>
+<div class="card hearts">&hearts; 10</div>
+<div class="card hearts">&hearts; J</div>
+<div class="card hearts">&hearts; Q</div>
+<div class="card hearts">&hearts; K</div>
+</div>
+<div id="main-field-col2" class="main-field-col">
+<div class="card diams">&diams; A</div>
+<div class="card diams">&diams; 2</div>
+<div class="card diams">&diams; 3</div>
+<div class="card diams">&diams; 4</div>
+<div class="card diams">&diams; 5</div>
+<div class="card diams">&diams; 6</div>
+<div class="card diams">&diams; 7</div>
+<div class="card diams">&diams; 8</div>
+<div class="card diams">&diams; 9</div>
+<div class="card diams">&diams; 10</div>
+<div class="card diams">&diams; J</div>
+<div class="card diams">&diams; Q</div>
+<div class="card diams">&diams; K</div>
+</div>
+<div id="main-field-col3" class="main-field-col">
+<div class="card clubs">&clubs; A</div>
+<div class="card clubs">&clubs; 2</div>
+<div class="card clubs">&clubs; 3</div>
+<div class="card clubs">&clubs; 4</div>
+<div class="card clubs">&clubs; 5</div>
+<div class="card clubs">&clubs; 6</div>
+<div class="card clubs">&clubs; 7</div>
+<div class="card clubs">&clubs; 8</div>
+<div class="card clubs">&clubs; 9</div>
+<div class="card clubs">&clubs; 10</div>
+<div class="card clubs">&clubs; J</div>
+<div class="card clubs">&clubs; Q</div>
+<div class="card clubs">&clubs; K</div>
+</div>
+<div id="main-field-col4" class="main-field-col">
+<div class="card joker">Joker</div>
+<div class="card back">?</div>
+</div>
+<div id="main-field-col5" class="main-field-col"></div>
+<div id="main-field-col6" class="main-field-col"></div>
+<div id="main-field-reserve" class="main-field-col"></div>
+<div id="main-field-info"></div>
+<div id="help">
+<h1>ゲームの遊び方</h1>
+<h2>ゲームの概要</h2>
+<p>
+このゲームの目的は、場札をスート (スペード・ハート・ダイアモンド・クラブの 4
+種類の絵柄) ごとに 13 枚ずつ繋げることです。
+</p>
+<h2>ルール</h2>
+<p>
+次のルールに従ってカードを動かしてゆきます。
+</p>
+<ul>
+<li>
+カードは、同じスートでランク (カードに書いてある数字) が一つ大きい別の
+カードの下に移動することができます。
+例えば、ハートの 3 をハートの 4 の下に移動できます。
+</li>
+<li>
+移動されるカードの下に他のカードがある場合は、そのカードも一緒に移動します。
+</li>
+<li>
+移動先のカードの下に他のカードがある場合は、移動できません。
+</li>
+<li>
+カードを同じ列に移動することはできません。
+</li>
+<li>
+A (エース) の下にはどのカードも移動できません。
+</li>
+<li>
+カードを全て移動して空になった列には、K (キング) を移動できます。
+</li>
+<li>
+裏返しになっているカード (始めは 12 枚あります) は移動できませんが、
+その下にあるカードを全て移動すると表に返すことができます。
+</li>
+</ul>
+<p>
+場には始め 49 枚のカードが並べられています。
+カードを移動できなくなったら、残りの 3 枚を左端 3 列の各末尾に置くことができます。
+それでもカードを移動できなくなった場合は、負けです。
+</p>
+<h2>操作方法</h2>
+<p>
+新しくゲームを開始するには、「ゲーム開始」ボタンを押し、ゲームの番号を指定します。
+同じ番号を指定すると、何度も同じゲームをプレーできます。
+「やり直す」ボタンを押すと、今プレーしているゲームを初めからやり直すことができます。
+</p>
+<p>
+カードを移動するには、まず移動したいカードをクリックしてから、
+移動先の列の下端をクリックします。
+</p>
+<p>
+カードを移動できなくなったら、右端の「?」カードをクリックして、残りの 3 枚を開きます。
+</p>
+<input id="help-close-button" class="control-button"
+	type="button" value="ヘルプを閉じる" onclick='switchHelp();'>
+</div>
+</div>
+</body>
+</html><!--
+programed by Magicant
+2005-02-27 v1.1
+2005-10-23 v1.1.1
+2005-10-24 v1.1.2
+-->

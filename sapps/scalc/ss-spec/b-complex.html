@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-08-12T16:39:44+09:00">
+<title>Complex 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-float.html" title="Float 組込みオブジェクト">
+<link rel="next" href="b-infinity.html" title="Infinity 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Complex</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Complex</code> 組込みオブジェクトを定義する。</p>
+<p><a href="calculations.html#complex-objects"><code>Complex</code>
+オブジェクト</a>は、スクリプトで扱われる整数を表すオブジェクトである。</p>
+
+<h2 id="members"><code>Complex</code> のメンバ</h2>
+<dl class="member-def">
+<dt id="m-prototype"><code>prototype</code></dt>
+<dd><a href="b-number.html#m-prototype"><code>Number.prototype</code></a>
+を準プロトタイプとするオブジェクト。</dd>
+<dt id="m-name"><code>name</code></dt>
+<dd><a href="b-string.html#string-object">文字列オブジェクト</a>
+<code>"Complex"</code></dd>
+<dt id="m-zero"><code>zero</code></dt>
+<dd><code>Complex</code> オブジェクト。オブジェクトの <code>re</code>
+プロパティの値と <code>im</code> プロパティの値はどちらも 0 を表す
+<a href="b-integer.html"><code>Integer</code></a> オブジェクトである。</dd>
+<dt id="m-one"><code>one</code></dt>
+<dd><code>Complex</code> オブジェクト。このオブジェクトの <code>re</code>
+プロパティの値は 1 を表す <a href="b-integer.html"><code>Integer</code></a>
+オブジェクトであり、またこのオブジェクトの <code>im</code> プロパティの値は 0
+を表す <a href="b-integer.html"><code>Integer</code></a>
+オブジェクトである。</dd>
+<dt id="m-i"><code>i</code></dt>
+<dd><code>Complex</code> オブジェクト。このオブジェクトの <code>re</code>
+プロパティの値は 0 を表す <a href="b-integer.html"><code>Integer</code></a>
+オブジェクトであり、またこのオブジェクトの <code>im</code> プロパティの値は 1
+を表す <a href="b-integer.html"><code>Integer</code></a>
+オブジェクトである。</dd>
+<dt id="m-conj"><code>conj</code> メソッド</dt>
+<dd>1-ary メソッド。一つの <code>Complex</code>
+オブジェクトを引数として関数として呼出されると、その引数の <code>conj</code>
+プロパティを取得してその結果を返す。
+上記以外の引数における関数としての呼び出しの動作は規定しない。</dd>
+</dl>
+
+<h2 id="internal-members"><code>Complex</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-type.html#m-prototype"><code>Type.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Complex</code> の関数としての呼出し</h2>
+<p><code>Complex</code> は関数として呼出し可能であり、
+関数として呼出されると次の処理を実行する:</p>
+<dl>
+<dt>引数が一つの <code>Number</code> オブジェクト <var>x</var> の場合</dt>
+<dd>式 <code><var>x</var> + 0i</code> の結果を返す。</dd>
+<dt>引数が二つの <code>Number</code> オブジェクト <var>x</var>, <var>y</var>
+の場合</dt>
+<dd>式 <code><var>x</var> + <var>y</var> * 1i</code> の結果を返す。</dd>
+<dt>引数が<a href="b-string.html#string-object">文字列オブジェクト</a
+>一つの場合</dt>
+<dd>引数である文字列オブジェクトの内容を数値として解釈し、その値を表す
+<code>Complex</code> オブジェクトを値とする正常終了の結果を返してもよい。
+文字列オブジェクトの内容を数値として解釈しないまたはできない場合は、新しい <a
+href="b-error.html"><code>ArgumentError</code></a> のインスタンスを投げる。
+文字列オブジェクトの内容の解釈の方法は実行環境に任せる。</dd>
+<dt>上記以外の引数の場合</dt>
+<dd>規定しない。</dd>
+</dl>
+
+<!--h2 id="prototype-members"><code>Complex.prototype</code> のプロパティ</h2-->
+<h2 id="instance-members"><code>Complex</code> オブジェクトのプロパティ</h2>
+<p><code>Complex</code> オブジェクトは以下のプロパティを持つ。ただし、<code
+>re</code>・<code>im</code> プロパティ以外のプロパティについては、
+<code>Complex.prototype</code> やその準プロトタイプのプロパティが
+スクリプトの実行によって変更された場合は、この限りではない。</p>
+<dl class="member-def">
+<dt id="p-re"><code>re</code></dt>
+<dd><a href="b-real.html"><code>Real</code></a>
+オブジェクト。この値は複素数の実部を表す。</dd>
+<dd>このプロパティは不変である。</dd>
+<dt id="p-im"><code>im</code></dt>
+<dd><a href="b-real.html"><code>Real</code></a>
+オブジェクト。この値は複素数の虚部を表す。</dd>
+<dd>このプロパティは不変である。</dd>
+<dt id="p--get-abs"><code>$get$abs</code> メソッド</dt>
+<dt id="p-math-abs"><code>Math$abs</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.abs2 ^ /2 }</code></dd>
+<dt id="p--get-abs2"><code>$get$abs2</code> メソッド</dt>
+<dt id="p-math-abs2"><code>Math$abs2</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.re * @this.re + @this.im * @this.im }</code></dd>
+<dt id="p--get-conj"><code>$get$conj</code> メソッド</dt>
+<dt id="p-math-conj"><code>Math$conj</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.re - 1i * @this.im }</code></dd>
+<dt id="p-math-re"><code>Math$re</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.re  }</code></dd>
+<dt id="p-math-im"><code>Math$im</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.im  }</code></dd>
+<dt id="p--get-arg"><code>$get$arg</code> メソッド</dt>
+<dt id="p-math-arg"><code>Math$arg</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ Math.atan[@this.re, @this.im] }</code></dd>
+<dt id="p--get-sign"><code>$get$sign</code> メソッド</dt>
+<dt id="p-math-sign"><code>Math$sign</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this == 0 ? 0 : @this / @this.abs }</code></dd>
+<dt id="p--get-exp"><code>$get$exp</code> メソッド</dt>
+<dt id="p-math-exp"><code>Math$exp</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ @this.re.exp * (@this.im.cos + 1i * @this.im.sin) }</code></dd>
+<!-- ↑XXX: fromPolar -->
+<dt id="p--get-log"><code>$get$log</code> メソッド</dt>
+<dt id="p-math-log"><code>Math$log</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ z == 0i ? @cinf : @this.abs.log + 1i * @this.arg }</code> または
+<code>@{ z == 0i ? @cinf : @this.abs2.log / 2 + 1i * @this.arg }</code></dd>
+<dt id="p--get-sin"><code>$get$sin</code> メソッド</dt>
+<dt id="p-math-sin"><code>Math$sin</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this * 1i).sinh / 1i }</code></dd>
+<dt id="p--get-cos"><code>$get$cos</code> メソッド</dt>
+<dt id="p-math-cos"><code>Math$cos</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this * 1i).cosh }</code></dd>
+<dt id="p--get-tan"><code>$get$tan</code> メソッド</dt>
+<dt id="p-math-tan"><code>Math$tan</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this * 1i).tanh / 1i }</code></dd>
+<dt id="p--get-asin"><code>$get$asin</code> メソッド</dt>
+<dt id="p-math-asin"><code>Math$asin</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this * 1i).asinh / 1i }</code></dd>
+<dt id="p--get-acos"><code>$get$acos</code> メソッド</dt>
+<dt id="p-math-acos"><code>Math$acos</code> メソッド</dt>
+<dd>0-ary メソッド。<code>Complex</code> オブジェクト <var>z</var> を @this
+値として関数として呼びだされると、次の動作を行う:
+	<ol>
+	<li><code><var>z</var>.<a href="#p--get-asin">asin</a></code> の結果の値を
+	<var>v</var> とする。</li>
+	<li>円周率の半分の値 <span class="pi">π</span> / 2 = 1.5707963… の値を表す
+	<code>Float</code> オブジェクトを <var>p</var>
+	とする。ただし、ap(<var>p</var>) > ap(<code><var>v</var>.re</code>)
+	とする。</li>
+	<li><code><var>p</var> - <var>v</var></code> の結果を返す。</li>
+	</ol>
+</dd>
+<dt id="p--get-atan"><code>$get$atan</code> メソッド</dt>
+<dt id="p-math-atan"><code>Math$atan</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this * 1i).atanh / 1i }</code></dd>
+<dt id="p--get-sinh"><code>$get$sinh</code> メソッド</dt>
+<dt id="p-math-sinh"><code>Math$sinh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this.exp - (-@this).exp) / 2 }</code> または
+<code>@{ @this.re.sinh * @this.im.cos + 1i * @this.re.cosh * @this.im.sin
+}</code></dd>
+<dt id="p--get-cosh"><code>$get$cosh</code> メソッド</dt>
+<dt id="p-math-cosh"><code>Math$cosh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this.exp + (-@this).exp) / 2 }</code> または
+<code>@{ @this.re.cosh * @this.im.cos + 1i * @this.re.sinh * @this.im.sin
+}</code></dd>
+<dt id="p--get-tanh"><code>$get$tanh</code> メソッド</dt>
+<dt id="p-math-tanh"><code>Math$tanh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this.exp - (-@this).exp) / (@this.exp + (-@this).exp) }</code> または
+<code>@{ ((2 * @this.re).sinh + 1i * (2 * @this.im).sin) /
+((2 * @this.re).cosh + (2 * @this.im).cos) }</code></dd>
+<dt id="p--get-asinh"><code>$get$asinh</code> メソッド</dt>
+<dt id="p-math-asinh"><code>Math$asinh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this + (@this * @this + 1).sqrt).log }</code></dd>
+<dt id="p--get-acosh"><code>$get$acosh</code> メソッド</dt>
+<dt id="p-math-acosh"><code>Math$acosh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ (@this + (@this + 1).sqrt * (@this - 1).sqrt).log }</code></dd>
+<dt id="p--get-atanh"><code>$get$atanh</code> メソッド</dt>
+<dt id="p-math-atanh"><code>Math$atanh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@{ ((1 + @this).log - (1 - @this).log) / 2 }</code></dd>
+<dt id="p-tostring"><code>toString</code> メソッド</dt>
+<dd>0-ary メソッド。<code>Complex</code> オブジェクトを @this
+値としてこのメソッドを呼出すと、渡された @this 値を<a
+href="b-string.html#string-object">文字列オブジェクト</a
+>に変換したものを結果として返す。
+文字列オブジェクトへの変換の方法は実行環境に任せる。</dd>
+</dl>
+<p>上記各メソッドの呼出しにおける動作では、実行環境は次のことを仮定して
+動作を効率化しても良い:</p>
+<ul>
+<li>呼出しにおける @this 値は <code>Complex</code> オブジェクトである。</li>
+<li>数値計算や数学関数計算に関するメソッド (<a href="calculations.html"
+>数値計算</a>で定義したものおよび上記で定義したもの) は基底実行コンテクストが
+できた時のまま変化していない。</li>
+</ul>
+<p>実際のメソッドの呼出しにおいてこれらの仮定が満たされていない場合、
+動作は未定義である。</p>
+<p>上記計算における <var class="pi">π</var> や ap 等の定義は <a
+href="b-math.html"><code>Math</code></a> での定義に従う。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>

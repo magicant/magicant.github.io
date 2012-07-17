@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta name="author" content="まじかんと">
+<meta name="description" content="JavaScript で暦 (カレンダ) を表示します">
+<meta name="date" content="2008-08-29T12:43:05+09:00">
+<link rel="start" href="/magicant/">
+<link rel="up" href="./">
+<link rel="contents" href="./">
+<link rel="copyright" href="/magicant/about.html">
+<link rel="author" href="/magicant/author.html">
+<link rev="made" href =
+	"ma&#105;lto&#x3a;magica&#x6e;t&#46;sta&#x72;men&#0064;nifty&#46;com">
+<link rel="stylesheet" type="text/css" href="defaultstyle.css">
+<link rel="stylesheet" type="text/css" href="/magicant/simple.css" title="Simple">
+<link rel="shortcut icon" href="/magicant/favicon.ico">
+<title>[#JavaScript] 暦</title>
+<style type="text/css">
+table {
+	text-align: center;
+	background-color: #bbb;
+	margin: 0.5em;
+	margin-top: 0.2em;
+	border: none;
+}
+caption {
+	font-weight: bold;
+	margin: 0.5em;
+	margin-bottom: 0.2em;
+	caption-side: top;
+}
+th {
+	font-weight: bold;
+}
+td {
+	font-weight: normal;
+}
+col, th, td {
+	margin: 0px;
+	border: none;
+}
+th, td {
+	color: inherit;
+	background-color: inherit;
+}
+
+.sunday {
+	color: red;
+	background-color: #ffbfff;
+}
+.weekday {
+	color: black;
+	background-color: yellow;
+}
+.saturday {
+	color: blue;
+	background-color: #80ffff;
+}
+table.calendar {
+	display: inline-table;
+}
+</style>
+<script type="text/javascript">
+// グローバルオブジェクト
+var ely, elo;
+
+// 初期化
+function init() {
+	ely = document.getElementById("yearvalue");
+	elo = document.getElementById("result");
+	
+	elo.innerHTML = makeCalendar(new Date().getFullYear());
+	ely.focus();
+}
+
+// エントリポイント
+function main() {
+	var year = parseInt(ely.value);
+	if (!isNaN(year) && 0 < year && year < 10000)
+		elo.innerHTML = makeCalendar(parseInt(ely.value));
+	ely.value = "";
+	ely.focus();
+}
+
+// 一年分のカレンダを作る
+function makeCalendar(year) {
+	var result = "";
+	
+	for (var i = 1; i <= 12; i++) {
+		result += makeCalendarMonth(year, i);
+	}
+	return result;
+	
+	/*var result = "<table class='base'><tbody>";
+	
+	for (var i = 0; i < 4; i++) {
+		result += "<tr>";
+		for (var j = 0; j < 3; j++) {
+			result += "<td class='base'>"
+			       + makeCalendarMonth(year, i * 3 + j + 1) + "<\/td>";
+		}
+		result += "<\/tr>";
+	}
+	return result + "<\/tbody><\/table>";*/
+}
+
+// 一か月分のカレンダを作る
+function makeCalendarMonth(year, month) {
+	var result = "<table class='calendar'>";
+	result += "<caption>" + year + " 年 " + month + " 月<\/caption>";
+	result += "<col span='1' class='sunday'>";
+	result += "<col span='5' class='weekday'>";
+	result += "<col span='1' class='saturday'>";
+	result += "<thead><tr>";
+	result += "<th scope='col' abbr='日曜'>S<\/th>";
+	result += "<th scope='col' abbr='月曜'>M<\/th>";
+	result += "<th scope='col' abbr='火曜'>T<\/th>";
+	result += "<th scope='col' abbr='水曜'>W<\/th>";
+	result += "<th scope='col' abbr='木曜'>T<\/th>";
+	result += "<th scope='col' abbr='金曜'>F<\/th>";
+	result += "<th scope='col' abbr='土曜'>S<\/th>";
+	result += "<\/tr><\/thead><tbody><tr>";
+	
+	var day = dayOfWeek(year, month, 1);
+	var count = 1, length = numberOfDays(year, month);
+	
+	for (var i = 0; i < 7; i++) {
+		result += "<td>";
+		if (i >= day) result += count++;
+		result += "<\/td>";
+	}
+	while (count <= length) {
+		result += "<\/tr><tr>";
+		for (var i = 0; i < 7; i++) {
+			result += "<td>";
+			if (count <= length) result += count++;
+			result += "<\/td>";
+		}
+	}
+	return result + "<\/tr><\/tbody><\/table>";
+}
+
+// 年月日から曜日を求める
+// 0:日曜 1:月曜 .... 6:土曜
+function dayOfWeek(year, month, dayOfMonth) {
+	if (month <= 2) {
+		month += 12;
+		year -= 1;
+	}
+	return (Math.floor(365.25 * year)
+	      + Math.floor(year / 400)
+	      - Math.floor(year / 100)
+	      + Math.floor(30.59 * (month - 2))
+	      + dayOfMonth) % 7;
+}
+
+// 一月の日数
+function numberOfDays(year, month) {
+	switch (month) {
+		case  1:   return 31;
+		case  2:   return 28 + (isLeapYear(year) ? 1 : 0);
+		case  3:   return 31;
+		case  4:   return 30;
+		case  5:   return 31;
+		case  6:   return 30;
+		case  7:   return 31;
+		case  8:   return 31;
+		case  9:   return 30;
+		case 10:   return 31;
+		case 11:   return 30;
+		case 12:   return 31;
+	}
+}
+
+// 閏年かどうか
+function isLeapYear(year) {
+	return (year % 4 == 0) && (year % 100 != 0 || year % 400 == 0);
+}
+</script>
+</head>
+
+<body onload="init();">
+<h1 id="title">
+暦
+</h1>
+<address id="about_this_document">
+&copy; 2006 Magicant / 1.1.4 (2006-01-02)
+</address>
+<noscript>
+<div><strong>
+暦表示には JavaScript を実行できる環境が必要です。
+</strong></div>
+</noscript>
+<form id="mainform" action="" onsubmit="main(); return false;">
+<div>
+<input type="text" id="yearvalue" maxlength="5" size="5"> 年の暦 (カレンダ) を
+<input type="submit" value="表示">
+</div>
+</form>
+<p>
+年代にかかわらず全てグレゴリオ暦で表示します。
+</p>
+<div id="result">
+</div>
+<div>
+<h2>日本の国民の祝日</h2>
+<p>2008 年 8 月 29 日現在の、日本の国民の祝日:</p>
+<dl>
+<dt>元日</dt>
+<dd>1 月 1 日</dd>
+<dt>成人の日</dt>
+<dd>1 月第 2 月曜日</dd>
+<dt>建国記念の日</dt>
+<dd>2 月 11 日</dd>
+<dt>春分の日</dt>
+<dd>3 月 21 日頃</dd>
+<dt>昭和の日</dt>
+<dd>4 月 29 日</dd>
+<dt>憲法記念日</dt>
+<dd>5 月 3 日</dd>
+<dt>こどもの日</dt>
+<dd>5 月 5 日</dd>
+<dt>海の日</dt>
+<dd>7 月第 3 月曜日</dd>
+<dt>敬老の日</dt>
+<dd>9 月第 3 月曜日</dd>
+<dt>秋分の日</dt>
+<dd>9 月 23 日頃</dd>
+<dt>体育の日</dt>
+<dd>10 月第 2 月曜日</dd>
+<dt>文化の日</dt>
+<dd>11 月 3 日</dd>
+<dt>勤労感謝の日</dt>
+<dd>11 月 23 日</dd>
+<dt>天皇誕生日</dt>
+<dd>12 月 23 日</dd>
+</dl>
+</div>
+</body>
+
+</html><!--
+programed by Magicant
+2004-10-27 v1.0
+2005-08-31 v1.1
+2005-10-27 v1.1.2
+2005-11-19 v1.1.3
+2006-01-02 v1.1.4
+-->

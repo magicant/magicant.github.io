@@ -1,0 +1,376 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="date" content="2007-11-03T20:50:38+09:00">
+<title>Math 組込みオブジェクト - #Script 言語仕様 1.2</title>
+<link rel="contents" href="index.html" title="目次">
+<link rel="previous" href="b-interval.html" title="Interval 組込みオブジェクト">
+<link rel="next" href="b-string.html" title="String 組込みオブジェクト">
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+<h1 id="title"><code>Math</code> 組込みオブジェクト</h1>
+<p>この章では<a href="contexts.html#bec">組込み変数領域</a>が初めから備えている
+<code>Math</code> 組込みオブジェクトを定義する。</p>
+<p><code>Math</code> は、各種数学関数をメソッドとして提供する。</p>
+<p>この章において、<var class="napiers-constant">e</var>
+はネイピア数を、<var class="imaginary-unit">i</var> は虚数単位を、<span
+class="pi">π</span> は円周率を表す。また、文中の #Script コードにおいて、
+<code>Math.</code> を省略することがある (例えば <code>abs</code> メンバの定義に
+<code>sqrt[abs2[<var>z</var>]]</code> とあるのは、正確には
+<code>Math.sqrt[Math.abs2[<var>z</var>]]</code> を意味する)。</p>
+
+<h2 id="float-operation"><code>Float</code> オブジェクトに関する演算</h2>
+<p>この章で定義する各関数の結果の値に <code>Float</code>
+オブジェクトが含まれるとき、そのオブジェクトの
+<code>value</code> および <code>absolutePrecision</code>
+内部メンバの具体的な値は別項で定める通りとする (→<a
+href="calculations.html#precision"><code>Float</code>
+オブジェクトの精度</a>)。</p>
+<p>以下、<code>Number</code> オブジェクトと、それが表す数値とを同一視する。
+<code>Real</code> オブジェクト (が表す値) <var>v</var>
+に対して、その絶対精度を ap(<var>v</var>) と、その相対精度を rp(<var>v</var>)
+と書く。ただし、<code>Integer</code> オブジェクトおよび <code>Rational</code>
+オブジェクトが表す値の絶対精度および相対精度は無限大であると見なす。</p>
+
+<p>上記の規則は <a href="b-number.html"><code>Number</code></a>、
+<a href="b-real.html"><code>Real</code></a>、
+<a href="b-integer.html"><code>Integer</code></a>、
+<a href="b-rational.html"><code>Rational</code></a>、
+<a href="b-float.html"><code>Float</code></a>、
+<a href="b-complex.html"><code>Complex</code></a>、
+<a href="b-infinity.html"><code>Infinity</code></a>、
+<a href="b-nan.html"><code>NaN</code></a>
+の各組込みオブジェクトの定義において準用する。
+</p>
+
+<h2 id="members"><code>Math</code> のプロパティ</h2>
+<dl class="member-def">
+<dt id="m-e"><code>e</code></dt>
+<dd>ネイピア数 (自然対数の底) <var class="napiers-constant">e</var> =
+2.718281828… の値を表す <code>Float</code> オブジェクト。このオブジェクトの
+表す値の絶対精度は、実際にこのプロパティに対して <a
+href="objects.html#get-property">get-property</a>
+を行ったときの実行コンテクストの<a href="contexts.html#default-precision"
+>デフォルトの精度</a>に従う。(よって、このプロパティの値は不変ではない)</dd>
+<dt id="m-pi"><code>pi</code></dt>
+<dd>円周率 <span class="pi">π</span> = 3.14159265… の値を表す
+<code>Float</code> オブジェクト。このオブジェクトの
+表す値の絶対精度は、実際にこのプロパティに対して <a
+href="objects.html#get-property">get-property</a>
+を行ったときの実行コンテクストの<a href="contexts.html#default-precision"
+>デフォルトの精度</a>に従う。(よって、このプロパティの値は不変ではない)</dd>
+<dt id="m-abs"><code>abs</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$abs[] }</code></dd>
+<dt id="m-abs2"><code>abs2</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$abs2[] }</code></dd>
+<dt id="m-re"><code>re</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$re[] }</code></dd>
+<dt id="m-im"><code>im</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$im[] }</code></dd>
+<dt id="m-conj"><code>conj</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$conj[] }</code></dd>
+<dt id="m-arg"><code>arg</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$arg[] }</code></dd>
+<dt id="m-sign"><code>sign</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$sign[] }</code></dd>
+<dt id="m-exp"><code>exp</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$exp[] }</code></dd>
+<dt id="m-log"><code>log</code> メソッド</dt>
+<dd>1-ary メソッド。このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<!--li>渡された引数の個数が 0 ならば、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li-->
+	<li>引数が一つのオブジェクト <var>v</var> ならば、式 <code><var>v</var
+	>.Math$log[]</code> の評価と同様にして引数オブジェクトの <code>Math$log</code>
+	メソッドを引数無しで呼出し、その結果を返す。</li>
+	<li>引数が二つの <code>Integer</code> オブジェクトまたは <code>Rational</code>
+	オブジェクト <var>a</var>, <var>b</var> で、<var>a</var> と <var>b</var>
+	の値がどちらも正であり、式 <var>a</var><sup><var>e</var></sup> = <var>b</var>
+	を満たす有理数 <var>e</var> がちょうど一つ存在するならば、[[その有理数
+	<var>e</var> を表す <code>Rational</code> オブジェクト]]
+	を返す。ただし、<var>e</var> が整数ならば、<code>Rational</code>
+	オブジェクトではなく <code>Integer</code>
+	オブジェクトを返しても良い。特に、<var>a</var> と <var>b</var> が共に
+	<code>Integer</code> オブジェクトであってかつ <var>e</var> が整数ならば、
+	必ず <code>Integer</code> オブジェクトを返さなければならない。</li>
+	<li>引数が二つの <code>Number</code> オブジェクト <var>a</var>, <var>b</var>
+	で、前項に当てはまらない場合は、<code>log[<var>b</var>] /
+	log[<var>a</var>]</code> の結果を返す。ただし、<var>a</var> と <var>b</var>
+	の一方が <code>Complex</code> オブジェクトでもう一方が <code>Real</code>
+	オブジェクトならば、<code>Real</code> オブジェクトを <code>Complex</code>
+	オブジェクトに<a href="calculations.html#real-to-complex-conversion"
+	>拡大変換</a>してから計算を行う。</li>
+	<li>その他の引数に関する動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="m-log10"><code>log10</code> メソッド</dt>
+<dd>1-ary メソッド。このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<!--li>渡された引数の個数が 0 ならば、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li-->
+	<li>渡された引数が一つの <code>Number</code> オブジェクト <var>z</var>
+	ならば、<code><a href="#m-log">log</a>[10, <var>z</var>]</code>
+	の結果を返す。</li>
+	<li>その他の引数に関する動作は規定しない。</li>
+	</ol>
+</dd>
+<!--<dt id="m-pow">pow</dt>-->
+<dt id="m-sqrt"><code>sqrt</code> メソッド</dt>
+<dd>1-ary メソッド。このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<!--li>渡された引数の個数が 0 ならば、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li-->
+	<li>渡された引数が一つの <code>Number</code> オブジェクト <var>z</var>
+	ならば、<code><var>z</var> ^ /2</code> の結果を返す。(→<a
+	href="calculations.html#power">冪算</a>)</li>
+	<li>その他の引数に関する動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="m-cbrt"><code>cbrt</code> メソッド</dt>
+<dd>1-ary メソッド。このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<!--li>渡された引数の個数が 0 ならば、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li-->
+	<li>渡された引数が一つの <code>Number</code> オブジェクト <var>z</var>
+	ならば、<code><var>z</var> ^ /3</code> の結果を返す。(→<a
+	href="calculations.html#power">冪算</a>)</li>
+	<li>その他の引数に関する動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="m-sin"><code>sin</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$sin[] }</code></dd>
+<dt id="m-cos"><code>cos</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$cos[] }</code></dd>
+<dt id="m-tan"><code>tan</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$tan[] }</code></dd>
+<dt id="m-asin"><code>asin</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$asin[] }</code></dd>
+<dt id="m-acos"><code>acos</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$acos[] }</code></dd>
+<dt id="m-atan"><code>atan</code> メソッド</dt>
+<dd>1-ary メソッド。このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<!--li>渡された引数の個数が 0 ならば、新しい <a href="b-error.html"><code
+	>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li-->
+	<li>引数が一つのオブジェクト <var>v</var> ならば、式 <code><var>v</var
+	>.Math$atan[]</code> の評価と同様にして引数オブジェクトの
+	<code>Math$atan</code> メソッドを引数無しで呼出し、その結果を返す。</li>
+	<li>引数が二つの <code>Real</code> オブジェクト <var>x</var>, <var>y</var>
+	ならば、次の動作を行う:
+		<ol>
+		<li><a href="calculations.html#compare-real">実数の比較</a>によって
+		<var>x</var> = 0 ならば、次の動作を行う:
+			<ol>
+			<li>実数の比較によって <var>y</var> = 0 ならば、[[<code>NaN</code>
+			オブジェクト]] を返す。</li>
+			<li><var>y</var> > 0 ならば [[<span class="pi">π</span> / 2 の値を表す
+			<code>Float</code> オブジェクト]] を、<var>y</var> &lt; 0 ならば
+			[[−<span class="pi">π</span> / 2 の値を表す <code>Float</code>
+			オブジェクト]] を、返す。ただし、結果の絶対精度は
+			ap(<var>x</var>) + log<sub>10</sub>|<var>y</var>| とする。</li>
+			</ol>
+		</li>
+		<li><code>atan[<var>y</var> / <var>x</var>]</code> の結果を <var>v</var>
+		とする。</li>
+		<li><var>x</var> > 0 ならば、<var>v</var> を返す。</li>
+		<li>実数の比較によって <var>y</var> ≥ 0 ならば [[<var>v</var> + <span
+		class="pi">π</span> の値を表す <code>Float</code> オブジェクト]]
+		を、さもなくば [[<var>v</var> − <span class="pi">π</span> の値を表す
+		<code>Float</code> オブジェクト]] を返す。結果の絶対精度は
+		<var>v</var> のそれに一致するものとする。</li>
+		</ol>
+	</li>
+	<li>引数が二つのオブジェクトで、どちらも <code>Number</code>
+	オブジェクトならば、下表に定める結果を返す。
+	<table>
+	<caption>無限大の <code>atan</code></caption>
+	<thead><tr><th>第一引数</th><th>第二引数</th><th>結果</th></tr></thead>
+	<tbody>
+	<tr><td>+∞</td><td>Real</td><td><code>atan[1, 0]</code> の結果</td></tr>
+	<tr><td>−∞</td><td>Real</td><td><code>atan[-1, 0]</code> の結果</td></tr>
+	<tr><td>Real</td><td>+∞</td><td><code>atan[0, 1]</code> の結果</td></tr>
+	<tr><td>Real</td><td>−∞</td><td><code>atan[0, -1]</code> の結果</td></tr>
+	<tr><td>+∞/−∞</td><td>+∞/−∞</td><td>NaN</td></tr>
+	<tr><td>NaN</td><td>任意</td><td>NaN</td></tr>
+	<tr><td>任意</td><td>NaN</td><td>NaN</td></tr>
+	<tr><td colspan="2">その他</td><td>規定しない</td></tr>
+	</tbody>
+	</table>
+	ただし、表に含まれる記号の意味は数値計算の<a
+	href="calculations.html#notation">省略記法</a>を準用する。
+	</li>
+	<!--<li>引数が二つの <a href="b-number.html"><code>Number</code></a>
+	オブジェクトならば、次の動作を行う:
+		<ol>
+		<li>一つ目の引数を <var>x</var>、二つ目の引数を <var>y</var> とする。</li>
+		<li><code>-1i * <a href="#m-log">log</a>[(<var>x</var> + <var>y</var> * 1i)
+		/ <a href="#m-sqrt">sqrt</a>[<var>x</var> * <var>x</var> + <var>y</var> *
+		<var>y</var>]]</code> の結果を返す。</li>
+		</ol>
+	</li>-->
+	<li>その他の引数に関する動作は規定しない。</li>
+	</ol>
+</dd>
+<dt id="m-sinh"><code>sinh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$sinh[] }</code></dd>
+<dt id="m-cosh"><code>cosh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$cosh[] }</code></dd>
+<dt id="m-tanh"><code>tanh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$tanh[] }</code></dd>
+<dt id="m-asinh"><code>asinh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$asinh[] }</code></dd>
+<dt id="m-acosh"><code>acosh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$acosh[] }</code></dd>
+<dt id="m-atanh"><code>atanh</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$atanh[] }</code></dd>
+<dt id="m-sum"><code>sum</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li>全ての引数オブジェクトが<a href="axioms.html#additive-semigroup"
+	>加法に関する半群の公理</a>をみたす何らかの集合に属していると見なして、式
+	<code><var>v</var><sub>1</sub> + <var>v</var><sub>2</sub> + … +
+	<var>v</var><sub><var>n</var></sub></code> を評価し、その結果を返す。</li>
+	</ol>
+</dd>
+<dt id="m-prod"><code>prod</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li>全ての引数オブジェクトが<a href="axioms.html#multiplicative-semigroup"
+	>乗法に関する半群の公理</a>をみたす何らかの集合に属していると見なして、式
+	<code><var>v</var><sub>1</sub> * <var>v</var><sub>2</sub> * … *
+	<var>v</var><sub><var>n</var></sub></code> を評価し、その結果を返す。</li>
+	</ol>
+</dd>
+<dt id="m-and"><code>and</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li><var>v</var><sub>1</sub> の <code>and</code> メソッドを、
+	<var>v</var><sub>1</sub> を @this 値とし、
+	<var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>, …,
+	<var>v</var><sub><var>n</var></sub> を引数として関数として呼出し、
+	その結果を返す。ただし、<var>v</var><sub>1</sub> が <code>and</code>
+	メソッドを持たなければ、エラーとする。</li>
+	</ol>
+</dd>
+<dt id="m-or"><code>or</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li><var>v</var><sub>1</sub> の <code>or</code> メソッドを、
+	<var>v</var><sub>1</sub> を @this 値とし、
+	<var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>, …,
+	<var>v</var><sub><var>n</var></sub> を引数として関数として呼出し、
+	その結果を返す。ただし、<var>v</var><sub>1</sub> が <code>or</code>
+	メソッドを持たなければ、エラーとする。</li>
+	</ol>
+</dd>
+<dt id="m-xor"><code>xor</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li><var>v</var><sub>1</sub> の <code>xor</code> メソッドを、
+	<var>v</var><sub>1</sub> を @this 値とし、
+	<var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>, …,
+	<var>v</var><sub><var>n</var></sub> を引数として関数として呼出し、
+	その結果を返す。ただし、<var>v</var><sub>1</sub> が <code>xor</code>
+	メソッドを持たなければ、エラーとする。</li>
+	</ol>
+</dd>
+<dt id="m-not"><code>not</code> メソッド</dt>
+<dd>このメソッドを呼出すと次の動作を行う:
+	<ol>
+	<li>渡された引数の個数を <var>n</var> とし、引数を順に
+	<var>v</var><sub>1</sub>, <var>v</var><sub>2</sub>, …,
+	<var>v</var><sub><var>n</var></sub> とする。</li>
+	<li><var>n</var> = 0 ならば、新しい <a href="b-error.html"
+	><code>NumberOfArgumentsError</code></a> のインスタンスを投げる。</li>
+	<li><var>v</var><sub>1</sub> の <code>not</code> メソッドを、
+	<var>v</var><sub>1</sub> を @this 値とし、
+	<var>v</var><sub>2</sub>, <var>v</var><sub>3</sub>, …,
+	<var>v</var><sub><var>n</var></sub> を引数として関数として呼出し、
+	その結果を返す。ただし、<var>v</var><sub>1</sub> が <code>not</code>
+	メソッドを持たなければ、エラーとする。</li>
+	</ol>
+</dd>
+<dt id="m-floor"><code>floor</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$floor[] }</code></dd>
+<dt id="m-ceil"><code>ceil</code> メソッド</dt>
+<dd>次の関数生成式を評価して得られるような関数オブジェクト:
+<code>@[x] { x.Math$ceil[] }</code></dd>
+</dl>
+
+<h2 id="internal-members"><code>Math</code> の内部メンバ</h2>
+<dl class="member-def">
+<dt id="im--prototype"><code>$prototype</code></dt>
+<dd><a href="b-object.html#m-prototype"><code>Object.prototype</code></a></dd>
+</dl>
+
+<h2 id="call"><code>Math</code> の関数としての呼出し</h2>
+<p><code>Math</code> は、関数として呼出し可能ではない。</p>
+
+
+<script type="text/javascript" src="makenav.js" charset="UTF-8"></script>
+<address>© 2006-2007 Magicant</address>
+
+</body>
+</html>
+<!--
+Introduced in 1.1d3:
+	$get$e $get$pi
+	abs arg sign
+	exp log log10 sqrt cbrt
+	sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh
+Introduced in 1.2d2:
+	and or xor not shiftLeft shiftRight
+Removed in 1.2d6
+	shiftLeft shiftRight
+Introduced in 1.2d7
+	conj re im floor ceil
+-->
