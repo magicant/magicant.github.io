@@ -1,7 +1,7 @@
 ﻿@charset "utf-8";
 
-/* default.css 0.2.19 (2010-04-30) */
-/* © 2006-2010 Magicant */
+/* default.css 0.2.20 (2012-08-08) */
+/* © 2006-2012 Magicant */
 
 
 * {
@@ -13,14 +13,14 @@
 }
 body {
 	margin: 0;
-	padding: 20px;
+	padding: 0.5em 3%;
 	border: none;
 	font-family: "Meiryo", "Arial", "Osaka", "ＭＳ Ｐゴシック", "Arial Unicode MS", sans-serif;
 	font-variant: normal;
 	font-stretch: normal;
 	font-style: normal;
 	text-align: justify;
-	_text-justify: inter-ideograph;
+	text-justify: inter-ideograph;
 	vertical-align: baseline;
 }
 
@@ -70,7 +70,7 @@ dl {
 	margin: 0.5em 1em;
 }
 dd {
-	margin: 0.05em 0 0.1em 4em;
+	margin: 0.05em 0 0.1em 5%;
 }
 dd + dt {
 	margin-top: 0.2em;
@@ -108,7 +108,7 @@ li {
 }
 
 blockquote {
-	margin: 1em 0 1em 4em;
+	margin: 1em 0 1em 5%;
 }
 
 fieldset {
