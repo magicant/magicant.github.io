@@ -1,5 +1,5 @@
 // User Agent Identifier
-// Copyright (C) 2006-2011 Magicant (v1.14 2011-04-10)
+// Copyright (C) 2006-2012 Magicant (v1.15 2012-11-11)
 
 function UAIdentifier() {
 	if (typeof(navigator) != "object" || !navigator.userAgent) {
@@ -56,6 +56,7 @@ function UAIdentifier() {
 				case 5.7:  return "7.0";
 				case 5.8:  return "8.0";
 				case 9.0:  return "9.0";
+				case 10.0: return "10.0";
 				default:   return true;
 			}
 		}
