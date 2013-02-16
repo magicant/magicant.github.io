@@ -138,14 +138,14 @@ content="10; url=http://example.com/"></code> のように指定されたペー�
 
 <h2 id="amazon-uri">Amazon.co.jp の商品ページの URI を短くする</h2>
 <p>Amazon.co.jp の商品紹介ページを閲覧中に実行するとそのページの URI を短縮したページに移動します。</p>
-<pre><code class="js"><a href="javascript:void(location='http://www.amazon.co.jp/dp/'+document.getElementById('ASIN').value)"
->javascript:void(location = 'http://www.amazon.co.jp/dp/' + document.getElementById('ASIN').value)</a
+<pre><code class="js"><a href="javascript:void(location='/dp/'+document.getElementById('ASIN').value)"
+>javascript:void(location = '/dp/' + document.getElementById('ASIN').value)</a
 ></code></pre>
 <p>註: http://amazon.jp/… にアクセスすると自動的に http://www.amazon.co.jp/… に飛ばされます。より短い
 URI が欲しい場合はドメイン名の部分を書き変えてください。</p>
 
 <address id="about_this_document">
-© 2006-2010 Magicant / 更新 2010-03-01 / 初出 2006-04-29
+© 2006-2013 Magicant / 更新 2013-02-16 / 初出 2006-04-29
 </address>
 
 </body>
