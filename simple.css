@@ -1,7 +1,7 @@
 ﻿@charset "UTF-8";
 
-/* simple.css 0.7 (2009-02-26) based on defaultstyle.css 0.2.15 */
-/* © 2006-2009 Magicant */
+/* simple.css 0.8 (2015-11-14) based on defaultstyle.css 0.2.15 */
+/* © 2006-2015 Magicant */
 
 body {
 	color: black;
@@ -103,6 +103,12 @@ a:link:active, a:link:hover, a:visited:active, a:visited:hover {
 }
 #magicant_auto_navigation li {
 	margin: 0;
+}
+
+/* magicant_site_shutdown */
+
+p#magicant_site_shutdown {
+	border: red solid 10px;
 }
 
 
