@@ -348,7 +348,7 @@ Windows 98/ME では、標準入力からの読み込みおよび標準出力への結果の出力
     /M オプション指定時「.」が改行 (LF) にマッチしていなかったのを修正
 
 最新版は
-http://homepage2.nifty.com/magicant/sapps/mfind/
+http://magicant.github.io/
 にあります。
 
 
