@@ -399,7 +399,7 @@ Unnamed_thm < </samp><kbd><a href="#intros">intros</a> H' H''; <a href="t-apply.
 <dd>
 <p><code><a href="#case">case</a> <var>term</var></code> に似ているが、場合分けする値に関する等式を仮定に追加する。これにより、ゴールの中で置き換えられる <var>term</var> の値を場合分けの後まで覚えておくことができる。</p>
 <p>以下の例では定理 <code>xorb_move_l_r_1</code> をその仮定に適用している。</p>
-<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="http://coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
 </kbd><samp>
 Coq < </samp><kbd>Check xorb_move_l_r_1.
 </kbd><samp>xorb_move_l_r_1
@@ -540,7 +540,7 @@ Unnamed_thm < </samp><kbd><a href="t-constr.html#left">left</a>; <a href="t-appl
 <dt><code>destruct <var>term</var> as <var>intropattern</var> _eqn:<var>ident</var></code></dt>
 <dd>
 <p><code><a href="#case_eq">case_eq</a></code> と同様に、場合分けする値に関する等式を前提に追加する。<var>ident</var> でその名前を指定する。</p>
-<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="http://coq.inria.fr/stdlib/Coq.Bool.Bool.html">Coq.Bool.Bool</a>.
 </kbd><samp>
 Coq < </samp><kbd>Check xorb_move_l_r_1.
 </kbd><samp>xorb_move_l_r_1
@@ -977,7 +977,7 @@ Unnamed_thm < </samp><kbd>reflexivity.
 <dt><code>inversion … as <var>intropattern</var></code></dt>
 <dd>
 <p>追加される前提の名前を指定して <code>inversion</code> する。名前の指定のしかたは <code>destruct … as …</code> と似ているが、<code>inversion</code> が取り出した条件 (等式) の名前も追加で指定する必要がある。条件の名前の指定は <code>injection … as …</code> に準ずる。名前が足りない場合は処理系が自動的に名前を選ぶので注意。</p>
-<pre><code><samp>Coq < </samp><kbd>Require Import <a href="//coq.inria.fr/stdlib/Coq.Lists.List.html">Coq.Lists.List</a>.
+<pre><code><samp>Coq < </samp><kbd>Require Import <a href="http://coq.inria.fr/stdlib/Coq.Lists.List.html">Coq.Lists.List</a>.
 </kbd><samp>
 Coq < </samp><kbd>Inductive list_in {A : Type} : A -> list A -> Prop :=
 </kbd><samp>Coq < </samp><kbd>| in_hd : forall a l, list_in a (a :: l)

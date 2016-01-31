@@ -309,7 +309,7 @@ Unnamed_thm < </samp><kbd><a href="t-induct.html#intros">intros</a>; discriminat
 </kbd><samp>Proof completed.</samp></code></pre>
 
 <h2 id="vector-1">Dependent inversion: vector その 1</h2>
-<p><code>vector</code> は <code><a href="//coq.inria.fr/stdlib/Coq.Bool.Bvector.html">Coq.Bool.Bvector</a></code> モジュールで定義されているリストデータ構造であり、以下のように定義されている。<code>vector <var>A</var> <var>n</var></code> は、要素の型が <code><var>A</var></code> で要素数が <code><var>n</var></code> の単方向連結リストを表す型である。</p>
+<p><code>vector</code> は <code><a href="http://coq.inria.fr/stdlib/Coq.Bool.Bvector.html">Coq.Bool.Bvector</a></code> モジュールで定義されているリストデータ構造であり、以下のように定義されている。<code>vector <var>A</var> <var>n</var></code> は、要素の型が <code><var>A</var></code> で要素数が <code><var>n</var></code> の単方向連結リストを表す型である。</p>
 <pre><code><samp>Inductive vector (A : Type) : nat -> Type :=
   | Vnil : vector A 0
   | Vcons : A -> forall n : nat, vector A n -> vector A (S n)</samp></code></pre>
@@ -431,7 +431,7 @@ Error: Abstracting over the terms "S n" and "v" leads to a term
 "fun (n0 : nat) (v : vector A n0) =>
  {a : A &  {v' : vector A n | v = Vcons A a n v'}}" which is ill-typed.</samp></code></pre>
 <p><code>dependent <a href="t-induct.html#inversion">inversion</a></code> タクティクはゴールの型に含まれる <code>n</code> と <code>v</code> を書き換えようとするが、書き換え後に <code>v = Vcons A a n v'</code> の左辺が持つ型が <code>vector A n0</code> であるのに対し右辺の型は <code>vector A (S n)</code> であるので、等式の型付けができなくなるのである。</p>
-<p><code>dependent destruction</code> タクティクは、両辺で型が異なる値の等式を表す述語 <code><a href="//coq.inria.fr/stdlib/Coq.Logic.JMeq.html">Coq.Logic.JMeq</a>.JMeq</code> を用いて式を書き換えることにより、このような型エラーを回避する。これを自前でやるとどのようになるか見てみよう。ポイントは、通常の等式 <code>eq</code> ではなく <code>JMeq</code> を <code>generalize</code> で導入する点である。場合分けの後二つ目のサブゴールでは、得られた等式 <code>n = n'</code> を利用して式を書き換えようとしているが、普通に <code>rewrite</code> タクティクを使おうとしてもうまくいかないので、いったん <code>v'</code> を前提からゴールに戻してから <code><a href="t-induct.html#case">case</a></code> タクティクで等式を分解する。<code>JMeq</code> を普通の等式に変換する際には公理 <code>JMeq_eq</code> が必要となる。</p>
+<p><code>dependent destruction</code> タクティクは、両辺で型が異なる値の等式を表す述語 <code><a href="http://coq.inria.fr/stdlib/Coq.Logic.JMeq.html">Coq.Logic.JMeq</a>.JMeq</code> を用いて式を書き換えることにより、このような型エラーを回避する。これを自前でやるとどのようになるか見てみよう。ポイントは、通常の等式 <code>eq</code> ではなく <code>JMeq</code> を <code>generalize</code> で導入する点である。場合分けの後二つ目のサブゴールでは、得られた等式 <code>n = n'</code> を利用して式を書き換えようとしているが、普通に <code>rewrite</code> タクティクを使おうとしてもうまくいかないので、いったん <code>v'</code> を前提からゴールに戻してから <code><a href="t-induct.html#case">case</a></code> タクティクで等式を分解する。<code>JMeq</code> を普通の等式に変換する際には公理 <code>JMeq_eq</code> が必要となる。</p>
 <pre><code><samp>Coq < </samp><kbd>Definition Vcons_inv : forall A n (v : vector A (S n)),
 </kbd><samp>Coq < </samp><kbd>  {a : A & {v' : vector A n | v = Vcons A a n v'}}.
 </kbd><samp>1 subgoal
