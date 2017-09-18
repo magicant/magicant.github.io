@@ -117,6 +117,8 @@ function UAIdentifier() {
 	} else if (typeof(opera) == "object"
 			&& (match = ua.match("Opera[/ ](\\d+\\.\\d+)"))) {
 		this.opera = match[1];
+	} else if (match = ua.match("OPR/(\\d+(\\.\\d+)*)")) {
+		this.opera = match[1];
 	} else if (this.ie || this.edge) {
 	} else if (match = ua.match("Epiphany/(\\d+(\\.\\d+)*)")) {
 		this.epiphany = match[1];
