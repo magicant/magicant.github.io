@@ -120,6 +120,8 @@ function UAIdentifier() {
 	} else if (match = ua.match("OPR/(\\d+(\\.\\d+)*)")) {
 		this.opera = match[1];
 	} else if (this.ie || this.edge) {
+	} else if (match = ua.match("Vivaldi/(\\d+(\\.\\d+)*)")) {
+		this.vivaldi = match[1];
 	} else if (match = ua.match("Epiphany/(\\d+(\\.\\d+)*)")) {
 		this.epiphany = match[1];
 	} else if (match = ua.match("Chrome/(\\d+(\\.\\d+)*)")) {
@@ -182,6 +184,8 @@ UAIdentifier.prototype.toString = function() {
 			r += ":" + this.ie;
 	} else if (this.edge) {
 		r += "Edge:" + this.edge;
+	} else if (this.vivaldi) {
+		r += "Vivaldi:" + this.vivaldi;
 	} else if (this.chrome) {
 		r += "Chrome:" + this.chrome;
 	} else if (this.safari) {
