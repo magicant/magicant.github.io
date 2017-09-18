@@ -55,7 +55,7 @@ function writeifn(obj) {
 ユーザエージェント判別
 </h1>
 <address id="about_this_document">
-© 2006-2012 Magicant / 1.15 (2012-11-11)
+© 2006-2017 Magicant / 1.17 (2017-09-18)
 </address>
 <noscript>
 <div><strong>
@@ -74,6 +74,12 @@ function writeifn(obj) {
 <th axis="判定要素" scope="row">Internet Explorer</th>
 <td><script type="text/javascript">
 writeif(uai.ie);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">Microsoft Edge</th>
+<td><script type="text/javascript">
+writeif(uai.edge);
 </script></td>
 </tr>
 <tr>
@@ -152,6 +158,12 @@ writeif(uai.trident);
 <th axis="判定要素" scope="row">Tasman</th>
 <td><script type="text/javascript">
 writeif(uai.tasman);
+</script></td>
+</tr>
+<tr>
+<th axis="判定要素" scope="row">EdgeHTML</th>
+<td><script type="text/javascript">
+writeif(uai.edgehtml);
 </script></td>
 </tr>
 <tr>
@@ -417,4 +429,5 @@ programed by Magicant
 2011-04-10 v1.14
 2011-04-26 v1.14.1
 2012-11-11 v1.15
+2017-09-18 v1.17
 -->

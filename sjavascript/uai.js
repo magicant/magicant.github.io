@@ -1,5 +1,5 @@
 // User Agent Identifier
-// Copyright (C) 2006-2013 Magicant (v1.16 2013-10-19)
+// Copyright (C) 2006-2017 Magicant (v1.17 2017-09-18)
 
 function UAIdentifier() {
 	if (typeof(navigator) != "object" || !navigator.userAgent) {
@@ -40,7 +40,7 @@ function UAIdentifier() {
 		}
 		return;
 	}
-	
+
 	/* for Trident/Tasman */
 	/*@cc_on
 	@if (@_jscript)
@@ -74,9 +74,23 @@ function UAIdentifier() {
 			this.ie = match[1];
 		}
 	@else @*/
+	if (match = ua.match("Trident/(\\d+(\\.\\d+)*)")) {
+		this.trident = match[1];
+		if (match = ua.match("\\([^(]*rv:(\\d+(\\.\\d+)*).*?\\)")) {
+			this.ie = match[1];
+		} else {
+			this.ie = true;
+		}
+	}
+	
+	/* for Edge */
+	else if (match = ua.match("Edge/(\\d+(\\.\\d+)*)")) {
+		this.edge = true;
+		this.edgehtml = match[1];
+	}
 	
 	/* for AppleWebKit */
-	if (match = ua.match("AppleWebKit/(\\d+(\\.\\d+)*)")) {
+	else if (match = ua.match("AppleWebKit/(\\d+(\\.\\d+)*)")) {
 		this.applewebkit = match[1];
 	}
 	
@@ -103,7 +117,7 @@ function UAIdentifier() {
 	} else if (typeof(opera) == "object"
 			&& (match = ua.match("Opera[/ ](\\d+\\.\\d+)"))) {
 		this.opera = match[1];
-	} else if (this.ie) {
+	} else if (this.ie || this.edge) {
 	} else if (match = ua.match("Epiphany/(\\d+(\\.\\d+)*)")) {
 		this.epiphany = match[1];
 	} else if (match = ua.match("Chrome/(\\d+(\\.\\d+)*)")) {
@@ -164,6 +178,8 @@ UAIdentifier.prototype.toString = function() {
 		r += "IE";
 		if (this.ie !== this)
 			r += ":" + this.ie;
+	} else if (this.edge) {
+		r += "Edge:" + this.edge;
 	} else if (this.chrome) {
 		r += "Chrome:" + this.chrome;
 	} else if (this.safari) {
@@ -193,6 +209,10 @@ UAIdentifier.prototype.toString = function() {
 		r += ",Tasman";
 		if (this.iec !== true)
 			r += ":" + this.tasman;
+	} else if (this.edgehtml) {
+		r += ",EdgeHTML";
+		if (this.edgehtml !== true)
+			r += ":" + this.edgehtml;
 	} else if (this.gecko) {
 		r += ",Gecko";
 		if (this.gecko !== true)

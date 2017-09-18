@@ -26,7 +26,7 @@
 UAIdentifier - JavaScript によるユーザエージェント判別
 </h1>
 <address id="about_this_document">
-© 2006-2012 Magicant / 1.15 (2012-11-11)
+© 2006-2017 Magicant / 1.17 (2017-09-18)
 </address>
 
 <p>
@@ -123,8 +123,8 @@ Mozilla Revision のバージョンは Mozilla のバージョンに続いて出
 各プロパティ
 </h3>
 <div class="code-definition"><code class="javascript">
-ie, mozilla, mozillarv, firefox, netscape, opera, safari, chrome, konqueror, epiphany, unknown,
-trident, tasman, gecko, presto, applewebkit,
+ie, edge, mozilla, mozillarv, firefox, netscape, opera, safari, chrome, konqueror, epiphany, unknown,
+trident, tasman, edgehtml, gecko, presto, applewebkit,
 win, winnt, mac, linux, bsd : string/boolean/undefined
 </code></div>
 <p>
@@ -165,6 +165,7 @@ UA&shy;Identifier が判別できる内容は以下の通りです。
 <dd>
 <ul>
 <li>Internet Explorer</li>
+<li>Microsoft Edge</li>
 <li>Mozilla</li>
 <li>Mozilla Firefox</li>
 <li>Netscape</li>
@@ -180,6 +181,7 @@ UA&shy;Identifier が判別できる内容は以下の通りです。
 <ul>
 <li>Trident (Windows 版 Internet Explorer 用エンジン)</li>
 <li>Tasman (Mac OS 版 Internet Explorer 用エンジン)</li>
+<li>EdgeHTML</li>
 <li>Gecko</li>
 <li>Presto (Opera 用エンジン)</li>
 <li>AppleWebKit</li>
@@ -227,6 +229,7 @@ UA&shy;Identifier が判別できる内容は以下の通りです。
 </thead>
 <tbody>
 <tr><td><code>ie</code></td><td>Internet Explorer</td><td>タイプ A</td></tr>
+<tr><td><code>edge</code></td><td>Microsoft Edge</td><td>タイプ E</td></tr>
 <tr><td><code>mozilla</code></td><td>Mozilla</td><td>タイプ A</td></tr>
 <tr><td><code>mozillarv</code></td><td>Mozilla Revision</td><td>タイプ B</td></tr>
 <tr><td><code>firefox</code></td><td>Firefox</td><td>タイプ B</td></tr>
@@ -240,6 +243,7 @@ UA&shy;Identifier が判別できる内容は以下の通りです。
 </tbody>
 <tbody>
 <tr><td><code>trident</code></td><td>Trident</td><td>タイプ A</td></tr>
+<tr><td><code>edgehtml</code></td><td>EdgeHTML</td><td>タイプ A</td></tr>
 <tr><td><code>tasman</code></td><td>Tasman</td><td>タイプ A</td></tr>
 <tr><td><code>gecko</code></td><td>Gecko</td><td>タイプ C</td></tr>
 <tr><td><code>presto</code></td><td>Presto</td><td>タイプ B</td></tr>
