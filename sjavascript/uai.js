@@ -1,5 +1,5 @@
 // User Agent Identifier
-// Copyright (C) 2006-2017 Magicant (v1.17 2017-09-18)
+// Copyright (C) 2006-2020 Magicant (v1.18 2020-08-01)
 
 function UAIdentifier() {
 	if (typeof(navigator) != "object" || !navigator.userAgent) {
@@ -83,7 +83,7 @@ function UAIdentifier() {
 		}
 	}
 	
-	/* for Edge */
+	/* for old Edge */
 	else if (match = ua.match("Edge/(\\d+(\\.\\d+)*)")) {
 		this.edge = true;
 		this.edgehtml = match[1];
@@ -120,6 +120,8 @@ function UAIdentifier() {
 	} else if (match = ua.match("OPR/(\\d+(\\.\\d+)*)")) {
 		this.opera = match[1];
 	} else if (this.ie || this.edge) {
+	} else if (match = ua.match("Edg/(\\d+(\\.\\d+)*)")) {
+		this.edge = match[1];
 	} else if (match = ua.match("Vivaldi/(\\d+(\\.\\d+)*)")) {
 		this.vivaldi = match[1];
 	} else if (match = ua.match("Epiphany/(\\d+(\\.\\d+)*)")) {
